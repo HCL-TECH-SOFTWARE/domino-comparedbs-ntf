@@ -1,0 +1,76 @@
+---
+class: 4
+flags: 0x0000
+unid: OFCC77DCEA4AC6CE55-ON0067A5B8852586E8
+items:
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: 34CiQv
+  - name: $FlagsExt
+    type: text
+    data: D
+    signed: true
+  - name: $ImageNames
+    type: text
+    data: dlgButton.png
+    signed: true
+  - name: $ImagesColorize
+    type: number
+    data: 0
+    signed: true
+  - name: $ImagesHigh
+    type: number
+    data: 1
+    signed: true
+  - name: $ImagesWide
+    type: number
+    data: 2
+    signed: true
+  - name: $MimeType
+    type: text
+    data: image/png
+    signed: true
+  - name: $Revisions
+    type: time
+    data: "2021-06-02T14:52:06.44-04:00"
+    dst: true
+  - name: $TITLE
+    type: text
+    data: dlgButton.png
+  - name: $WebBrowserCompatible
+    type: number
+    data: 1
+    signed: true
+  - name: $ImageData
+    type: composite
+    signed: true
+    nonsummary: true
+  - name: $ImageData0000
+    signed: true
+    nonsummary: true
+    type: opaque
+    type_num: 1
+    opaque: |
+      mQAcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAH0AHAAAAAgAAAAAAEsBAAABAAAAAAAAAAAAAAB8AFUB
+      AABLAUwBiVBORw0KGgoAAAANSUhEUgAAADAAAAAYCAYAAAC8/X7cAAABEklEQVRYhdXVMWrDMBjF8b90
+      oeLFIrvXQpsbhJTSLs3QzoUuLb5I79HxM4Qep+PL4ISEYBfHMZb0JhuB0Q/p+XNmJjKOAzAzlWUZey+j
+      4gEt/oJrmib2XkbFSZJzDsDleBIeQBKAQsjvJPzhIVeEP305ID4+Q50NQh0BVLwvMbOu5aTiJHXOgVyK
+      7fsWlEknegFwRPzc1jfJIobcM0D3NcsUOzEIILUIKKrUEIMB0h7xylNKiIsA0h5RkMwv9t8S93QGftF2
+      /fWdRLHHygHxwCb2SYwGSC3ibVWtYiJ6J/HQxJ7YF3fgPIo8sa8GwBHxGO6q2RFT3kdAPPMyZycmBUgt
+      Ys1mtjlxdYm7clrsqb99nh1O4+Wfgqg6zQAAAABJRU5ErkJgggA=
+  - name: $ImageData0001
+    signed: true
+    nonsummary: true
+    type: opaque
+    type_num: 1
+    opaque: |
+      mQAcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAH0AHAAAAAgAAAAAANEAAAABAAAAAAAAAAAAAAB8ANsA
+      AADRANIAiVBORw0KGgoAAAANSUhEUgAAADAAAAAYCAYAAAC8/X7cAAAAmElEQVRYhdXYSQrDMAwF0Ccf
+      Krn/MqdyNymUThkaaulvZAmBeFsHusKJtfbeazrasiwdERGbyxnTpmlSGdGgMqLdH1UR7bGpiGjPg2qI
+      FwC1EG8B1EF8BFAD8RVAfsQmgNyIXQDyInYDyIk4BCAf4jCAXIhTAPIgTgPIgfgJwHjEzwDGIi4BMA5x
+      GYAxiFgPXp55nsMfvmxup6ZdhtlVEoYAAAAASUVORK5CYIIA
+remaining: []

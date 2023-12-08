@@ -1,0 +1,495 @@
+---
+class: 512
+flags: 0x2000
+unid: OF6E86345DE9640BC3-ON007B23F6862586DB
+items:
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: s34Q
+  - name: $PublicAccess
+    type: text
+    data: "1"
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-09-16T12:02:36.49-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:55.96-05:00"
+        dst: true
+      - data: "2021-09-27T22:33:22.59-05:00"
+        dst: true
+      - data: "2021-11-11T17:02:39.09-06:00"
+      - data: "2021-11-11T17:02:39.13-06:00"
+      - data: "2021-11-18T10:15:07.28-06:00"
+      - data: "2021-11-18T10:15:07.31-06:00"
+      - data: "2021-11-29T13:33:06.52-05:00"
+      - data: "2021-11-29T13:33:06.53-05:00"
+      - data: "2021-11-29T13:33:43.50-05:00"
+      - data: "2021-11-29T13:33:43.51-05:00"
+      - data: "2021-11-29T13:36:38.02-05:00"
+      - data: "2021-11-29T13:36:38.04-05:00"
+      - data: "2021-11-29T13:49:42.00-05:00"
+      - data: "2021-11-29T13:49:42.08-05:00"
+      - data: "2021-11-29T13:50:52.61-05:00"
+      - data: "2021-11-29T13:50:52.68-05:00"
+      - data: "2021-11-29T13:51:38.95-05:00"
+      - data: "2021-11-29T13:51:39.03-05:00"
+      - data: "2021-11-29T13:53:01.41-05:00"
+      - data: "2021-11-29T13:53:01.49-05:00"
+      - data: "2021-11-29T13:54:10.72-05:00"
+      - data: "2021-11-29T13:54:10.80-05:00"
+      - data: "2021-11-29T13:55:29.17-05:00"
+  - name: $ScriptLib
+    type: text
+    data: |
+      '++LotusScript Development Environment:2:5:(Options):0:74
+      %REM
+      	Library QuickParse
+      	Created Dec 2, 2020 by Andre Guirard/USA/PNPHCL
+      	Description: Scan a string and flag sections of it with inserted characters to highlight certain portions.
+      		This uses a JSON description of the grammar as follows:
+      	
+      			[
+      				{ state: "stateName",
+      				  transitions: [ "stateName:matchstr", ... ]
+      			]
+      		
+      	© Copyright HCL Company, 2021
+      %END REM
+      Option Public
+      Option Declare
+      
+      
+      '++LotusScript Development Environment:2:5:(Forward):0:1
+      Declare Class QuickParse
+      Declare Private Class QPRule
+      Declare Private Class QPState
+      Declare Class QuickParseMacro As QuickParse
+      Declare Class QuickParseLS As QuickParse
+      
+      '++LotusScript Development Environment:2:5:(Declarations):0:10
+      Const QP_FLAGMODE_INNER = 1
+      Const QP_FLAGMODE_OUTER = 2
+      Const QP_FLAGMODE_WORD = 3
+      
+      Private Const QP_GRAMMAR_MACRO = _
+      |<states>
+      	<state name='def'> <!-- start of a normal code line -->
+      		<trans match="{" to="rem"/>
+      		<trans match='"' to="quote"/>
+      	</state>
+      	<state name='rem'> <!-- inside of curly braces -->
+      		<trans like='\?' to="rem"/>
+      		<trans match='}' to="def"/>
+      	</state>
+      	<state name='quote'> <!-- inside of double quotes -->
+      		<trans like='\?' to="quote"/>
+      		<trans match='"' to="def"/>
+      	</state>
+      </states>|
+      
+      Private Const QP_GRAMMAR_LOTUSSCRIPT = _
+      |<states>
+      	<state name='def'> <!-- start of a normal code line -->
+      		<trans match="'" to='lineComment' />
+      		<trans like="%rem[ \t]" flags="i" len='5' to='blockIn'/>
+      		<trans match="%rem\n" flags="i" to='block'/>
+      		<trans match='"' to='quoDbl' />
+      		<trans match='||' to='quoBar' />
+      		<trans match='{' to='quoCurly' />
+      		<trans match='_\n' to='defIn' />
+      		<trans match='%' to='lineComment'/>
+      		<trans like='[! \t\n]' len='1' to='defIn' />
+      	</state>
+      	<state name='defIn'> <!-- somewhere within normal code line -->
+      		<trans match='_\n' to='defIn'/>
+      		<trans match='\n' to='def'/>
+      		<trans match="'" to='lineComment' />
+      		<trans match='"' to='quoDbl' />
+      		<trans match='||' to='quoBar' />
+      		<trans match='{' to='quoCurly' />
+      	</state>
+      	<state name='lineComment'> <!-- ignore remainder of line -->
+      		<trans match='\n' to='def'/>
+      	</state>
+      	<state name='quoDbl'> <!-- inside of doublequotes -->
+      		<trans match='""' to='quoDbl'/>
+      		<trans match='"' to='defIn'/>
+      	</state>
+      	<state name='quoBar'> <!-- inside of vertical bar quotes -->
+      		<trans match='||||' to='quoBar'/>
+      		<trans match='||' to='defIn'/>
+      	</state>
+      	<state name='quoCurly'> <!-- inside of curly quotes -->
+      		<trans match='}}' to='quoCurly'/>
+      		<trans match='}' to='defIn'/>
+      	</state>
+      	<state name='blockIn'> <!-- within multiline comment, not at start of line -->
+      		<trans match='\n' to='block'/>
+      	</state>
+      	<state name='block'> <!-- within multiline comment, at start of line -->
+      		<trans like='[ \t\n]' len='1' to='block'/>
+      		<trans match='%end rem' flags='i' to='lineComment'/>
+      	</state>
+      </states>|
+      
+      %REM
+      Class QuickParse
+      	Description: A simple parser to identify literal strings and flag them with inserted characters.
+      		Constructor: New QuickParse(grammer$, callback as QPCallback)
+      		where grammar is a JSON description of the grammar. See design element comments for description of syntax.
+      		and callback is an object derived from the QPCallback class (or actually anything that implements the same methods as we don't check the type).
+      %END REM
+      Class QuickParse
+      	z_states List As QPState
+      	z_startState As QPState
+      	z_lookahead As Integer
+      	z_flagMode As Integer ' 0=no flagging, 1=inner, 2=outer, 3=word
+      	z_flagStart As String
+      	z_flagEnd As String
+      	z_flagState As String
+      	
+      	Public PauseOutput As Boolean
+      	Public Output As NotesStream
+      	Public Buffer As NotesStream
+      	Public State As String
+      	Public Updated As Boolean
+      	
+      	Sub New(ByVal grammar$)
+      		Dim ffrom, tto, elRoot As NotesDOMElementNode
+      		ffrom = Split("\\,\t,\n", ",")
+      		tto = Split({\,&#x9;,&#xa;}, ",")
+      		Dim ses As New NotesSession, states As NotesDOMNodeList, i%, aState As NotesDOMElementNode
+      		Dim domp As NotesDOMParser
+      		Set domp = ses.Createdomparser()
+      		On Error GoTo parseErr
+      		grammar =  Replace(grammar, ffrom, tto)
+      		domp.Parse grammar
+      		On Error GoTo 0
+      		Dim domdoc As NotesDOMDocumentNode
+      		Set domdoc = domp.Document
+      		Set elRoot = domdoc.Documentelement
+      		Set states = elRoot.Getelementsbytagname("state")
+      		z_lookahead = 1
+      		For i = 1 To states.NumberOfEntries
+      			Set aState = states.getItem(i)
+      			Dim nuState As New QPState(aState)
+      			If i = 1 Then Set z_startState = nuState
+      			Set z_states(nuState.name) = nuState
+      			If nuState.lookahead > z_lookahead Then z_lookahead = nuState.lookahead
+      		Next
+      		set me.Output = ses.Createstream
+      		Set me.Buffer = ses.Createstream
+      		Exit Sub
+      parseErr:
+      		MsgBox Error & " " & domp.Log
+      		MsgBox grammar
+      		exit sub
+      	End Sub
+      	
+      	%REM
+      		Function getBuffer
+      		Description: Read the buffer contents, leaving the pointer at the end.
+      		Arguments:
+      	%END REM
+      	Function getBuffer As String
+      		buffer.position = 0
+      		getBuffer = buffer.readtext
+      	End Function
+      	
+      	%REM
+      		Sub startBuffering
+      		Description: Start writing data to a buffer instead of directly to output.
+      		Arguments:
+      	%END REM
+      	Sub startBuffering
+      		PauseOutput = True
+      	End Sub
+      	
+      	%REM
+      		Sub EndBuffering
+      		Description: %TODO
+      		Arguments:
+      	%END REM
+      	Sub EndBuffering(ByVal andWrite As Boolean)
+      		PauseOutput = False
+      		If buffer.Bytes Then
+      			If andWrite Then
+      				buffer.Position = 0
+      				me.Output.WriteText buffer.readText
+      			End If
+      			buffer.Truncate
+      		End If
+      	End Sub
+      	
+      	%REM
+      		Sub AddText
+      		Description: append text to wherever text is going these days -- the output stream or the buffer.
+      		Arguments:
+      	%END REM
+      	Sub AddText(tex$)
+      		If PauseOutput Then buffer.Writetext(tex) Else me.output.writetext(tex)
+      	End Sub
+      	
+      	%REM
+      		Sub Parse
+      		Description: scan an input string and track the state, calling the callback functions for each state change 
+      		Arguments: inputString: text to be parsed.
+      			callback: object of type QPCallback or with the same methods/properties
+      	%END REM
+      	Sub Parse(inputString$)
+      		Dim elTrans As NotesDOMElementNode, i%, aRule As QPRule, nextState$, prevState$, match$, pos&
+      		Dim curState As QPState
+      		Set curState = z_startState
+      		State = curState.name
+      		nextState = State
+      		me.Output.Truncate
+      		me.buffer.truncate
+      		Updated = False
+      		pos = 1
+      		Do while pos <= Len(inputString)
+      			match = Mid$(inputString, pos, z_lookahead) ' most characters we might need to determine next state
+      			Set aRule = curState.matchRule(match)
+      			If aRule Is Nothing Then ' no state change, output and advance one character.
+      				addText Left$(match, 1)
+      				pos = pos + 1
+      			ElseIf State = aRule.dest Then
+      				' new state is same as old state (which happens when there's a sequence that might be a state change
+      				' except we looked farther ahead and saw it wasn't, like " could end a string literal in LS but "" means
+      				' keep going.
+      				addText Left$(match, aRule.len)
+      				pos = pos + aRule.Len
+      			Else  ' transition!
+      				Dim tmp$
+      				nextState = aRule.dest
+      				prevState = state
+      				Call Pre(nextState)
+      				state = nextState
+      				AddText Left$(match, aRule.len)
+      				pos = pos + aRule.len
+      				Call Post(prevState)
+      				Set curState = z_states(state)
+      			End If
+      		Loop
+      		nextState = ""
+      		Pre nextState
+      		If PauseOutput Then
+      			WriteFlaggedData
+      		End If
+      		me.output.position = 0
+      	End Sub
+      	
+      	%REM
+      		Sub WriteFlaggedData
+      		Description: %TODO
+      		Arguments:
+      	%END REM
+      	Private Sub WriteFlaggedData
+      		Dim tex$
+      		tex = getBuffer
+      		If Len(tex) Then ' never bother flagging an empty string
+      			If needsFlagging(tex) Then 
+      				If Len(z_flagStart) Then me.Output.Writetext z_flagStart
+      				me.Output.Writetext tex
+      				If Len(z_flagEnd) Then me.Output.Writetext z_flagEnd
+      				EndBuffering False
+      				Updated = True
+      				Exit Sub
+      			End If
+      		End If
+      		' if we reach this point we aren't flagging the string but we still want to emit it.
+      		EndBuffering True
+      	End Sub
+      	
+      	%REM
+      		Sub Pre
+      		Description: Called just before entry to a new state -- before the character that causes the state change is emitted.
+      		Arguments:
+      			nextState: the state we're moving to. This argument can be assigned to override that.
+      	%END REM
+      	Sub Pre(nextState$)
+      		If PauseOutput Then ' is it time to stop buffering and emit the buffered data?
+      			If (z_flagMode and 1) Then ' ending flag goes before the state changing sequence (e.g. inside of quotes)
+      				If Not nextState Like z_flagState Then ' the new state is one we don't flag so insert end flag
+      					WriteFlaggedData
+      				End If 
+      			End If
+      		ElseIf z_flagMode And 2 Then ' outer or word flagging includes the sequence we just encountered to change state
+      			If nextState Like z_flagState Then
+      				startBuffering
+      			End If
+      		End If
+      	End Sub
+      	
+      	%REM
+      		Sub Post
+      		Description: Called by QuickParse just after entry to a new state -- after character(s) that caused the state change are emitted.
+      		Arguments: prevState: the state we're switching from.
+      	%END REM
+      	Sub Post(ByVal prevState$)
+      		If PauseOutput Then ' is it time to emit the buffered data?
+      			If (z_flagMode = QP_FLAGMODE_OUTER) Then ' ending flag goes after the state changing sequence (e.g. outside of quotes)
+      				If Not state Like z_flagState Then ' the new state is one we don't flag so insert end flag
+      					WriteFlaggedData
+      				End If 
+      			End If
+      		ElseIf z_flagMode = QP_FLAGMODE_INNER Then
+      			If State Like z_flagState Then
+      				startBuffering
+      			End If
+      		End If
+      	End Sub
+      
+      	%REM
+      		Sub Flag
+      		Description: Set up to insert a character sequence before and after entry to a given state.
+      			Override needsFlagging to evaluate whether the text actually needs to be enclosed.
+      		Arguments:
+      			mode: may be
+      				QP_FLAGMODE_INNER to insert characters e.g. inside quotes, changing "hello" to "[hello]"
+      				QP_FLAGMODE_OUTER to insert characters before and after the state-change characters, e.g. change "5" to ("5")
+      				QP_FLAGMODE_WORD to enclose the character that causes the state change to but not the one that changes from this state,
+      					e.g. to change 7 to (7)
+      			state: state name to mateh ("like" wildcards ok)
+      			startSeq: characters to insert before
+      			endSeq: characters to add after.
+      	%END REM
+      	Sub Flag(ByVal mode%, state$, startSeq$, endSeq$)
+      		z_flagMode = mode
+      		z_flagState = state
+      		z_flagStart = startSeq
+      		z_flagEnd = endSeq
+      	End Sub
+      	
+      	%REM
+      		Function needsFlagging
+      		Description: %TODO
+      		Arguments:
+      		Return value:
+      	%END REM
+      	Function needsFlagging(szDat$) As Boolean
+      		needsFlagging = True
+      	End Function
+      End Class
+      
+      %REM
+      	Class QPRule
+      	Description: Represents a transition rule of the parser
+      %END REM
+      Private Class QPRule
+      	' whether to use "like" matching
+      	Public Like As Boolean
+      	Public match As String
+      	Public flags As Integer
+      	Public Len As Integer
+      	Public dest As String
+      	
+      	Sub New(elWut As NotesDOMElementNode)
+      		match = elWut.getAttribute("match")
+      		If match = "" Then
+      			me.Like = True
+      			match = elWut.getAttribute("like") & "*"
+      		End If
+      		If elWut.getattribute("flags") like "*i*" Then flags = 1 ' case insensitive
+      		dest = elWut.getAttribute("to")
+      		Dim tmp
+      		tmp = elWut.getAttribute("len")
+      		If tmp <> "" Then Me.len = CInt(tmp)
+      		If me.Len = 0 Then
+      			Me.Len = Len(match)
+      			If me.like Then Me.Len = me.Len - 1
+      		End If 
+      		If (1 = (flags And 1)) And me.like Then
+      			Dim ffrom(25) As String, tto(25) As String, i%, ch$
+      			For i = 0 To 25
+      				ch = Chr$(Asc("A") + i)
+      				ffrom(i) = ch
+      				tto(i) = "[" & ch & LCase(ch) & "]" 
+      			Next
+      			match = Replace(UCase(match), ffrom, tto)
+      		End If
+      	End Sub
+      	
+      	%REM
+      		Function isMatch
+      		Description: Given an input string, determine whether this rule matches the beginning of the string.
+      		Return value: true if it is a match
+      	%END REM
+      	Function isMatch(x$) As Boolean
+      		If me.like Then
+      			isMatch = x Like me.match
+      		Else
+      			isMatch = (0 = StrComp(Left$(x, me.len), match, flags))
+      		End If 
+      	End Function
+      End Class
+      
+      
+      %REM
+      	Class QPState
+      	Description: Represents a state in the parser.
+      %END REM
+      Private Class QPState
+      	Public Name As String
+      	Public lookahead As Integer
+      	Public rules() As QPRule
+      	
+      	Sub New(elState As NotesDOMElementNode)
+      		lookahead = 1
+      		me.Name = elState.getAttribute("name")
+      		Dim nl As NotesDOMNodeList, elTrans As NotesDOMElementNode, i%
+      		Set nl = elState.getelementsByTagName("trans")
+      		ReDim rules(0 To nl.NumberOfEntries-1)
+      		For i = 1 To nl.NumberOfEntries
+      			Set elTrans = nl.getItem(i)
+      			Dim aRule As New QPRule(elTrans)
+      			Set rules(i-1) = aRule
+      			If aRule.len > lookahead Then lookahead = aRule.len
+      		Next
+      	End Sub
+      	
+      	%REM
+      		Function matchRule
+      		Description: Given the input string, see whether any rule for this state matches the input.
+      		Arguments: x: input string
+      		Return value: the matching rule, or Nothing if no match.
+      	%END REM
+      	Function matchRule(x$) As QPRule
+      		Dim i%, aRule As QPRule
+      		For i = 0 To UBound(rules)
+      			Set aRule = rules(i)
+      			If aRule.isMatch(x) Then
+      				Set matchRule = aRule
+      				Exit Function
+      			End If
+      		Next
+      	End Function
+      End Class
+      %REM
+      	Class QuickParseMacro
+      	Description: %TODO
+      %END REM
+      Class QuickParseMacro As QuickParse
+      	Sub New, QuickParse(QP_GRAMMAR_MACRO)
+      	End Sub
+      End Class
+      %REM
+      	Class QuickParseLS
+      	Description: Basic parser for LotusScript code.
+      %END REM
+      Class QuickParseLS As QuickParse
+      	Sub New, QuickParse(QP_GRAMMAR_LOTUSSCRIPT)
+      	End Sub
+      End Class
+    signed: true
+    nonsummary: true
+  - name: $TITLE
+    type: text
+    data: QuickParse
+    signed: true
+remaining: []

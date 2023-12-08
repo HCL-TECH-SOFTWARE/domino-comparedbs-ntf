@@ -1,0 +1,55 @@
+---
+class: 32784
+flags: 0x0000
+unid: OF88D427AD6C63BE62-ON007FBC4286258669
+items:
+  - name: $Daos
+    type: text
+    data: "0"
+  - name: $DefaultFrameset
+    type: text
+    data: MainFrameset
+  - name: $Flags
+    type: text
+    data: 7JF
+  - name: $FlagsNoRefresh
+    type: text
+    data: t
+  - name: $LargeSummary
+    type: text
+    data: "0"
+  - name: $LaunchXPageRunOnServer
+    type: text
+    data: "0"
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-01-26T17:15:12.70-06:00"
+      - data: "2021-02-11T14:22:44.64-06:00"
+      - data: "2021-05-18T09:55:27.34-04:00"
+        dst: true
+      - data: "2021-05-18T09:55:27.35-04:00"
+        dst: true
+      - data: "2021-06-01T12:52:07.03-05:00"
+        dst: true
+  - name: $TITLE
+    type: text
+    data: |
+      CompareDBs Reports (12)
+      #1HCL Compare DBs
+  - name: IconBitmap
+    type_num: 6
+    type: opaque
+    opaque: |
+      AiAgAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      AAAAAAAAAAAAAAAAAAChERERERERERERERERERHqEdra2tra2tra2tqtqtraeh2tra2tra2tra2tra2t
+      quEa3a2tra2tra2tra2q2q2hHa2t2tra2tra2trara2toR2tra2tra2v/v7+/v2traEdrdra2tra0RER
+      ERER2q2hHa2tra2trfGtra2tofra0Rra2t/////x3a2traF62qEd2t8RERERER6tra2n6trRGtrfHa2t
+      2toXra2tof2toRra3xrdra2tH63x2tH62tEd3a8d2tra2hevH62h/a2hHa2nHa2tra0f8f7e4fra0Rp6
+      3x2tH92tHxERERH9raEd2t8a2hH62h/x/t/R+trRGtrfH97RF60f3xetof2toR2n3xERERGtH9px2tH6
+      2tEa3a8d/9ER3Retra2h/a2hHdp/Gnpx+tofra2t0fra0Rp63xetEd2tH9rdraF9raEaen8dp62trR/a
+      2trR+trRF62vGnrdrdoREREREXra0R16fx36et2nH/9/f3+traEa398a3a3a2hfdra2trdrRHf2nERER
+      EREfra3a3a2toRp6en9/9/9xenp62tra2uEd/f3aenp6etp62t2t2trRF6enp6enp6enp6etra3a0R2n
+      p6et2np6enra2t2traGv/f3t563t2t2t7a3a7a3xERERERERERERERERERERHg==
+remaining: []

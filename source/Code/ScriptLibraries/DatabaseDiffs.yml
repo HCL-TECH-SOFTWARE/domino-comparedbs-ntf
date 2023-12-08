@@ -1,0 +1,3463 @@
+---
+class: 512
+flags: 0x2000
+unid: OF21FAA0A923277579-ON007ADDAF862586DB
+items:
+  - name: $Comment
+    type: text
+    data: Class to support running a diff on two database designs or contents via DXL.
+    signed: true
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: 34Qs
+  - name: $PublicAccess
+    type: text
+    data: "1"
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-11-29T13:20:36.05-05:00"
+      - data: "2022-03-21T13:46:26.49-04:00"
+        dst: true
+  - name: $ScriptLib
+    type: text
+    data: |
+      '++LotusScript Development Environment:2:5:(Options):0:74
+      %REM
+         © Copyright HCL Company, 2021
+         
+      	Library DatabaseDiffs
+      	Created by Andre Guirard
+      	Description: Generate output files showing the design of a pair of databases
+      		(or output just one at a time), using DXL and splitting out any embedded
+      		files as separate files (e.g. gif image resources are written to disk as
+      		separate gif files). This is in aid of using a "diff" tool to compare two
+      		designs, so we strip out some trivial differences nobody cares about.
+      		Some of these adjustments are optional.
+      %END REM
+      Option Public
+      Option Declare
+      
+      Use "TempFolderManager"
+      Use "ObjectSortedCollection"
+      Use "UIUtils"
+      Use "DOMUtils"
+      Use "PrettyPrinter"
+      Use "ProgressBar"
+      Use "CDRecord"
+      Use "DesignUtils"
+      Use "LSParser"
+      Use "QuickParse"
+      Use "Resources"
+      Use "PairMatcher"
+      Use "RecursiveFileSearch"
+      
+      '++LotusScript Development Environment:2:5:(Forward):0:1
+      Declare Class DatabaseDiffs
+      Declare Private Class DDDesignElem
+      Declare Private Class ExportItem
+      Declare Private Class QPLSFlagger As QuickParseLS
+      Declare Private Class QPMacroFlagger As QuickParseMacro
+      Declare Class StableDOMNodeList As ObjectListLite
+      Declare Private Class exportPair
+      Declare Private Class NoteCompareInfo
+      Declare Sub Initialize
+      Declare Function looksTranslatable(tex$) As Boolean
+      Declare Private Function ctrlSub(szIn$, ByVal szReplacement$) As String
+      Declare Function fex(ByVal iVal&) As String
+      Declare Function FileSafeName(x$) As String
+      Declare Function FexEncode(ByVal szArc$) As String
+      Declare Function FilenameFlags(detype$, doc As NotesDocument) As String
+      
+      '++LotusScript Development Environment:2:5:(Declarations):0:10
+      
+      Const MSG_EXPORTFAILURE = "EXPORT FAILURE on {0:dbfilepath}" & NEWLINE & "You will have to examine these elements manually."
+      Const MSGTITLE_EXPORTFAILURE = "EXPORT FAILURE"
+      Const MSG_EXPORTFAILUREPATH = ""
+      Const MSG_DOCCOMPDISABLED = "!!! Document comparison disabled. !!!"
+      Const MSG_DOCCOUNT = "Documents: {0:docCount}"
+      Const MSG_NONOTES = " No notes found."
+      Const MSG_PATHLABEL = "Path: "
+      Const UNTITLED = "Untitled"
+      Const HEADING_SIGNATURES = "Signatures"
+      
+      Private Const SINGLETON_TITLES = _
+      {Database|acl
+      Icon|icon
+      Shared Actions|sharedactions
+      Help About|helpabout
+      Help Using|helpusing}
+      
+      'Begin DNT
+      Const DOCSORT_KEY = 0
+      Const DOCSORT_VIEW = 1
+      Const DOCSORT_UNID = 2
+      
+      Const DDIF_OPT_SIGN 		= "sign" '  whether to include signing information
+      Const DDIF_OPT_UNIDS		= "unids" ' whether to include UNIDs in the export data.
+      Const DDIF_OPT_LANGUAGE		= "language" ' whether to export language attribute and add language to filename.
+      Const DDIF_OPT_SIGNBIT 	= "signbit" ' whether to remove the 'sign' attribute from item elements.
+      Const DDIF_OPT_MODTIME		= "time" ' whether to skip exporting notes whose timestamp is the same as the matching note.
+      Const DDIF_OPT_LSCAP		= "lscap" ' whether to correct the capitalization of LotusScript keywords.
+      Const DDIF_OPT_PRETTYPRINT	= "pretty" ' whether to 'pretty print' XML output
+      Const DDIF_OPT_FROMTEMPLATE= "fromtemplate" ' whether to remove 'fromtemplate' attribute of design elements
+      Const DDIF_OPT_PROPERTIES  = ".properties" ' whether to export/compare hidden .properties files.
+      Const DDIF_OPT_DOCUMENTS = "docs" ' whether to export/compare documents.
+      Const DDIF_OPT_HILITE_STRINGS = "flagStrings" ' whether to insert markers into every string
+      
+      ' flags for what to strip from rich text 
+      Const DDIF_OPTRT_FORMAT	= "RTNoFormat" ' We don't care how text is formatted, or table and cell widths.
+      Const DDIF_LEVRT_CONTAINER	= "RTNoContainer" ' Strip information about containers (divs, tables, sections).
+      Const DDIF_LEVRT_TEXT		= "RTNoText" ' Remove all static text "runs", leaving only code and fields and buttons and so on.
+      Const DDIF_LEVRT_COPYHIDE	= "RTCopyHide" ' Take the hide attributes from pardefs and copy them to the fields and buttons.
+      
+      ' from views.
+      Const DDIF_LEVVU_LOOK		= "VuNoFmt" ' remove view colors, column widths, etc.
+      
+      Const ITEM_DBNAME = "DbName"
+      Const ITEM_TYPE = "Type"
+      Const ITEM_CREATED = "Created"
+      Const ITEM_MODIFIED = "Modified"
+      Const ITEM_UNID = "UNID"
+      Const ITEM_TITLE = "Title"
+      Const ITEM_DOLLAR_TITLE = "$TITLE"
+      Const ITEM_MODIFIEDBY = "ModifiedBy"
+      Const ITEM_DOLLAR_UPDATEDBY = "$UpdatedBy"
+      
+      Const TEMPLATE_DBSYNOPSIS = "designsynopsis.ntf"
+      
+      Private Const NAMETYPE_PROPERTIES = 4
+      Private Const NAMETYPE_XPAGE = 3
+      Private Const NAMETYPE_FREE = 2
+      Private Const NAMETYPE_FORM = 1
+      Private Const NAMETYPE_DOC = 5
+      
+      Private GattrsToDelete List As Variant ' key=element tag, value=array of attributes to trash.
+      Private GelemsToDelete
+      Private GelemsToFlatten
+      Private GelemsToRemoveTextFrom
+      Private GRtfFontAttrCut As Variant
+      
+      ' when deleting formatting, what attributes should we remove from a given tag? In form tag:attrname1,attrname1...
+      Private Const ELEM_FORMAT_ATTRS = _
+      {table:refwidth,minrowheight,rowspacing,columnspacing,cellborderstyle,cellbordercolor,colorstyle,bgcolor,altbgcolor,leftmargin,rightmargin,r4spacing,rowdisplay,rowtimer,sizetabsequally,firsttabindent,tablocation,outsidewrap,insidewrap,insidewrapheight
+      tablecell:refwidth,colorstyle,altbgcolor,valign,borderwidth,transition
+      picture:align,scaledheight,scaledwidth,width
+      field:bgcolor}
+      
+      ' what about when deleting all static text?
+      Private Const ELEM_STATICTEXT_ATTRS = _
+      {picture:alttext
+      field:fieldhint,fieldhelp}
+      
+      ' when deleting formatting, what elements do we simply delete from rich text?
+      Private Const FORMAT_ELEMENTS_DELETE = {tablerowstyle,font,cellbackground,tablecolumn}
+      ' when deleting formatting, what elements do we flatten (replace with their contents)?
+      Private Const FORMAT_ELEMENTS_FLATTEN = {run}
+      
+      ' If deleting all static text, same questions...
+      Private Const TEXT_ELEMENTS_DELETE = {run,border,sectiontitle,horizrule,nonxmlchar}
+      Private Const TEXT_ELEMENTS_FLATTEN = {table,tablerow}
+      ' if deleting all static text, what should we delete text children from and flatten?
+      Private Const TEXT_CONTAINERS = {span,region,par,tablecell,section,block}
+      
+      Private Const THINGS_YOU_CAN_HIDE = {attachmentref,button,computedtext,popup,javaapplet,actionhotspot,objectref,field,sharedfieldref,picture,anchor,embeddedcontrol,embeddeddatepicker,embeddedfileuploadcontrol,embeddedfolderpane,embeddednavigator,embeddedoutline,embeddedview,imagemap,namedelementref}
+      
+      Private Const LSCRIPT_HEADER = {'+} + {+LotusScript Development Environment:}
+      
+      Private Const ICONFLAG_EXPLAIN = {a:LAUNCH_APP
+      A:MAILBOX
+      b:ADDRESS_BOOK
+      B:LIGHT_ADDRESS_BOOK
+      c:SHOW_CHANGED_POLICY
+      d:LAUNCH_DOCLINK
+      F:LAUNCH_FRAMESET
+      ?:LAUNCH_XPAGE
+      f:NO_STORED_FORMS
+      g:LIBRARY
+      i:DEFERRED_LOADED_IMAGES
+      j:PERSONALJOURNAL
+      k:LAUNCH_COMPAPP_PAGE
+      l:LAUNCH_NAVIGATOR
+      m:SEARCH_SCOPE_TYPE
+      n:NEVER_SHOW_POLICY
+      o:CHFLAG_LAUNCH_OUTLINE
+      p:ALWAYS_SHOW_POLICY
+      r:MAILFILE
+      s:SOLO_NAVIGATOR
+      u:SITEDB
+      v:NO_SHOW_VIEW
+      W:LAUNCH_WEBPAGE
+      w:PREVIEW_PANE_BIGFOLDER
+      x:PREVIEW_PANE_SMALLVIEW
+      y:PREVIEW_PANE_MAXIMIZED
+      D:WEB_LAUNCH_DOCLINK
+      L:WEB_LAUNCH_NAVIGATOR
+      P:WEB_ALWAYS_SHOW_POLICY
+      T:WEB_LAUNCH_DOCLINK
+      V:WEB_LAUNCH_VIEW
+      J:WEB_JAVASCRIPT
+      X:WEB_SSL
+      E:WEB_LAUNCH_PAGE
+      !:WEB_LAUNCH_XPAGE
+      S:WEB_LAUNCH_FRAMESET
+      K:RESTORE_VIEW
+      M:MULTILINGUAL
+      C:ALLOW_DECS
+      z:NOUNREAD_MARKS
+      1:DISABLE_RESPONSE_INFO
+      2:FORM_BUCKET
+      3:MAINTAIN_LAST_ACCESSED
+      4:SOFT DELETE
+      5:DOC LOCKING
+      6:DESIGN_LOCKING
+      7:LARGE_UNKTABLE
+      8:HIDE_FROM_WEB
+      9:IS_WEBAPPLICATION
+      e:REFRESH_ON_ADMIN
+      G:COPY_PROFILES
+      Z:LZ1
+      Q:REPL_UNREAD_CLUSTERED
+      U:REPL_UNREAD_EVERYWHERE
+      h:TRACK_REPLYFORWARD
+      O:OOS_ENABLED
+      H:RESP_THREADS
+      I:THEMES
+      q:COMPRESS_DESIGN
+      N:COMPRESS_DOCS
+      0:DISABLE_AUTO_VIEW_UPDS
+      R:REPLACE_SPECIAL
+      }
+      
+      Const DNRFLAG_EXPLAIN = {
+      t:ADVANCED_TEMPLATE
+      s:SINGLE_COPY_TEMPLATE
+      r:DONTTRACK_REPLYFORWARD
+      f:DOTRACK_REPLYFORWARD
+      v:REPLUNREAD_NEVER
+      Q:REPLUNREAD_CLUSTERED
+      U:REPLUNREAD_EVERYWHERE
+      }
+      
+      Private Const DESELEMTYPES = {action,agent,applet,column,component,composite application,custom control,data connection,databasescript,db2 access view,} _
+      & {file,folder,form,frameset,hidden file,icon,image,libraryonly=library,navigator,outline,page,profile,shared field,stylesheet,subform,theme,view,} _
+      & {web service consumer,web service,wiring properties,xpage}
+      
+      ' a list of element names of things in rich text that contain translatable text. The entries are of the form elementname:attr1,attr2, with "*"
+      ' meaning to look for text nodes which are children of the element.
+      Private Const RTF_STRING_ELEMENTS = _
+      {run:*
+      text:*
+      par:*
+      tablecell:*
+      popuptext:*
+      button:*
+      popuptext:*
+      tablerow:tablabel
+      field:description,htmltitle,fieldhint
+      keywords:*
+      columnheader:title}
+      
+      Private Const NOTE_STRING_ELEMENTS = _
+      {action:title}
+      
+      Private Const TRANSLATION_STOPWORDS = {ReCache NoCache}
+      
+      Const FONT_ATTR_REPLACEMENTS = {style=,size=,name=}
+      
+      Private Const ITEMS_TO_IGNORE = _
+      {$$ScriptName
+      $AssistAction_error
+      $AssistInfo
+      $AssistRunInfo
+      $CacheDocVersion
+      $ClassName
+      $SourceDbPath
+      $SourceSeqTime
+      $SourceSequence
+      $SourceURL
+      $FileModDT
+      $FileSize
+      $LastBuildTime
+      $POID
+      $Writers
+      $WritersDate
+      $SubForm_RepIDs
+      $FileModDT
+      $FileSize
+      $ScriptName
+      $$ScriptName
+      $AssistAction_error
+      TmpViewDesignCollation
+      $LastBuildTime
+      $ScriptName
+      $SubForm_RepIDs
+      $Writers
+      $WritersDate
+      OriginalModTime
+      RLANItems}
+      Private Const FILE_TYPE_ELEMENTS = {file image stylesheet xpage customcontrol theme applet}
+      
+      Private GkillFields List As Integer
+      Private GStopWords As Variant
+      Private GcreatedDirs List As Integer
+      Private GDecimal As String
+      Private GRtfStringElements List As String
+      Private GNoteStringElements List As String
+      Private GLSFlagger As QPLSFlagger
+      Private GMacroFlagger As QPMacroFlagger
+      %REM
+      	Class DatabaseDiffs
+      	Description: Export and compare DXL of two databases. The comparison is done by an
+      		external tool. The reason we don't just have a database exporter that takes a
+      		single database, is that we do some comparison of design elements before export
+      		to determine matching filenames for matching elements.
+      	Constructor: New DatabaseDiffs(bProgressBar As Boolean)
+      		bProgressBar is true if we are to display a progress bar during export.
+      %END REM
+      Class DatabaseDiffs
+      	z_ses As NotesSession
+      	z_progress As ProgressBar
+      	z_showProgress As Boolean
+      	z_options List As Boolean
+      	Public runcompact As Integer
+      	
+      	'design element DXL root element names that signify a design element that's basically just a container for a text file (e.g. stylesheet).
+      	z_domdoc As NotesDOMDocumentNode
+      	z_toBeExported As ObjectCollection
+      	z_totalWork As Long
+      	z_exportFailed As String
+      	z_usedFilenames List As Integer ' key=e.g. "image/foo.gif", value unused
+      	z_bComparing As Boolean
+      	Public docTitleFormula As String
+      	Public dbSynopsis As NotesDatabase
+      	
+      	Sub New(ByVal bProgress As Boolean)
+      		On Error GoTo ERRHANDLE
+      		z_showProgress = Bprogress
+      		Set z_ses = New NotesSession
+      		IgnoreItems Split(ITEMS_TO_IGNORE, NEWLINE)
+      		runcompact = 2 ' by default use most compact notation for text runs.
+      		z_options(DDIF_OPT_PRETTYPRINT) = True ' reformat XML to a consistent indentation.
+      		DocTitleFormula = {@Text(@DocumentUniqueID)}
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Function getUniqueFilename
+      		Description: Given a "base name" of a proposed filename for a DXL output file (i.e. without the XML suffix)
+      			determine whether the name has been used and if so, return a name with numeric suffix that makes it unique.
+      		Arguments: proposedName: e.g. "image/blank.gif"
+      		Return value: unique name based on the argument, e.g. "image/blank_2.gif" if the proposed name was already used.
+      			Often return value = proposedName
+      	%END REM
+      	Function getUniqueFilename(detype$, ByVal proposedName$) As String
+      		Dim lcname$, prefix$, suffix$, i%, candidate$
+      		lcname = LCase(proposedName)
+      		If Not IsElement(z_usedFilenames(lcname)) Then
+      			getUniqueFilename = proposedName
+      			z_usedFilenames(lcname) = 1
+      		Else
+      			prefix = proposedName
+      			If detype <> "" And InStr(proposedName, ".") Then
+      				If InStr(detype, FILE_TYPE_ELEMENTS) Then
+      					prefix = StrLeftBack(Proposedname, ".")
+      					suffix = Mid$(proposedname, Len(prefix)+1)
+      				End If
+      			End If
+      			For i = 2 To 10000
+      				candidate = prefix & {_} & i & suffix
+      				If Not IsElement(z_usedFilenames(LCase(candidate))) Then Exit For
+      			Next
+      			z_usedFilenames(LCase(candidate)) = 1
+      			getUniqueFilename = candidate
+      		End If
+      	End Function
+      	
+      	%REM
+      		Sub IgnoreItems
+      		Description: Set which items are to be deleted from documents before comparison.
+      	%END REM
+      	Sub IgnoreItems(items)
+      		On Error GoTo ERRHANDLE
+      		If IsArray(items) Then
+      			ForAll a In items
+      				If a <> "" Then GkillFields(a) = 1
+      			End ForAll
+      		Else
+      			GkillFields(items) = 1
+      		End If
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      
+      	%REM
+      		SET Options
+      		Description: Assign the option values associated with the export.
+      	%END REM
+      	Public Property Set Options As Variant
+      		Dim i%, anopt$
+      		On Error GoTo ERRHANDLE
+      		'Print debugstr(Options)
+      		On Error 13 Resume Next ' ignore type mismatch.
+      		If IsArray(options) Then
+      			For i = 0 To UBound(options)
+      				anopt = options(i)
+      				If anopt <> "" Then
+      					z_options(anopt) = True
+      				End If
+      			Next
+      		Else
+      			Options = Split(Options, ",")
+      		End If
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		Property Get IsOpt
+      		Description: Return True if a specified option has been enabled.
+      	%END REM
+      	Public Property Get IsOpt(key$) As Boolean
+      		On Error GoTo ERRHANDLE
+      		If IsElement(z_options(key)) Then
+      			IsOpt = z_options(key)
+      		End If
+      		' if no key return default False.
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		Function RegisterToExport
+      		Description: call this to get the collection of design elements that will be
+      			exported. This is done so we can estimate the total work and display a
+      			single progress bar.
+      		Arguments:
+      			db: database to export
+      			originalPath: path of database being exported, which may differ from db's path in cases where
+      				db is a temporary copy of the database at this path.
+      			fpath: export output filepath
+      			bLeft: true if this is the left/before database in a comparison.
+      			bDoc: true if we are exporting to Notes documents
+      	%END REM
+      	Sub RegisterToExport(db As NotesDatabase, ByVal originalPath$, ByVal fpath$, ByVal bLeft As Boolean, ByVal bDoc As Boolean)
+      		On Error GoTo oops
+      		If Not bLeft Then z_bComparing = True
+      		Dim nnc As NotesNoteCollection, nnc2 As NotesNoteCollection, ei As ExportItem
+      		Set nnc = db.Createnotecollection(False)
+      		nnc.Selectalldesignelements True
+      		If IsOpt(DDIF_OPT_PROPERTIES) Then
+      			nnc.Selectionformula = {@If($TITLE = "$DBIcon":"WEB-INF/xsp.properties"; @True; $Flags = "X"; @False; !@Contains($Flags; "~"); @True; @Matches($Flags; "*;*|*g*K*|*K*g*"))}
+      		Else
+      			nnc.Selectionformula = {@If($TITLE = "$DBIcon":"WEB-INF/xsp.properties"; @True; $Flags = "X"; @False; !@Contains($Flags; "~"); @True; @Matches($Flags; "*;*|*g*K*|*K*g*") & !@Ends($TITLE; ".properties"))}
+      		End If
+      		nnc.Buildcollection
+      		Set nnc2 = db.Createnotecollection(False)
+      		If IsOpt(DDIF_OPT_DOCUMENTS) Then
+      			nnc2.Selectdocuments = True
+      		End If
+      		nnc2.Selectprofiles = True ' profile documents aren't optional for export.
+      		nnc2.Selectionformula = {!@Begins($Name; "$profile_012breakpoints_")}
+      		nnc2.Selectacl = True
+      		nnc2.Buildcollection
+      		nnc.Add nnc2
+      		
+      		Set ei = New ExportItem(db, originalPath, nnc, fpath, bDoc)
+      		ei.bLeft = bLeft
+      		If z_toBeExported Is Nothing Then
+      			Set z_toBeExported = New ObjectCollection
+      		End If
+      		z_toBeExported.add ei
+      		z_totalWork = z_totalWork + nnc.Count
+      		Exit Sub
+      oops:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub ExportRegisteredDBs
+      		Description: Export the databases that were previously queued up.
+      	%END REM
+      	Sub ExportRegisteredDBs
+      		On Error GoTo oops
+      		Dim ei As ExportItem, ei2 As ExportItem, i%
+      		If z_toBeExported Is Nothing Then Exit Sub
+      		If isOpt(DDIF_OPT_HILITE_STRINGS) Then
+      			If GLSFlagger Is Nothing Then Set GLSFlagger = New QPLSFlagger
+      			If GMacroFlagger Is Nothing Then Set GMacroFlagger = New QPMacroFlagger
+      		End If
+      		If z_showProgress Then Set z_progress = New ProgressBar(z_totalWork, True) 'CreateProgressBar(z_totalWork, True)
+      		If z_bComparing Then
+      			For i = 1 To z_toBeExported.count Step 2
+      				Set ei = z_toBeExported.objs(i)
+      				Set ei2 = z_toBeExported.objs(i+1)
+      				Call export2DBs(Ei, Ei2)
+      				If Len(z_exportFailed) Then
+      					MsgBox Replace(MSG_EXPORTFAILURE,"{0:dbfilepath}", ei.db.filepath) & NEWLINE & z_exportFailed, 0, MSGTITLE_EXPORTFAILURE
+      				End If
+      				
+      			Next
+      		Else
+      			For i = 1 To z_toBeExported.count
+      				Set ei = z_toBeExported.objs(i)
+      				ExportDB ei
+      				If Len(z_exportFailed) Then
+      					MsgBox Replace(MSG_EXPORTFAILURE,"{0:dbfilepath}", ei.db.filepath) & NEWLINE & z_exportFailed, 0, MSGTITLE_EXPORTFAILURE
+      				End If
+      			Next
+      		End If
+      		Finish
+      		Exit Sub
+      oops:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub ExportElementLists
+      		Description: Instead of exporting the queued databases in full, just export a list of the design elements in them.
+      		Arguments:
+      	%END REM
+      	Sub ExportElementLists
+      		On Error GoTo oops
+      		Dim ei As ExportItem, i%, k%, fn%, nnc As NotesNoteCollection, types, docElem As NotesDocument, signer$, title$, szLines$, strId$, lines
+      		types = Split(DESELEMTYPES, ",")
+      		
+      		fn = FreeFile
+      		If z_toBeExported Is Nothing Then Exit Sub
+      		For i = 1 To z_toBeExported.count
+      			Set ei = z_toBeExported.objs(i)
+      			MakeDir ei.fpath
+      			Open ei.fpath & "elements.txt" For Output As fn charset="UTF-8"
+      			ForAll aType In types
+      				Set nnc = ei.db.Createnotecollection(False)
+      				SetSelection nnc, StrToken(aType, {=}, 1)
+      				nnc.Buildcollection
+      				strId = nnc.Getfirstnoteid
+      				szLines = ""
+      				Do Until strId = ""
+      					Set docElem = ei.db.Getdocumentbyid(strId)
+      					title = Join(docElem.Getitemvalue("$TITLE"), "|")
+      					If title = "" Then title = "(untitled)"
+      					signer = docElem.Signer
+      					If signer <> "" Then signer = " (" & nameabbr(signer) & ")"
+      					szLines = szLines & NEWLINE & UCase(StrToken(aType, "=", -1)) & " " & title & signer
+      					strId = nnc.Getnextnoteid(strId)
+      				Loop
+      				If Len(szLines) Then
+      					lines = Split(szLines, NEWLINE)
+      					GCU.SimpleSortStrings lines, 1
+      					ForAll aLine In lines
+      						Print #fn, aLine
+      					End ForAll
+      				End If
+      			End ForAll
+      			Print #fn, Replace(MSG_DOCCOUNT, "{0:docCount}", ei.db.Alldocuments.Count)
+      			Close fn
+      		Next
+      		Finish
+      		Exit Sub
+      oops:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      		
+      	End Sub
+      	
+      	%REM
+      		Sub export2DBs
+      		Description: Export a pair of databases for comparison purposes. This matches up the notes first and assigns them unique
+      			but matching filenames as it exports them a pair at a time.
+      	%END REM
+      	Sub export2DBs(eiSrc As ExportItem, eiTarg As ExportItem)
+      		On Error GoTo oops
+      		Dim eipair As New exportPair(Me, eiSrc, eiTarg)
+      		Dim bTimes As Boolean, docSrc As NotesDocument, docTarg As NotesDocument
+      		Dim dbSrc As NotesDatabase, dbTarg As NotesDatabase, pairings As massivearray, i&
+      		Dim idSrc$, idTarg$, deType$, tmp
+      		Erase GcreatedDirs
+      		Erase z_usedFilenames
+      		bTimes = isOpt(DDIF_OPT_MODTIME)
+      		Set dbSrc = eiSrc.db
+      		Set dbTarg = eiTarg.db
+      		MakeDir eiSrc.fpath
+      		ClearFolder eiSrc.fpath ' clear out any old files.
+      		MakeDir eiTarg.fpath
+      		ClearFolder eiTarg.fpath
+      		eipair.generatePairings
+      		Set pairings = eipair.pairings
+      		For i = 0 To pairings.count-1
+      			' look at a pair of elements that are pre-matched and export them both
+      			tmp = Split(pairings.value(i), DOTT)
+      			deType = tmp(0)
+      			idSrc = tmp(1) ' either ID might be blank if there are no more pairs.
+      			idTarg = tmp(2)
+      			If Not (z_progress Is Nothing) Then
+      				z_progress.Advance (Len(idSrc) + Len(idTarg)) \ 32, True, ""
+      			End If
+      			If idSrc <> "" Then Set docSrc = dbSrc.Getdocumentbyunid(idSrc) Else Set docSrc = Nothing
+      			If idTarg <> "" Then Set docTarg = dbTarg.Getdocumentbyunid(idTarg) Else Set docTarg = Nothing
+      			If bTimes And detype <> "acl" Then
+      				If Not (docSrc Is Nothing Or docTarg Is Nothing) Then
+      					If docSrc.Lastmodified = docTarg.Lastmodified Then
+      						If docSrc.Size = docTarg.size Then
+      							GoTo NextPair ' this note is unchanged -- skip.
+      						End If
+      					End If
+      				End If
+      			End If
+      			Dim dde As DDDesignElem, filepath$
+      			filepath = ""
+      			If Not (docSrc Is Nothing) Then
+      				filepath = getfilename(detype, docSrc) ' so the matching elements will have the same filename, figure it out once for both exports.
+      				Call eiSrc.RegisterSig(docSrc, detype)
+      				Set dde = New DDDesignElem(eiSrc, detype, docSrc, Me, filepath)
+      				dde.Save
+      			End If
+      			If Not (docTarg Is Nothing) Then
+      				Call eiTarg.RegisterSig(docTarg, detype)
+      				Set dde = New DDDesignElem(eiTarg, detype, docTarg, Me, filepath)
+      				dde.Save
+      			End If
+      nextPair:
+      		Next
+      		If Not IsOpt(DDIF_OPT_DOCUMENTS) Then
+      			' we need signature information on documents even if not exporting them
+      			eiSrc.RegisterAllDocSigs
+      			eiTarg.RegisterAllDocSigs
+      		End If
+      		ExportSignatureSummary EiSrc
+      		ExportSignatureSummary EiTarg
+      		Exit Sub
+      oops:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub ExportDB
+      		Description: Export DXL data from a given database to a specified directory.
+      		Arguments:
+      			db: the database to be exported
+      			originalPath: the filepath of the database, in server!!path format, or just the filepath for a local file.
+      				This might not be the same as the filepath of the database we were given because the NotesDatabase might be
+      				a temporary file-copy to avoid changing the original file by opening it using the Notes API
+      			nnc: the collection of notes to export.
+      			fpath: where to put the putput files (folder path).
+      			bLeft: True if this is the left ("before") database in a comparison.
+      	%END REM
+      	Sub ExportDB(ei As ExportItem)
+      		On Error GoTo ERRHANDLE
+      		Dim usedNames List As String ' if a name has been used before, key is relative path and value is unid of other doc
+      		Dim ses As New NotesSession, bSigs As Boolean, sigList List As Integer, fpath$
+      		z_exportFailed = ""
+      		bSigs = isOpt(DDIF_OPT_SIGN)
+      		Erase GcreatedDirs
+      		Erase z_usedFilenames
+      		fpath = ei.fpath
+      		If fpath <> "" Then
+      			MakeDir fpath
+      			ClearFolder fpath ' clear out any old files.
+      		Else
+      			If Not (ei.fpath Like {*[\/]}) Then fpath = fpath & "/"
+      		End If
+      		Dim workTotal As Long, workDone As Long, pct%, nnc As NotesNoteCollection, db As NotesDatabase
+      		Set db = ei.db
+      		Set nnc = ei.nnc
+      		workTotal = nnc.Count
+      		
+      		If Not IsOpt(DDIF_OPT_DOCUMENTS) Then
+      			' we need signature information on documents even if not exporting them
+      			ei.RegisterAllDocSigs
+      		End If
+      		
+      		Dim id$, docDes As NotesDocument, possibleName$, detype$, docDatabase As NotesDocument
+      		id = nnc.Getfirstnoteid()
+      		Do Until id = ""
+      			Set docDes = db.Getdocumentbyid(id)
+      			'pct = (workDone * 100.) / workTotal
+      			If Not (docDes Is Nothing) Then ' apparently this does happen for some reason
+      				If Not (z_progress Is Nothing) Then
+      					z_progress.Advance 1, True, Implode(docDes.Getitemvalue("$TITLE"), "|")
+      				End If
+      				Dim dde As New DDDesignElem(ei, "", docDes, Me, "")
+      				If dde.detype = "unknown" Then
+      					z_exportFailed = z_exportFailed & NEWLINE & dde.title
+      				Else
+      					ei.RegisterSig docDes, dde.Detype
+      					'we're writing to a document for design synopsis
+      					If ei.bDoc Then
+      						Dim docDesc As New NotesDocument(dbSynopsis)
+      						If dde.detype = "acl" Then
+      							Set docDatabase = docDesc ' remember this for later to add synopsis information.
+      						End If
+      						Call dde.SaveToDoc(docDesc)
+      					Else
+      						dde.Save
+      					End If
+      				End If
+      			End If
+      
+      			workDone = workDone + 1
+      			id = nnc.Getnextnoteid(id)
+      		Loop
+      
+      		' if the user requested not to include signatures in the output, still make sure they're aware if there are signature differences.
+      		' This guards against the case where signatures really do matter, but the user just forgot to enable this option.
+      		If ei.bDoc Then
+      			If Not (docDatabase Is Nothing) Then
+      				Dim rtitem As NotesRichTextItem
+      				Set rtitem = docDatabase.getfirstitem("Body")
+      				Call rtitem.Addnewline(2, True)
+      				Call rtitem.Appendtext("-- " & HEADING_SIGNATURES & " --")
+      				Call rtitem.Addnewline(1, True)
+      				Call rtitem.AppendText(ei.SignatureSummary)
+      				Dim op$
+      				If ei.originalPath = "" Then op = db.Filepath Else op = ei.originalPath
+      				Call docDatabase.Replaceitemvalue("FILEPATH", op)
+      				Call docDatabase.Replaceitemvalue("ReplicaID", db.Replicaid)
+      				docDatabase.save True, False, True
+      				
+      			End If
+      		Else
+      			ExportSignatureSummary Ei
+      		End If
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0)) & { [} & id & {,} & db.Filepath & {]}
+      	End Sub
+      	
+      	%REM
+      		Sub ExportSignatureSummary
+      		Description: Create a file with the number of notes signed by each ID that signed notes
+      		Arguments:
+      	%END REM
+      	Sub ExportSignatureSummary(ei As ExportItem)
+      		' if the user requested not to include signatures in the output, still make sure they're aware if there are signature differences.
+      		' This guards against the case where signatures really do matter, but the user just forgot to enable this option.
+      		Dim fn%, tmp$, lines, aLine$, db As NotesDatabase, sig$
+      		If ei.bDoc Then Exit Sub
+      		fn = FreeFile
+      		Open ei.fpath & {2-signatures.txt} For Output As fn charset = "UTF-8"
+      		Print #fn, "<!-- <TITLE>: " & HEADING_SIGNATURES & " -->"
+      		Print #fn, ei.SignatureSummary
+      		Close fn
+      	End Sub
+      	
+      	%REM
+      		Sub Finish
+      		Description: Call when done exporting.
+      	%END REM
+      	Sub Finish
+      		On Error GoTo oops
+      		z_totalWork = 0
+      		If Not (z_progress Is Nothing) Then
+      			z_progress.Finish
+      			Delete z_progress
+      		End If
+      		If Not (z_toBeExported Is Nothing) Then
+      			Delete z_toBeExported
+      		End If
+      		Exit Sub
+      oops:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub ShowDiffs
+      		Description: Export the files of DXL from two databases and launch the compare tool.
+      	%END REM
+      	'	Sub ShowDiffs
+      	'		Dim fpath$, aFile$
+      	'		
+      	'		On Error Goto ERRHANDLE
+      	'		Dim nnc1 As NotesNoteCollection, nnc2 As NotesNoteCollection
+      	'		
+      	'		RegisterToExport z_db1, fpath & "/1", true
+      	'		RegisterToExport z_db2, fpath & "/2", false
+      	'		ExportRegisteredDBs
+      	'		Print "Exports complete; launching diff tool."
+      	'		If Not LaunchDiff(fpath & {/1}, fpath & {/2}, True, False) Then
+      	'			Msgbox "Diff program failed. Folders to be compared are are " & fpath, 0, "Compare Databases"
+      	'		End If
+      	'		Exit Sub
+      	'ERRHANDLE:
+      	'		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	'	End Sub
+      
+      	Sub Delete
+      		On Error Resume Next
+      		If Not (z_progress Is Nothing) Then Delete z_progress
+      	End Sub
+      	
+      	%REM
+      		Property Get DBCount
+      		Description: %TODO
+      		Arguments:
+      	%END REM
+      	Public Property Get DBCount As Integer
+      		If Not (z_toBeExported Is Nothing) Then
+      			DBCount = z_toBeExported.count
+      		End If
+      	End Property
+      	
+      	%REM
+      		Sub setOptions
+      		Description: Given a list of options, set those properties of the object.
+      			The argument can be a string of one of these forms:
+      			optionName -- set option to TRUE
+      			-optionName -- set option to FALSE
+      			+optionName -- set option to TRUE
+      			optionName=value -- set option to VALUE
+      			
+      			where optionName is one of the following:
+      				nocase: (bool) to control case sensitivity
+      				lineno: (bool) to include line numbers in the report.
+      				context: (int) number of context lines to show around differences.
+      				fileMode: (boolean) whether to display each individual filename that's missing from one side even if the whole folder is missing.
+      				maxLeftBlock: (long) The maximum number of "deleted" lines to show in a single left-column item. If longer, it's abbreviated with an internal marker.
+      				title: (string) title of report, if you don't want the default "filename date"
+      				silent: (bool) if TRUE, don't report progress with a ProgressBar.
+      			
+      			A list of options can also be supplied to set all values at once. This can be expressed as a newline-delimited string,
+      			an array of option setings, or a list where the listtag is the option name and the value is the option setting.
+      		Arguments:
+      	%END REM
+      	Public Sub setOptions(opts)
+      		Dim tmp
+      		On Error GoTo oops
+      		If IsList(opts) Then
+      			ForAll opt In opts
+      				Call SetOption(ListTag(opt), opt)
+      			End ForAll
+      		ElseIf IsArray(opts) Then
+      			ForAll opt In opts
+      				If InStr(opt, {=}) > 0 Then
+      					Call setOption(StrLeft(opt, {=}), StrRight(opt, {=}))
+      				ElseIf opt Like {[-+]*} Then
+      					Call setOption(Mid$(opt, 2), (opt Like {+*}))
+      				Else
+      					Call setOption(opt, True)
+      				End If
+      			End ForAll
+      		ElseIf InStr(opts, NEWLINE) > 0 Then
+      			tmp = Split(opts, NEWLINE)
+      			Call SetOptions(tmp)
+      		End If
+      		Exit Sub
+      oops:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub setOption
+      		Description: Set a property of this object based on a string and value. The properties could all be assigned directly by the caller,
+      			but this facilitates command-line types of option specifications. The option name is one of these:
+      			BOOLEAN SETTINGS:
+      				DDIF_OPT_SIGN = "sign" '  whether to include signing information
+      				DDIF_OPT_UNIDS = "unids" ' whether UNIDs are expected to be the same between left and right.
+      				DDIF_OPT_NO_DESVER = "nover" ' whether to export "designerversion" attribute.
+      				DDIF_OPT_LANGUAGE = "language" ' whether to export language attribute and add language to filename.
+      				DDIF_OPT_SIGNBIT = "signbit" ' whether to remove the 'sign' attribute from item elements.
+      				DDIF_OPT_CDATA = "cdata" ' whether to use CDATA sections around all code.
+      				DDIF_OPT_LSCAP = "lscap" ' whether to correct the capitalization of LotusScript keywords.
+      				DDIF_OPT_PRETTYPRINT = "pretty" ' whether to 'pretty print' XML output
+      				DDIF_OPT_FROMTEMPLATE= "fromtemplate" ' whether to remove 'fromtemplate' attribute of design elements
+      				DDIF_OPT_PROPERTIES = ".properties" ' whether to export hidden .properties files.
+      				DDIF_OPT_DOCUMENTS = "docs" ' whether to compare documents.
+      				DDIF_OPT_HILITE_STRINGS = "flagStrings" ' whether to insert markers into every string
+      			Unrecognized option names are ignored.
+      		Arguments:
+      			opt: the option name, e.g. "nocase"
+      			valu: option value, e.g. FALSE
+      	%END REM
+      	Sub setOption(ByVal opt$, ByVal valu)
+      		If opt = "ignoreitems" Then
+      			IgnoreItems FullTrim(Split(valu, ","))
+      		End If
+      		If DataType(valu) = V_STRING Then
+      			If StrComp(valu, "true", 1) = 0 Then
+      				valu = True
+      			ElseIf StrComp(valu, "false", 1) = 0 Then
+      				valu = False
+      			Else
+      				Exit Sub
+      			End If
+      		End If
+      		If DataType(valu) = V_BOOLEAN Then
+      			If valu Then
+      				z_options(opt) = True
+      			ElseIf IsElement(z_options(opt)) Then
+      				Erase z_options(opt)
+      			End If
+      		End If		
+      	End Sub
+      	
+      	%REM
+      		Function getDocTitle
+      		Description: Get the hopefully unique title of a document, to match them during compare in case the UNIDs do not match.
+      	%END REM
+      	Function getDocTitle(doc As NotesDocument) As String
+      		Dim tmp
+      		tmp = Evaluate(docTitleFormula, doc)
+      		If IsArray(tmp) Then getDocTitle = CStr(tmp(0)) Else getDocTitle = CStr(tmp)
+      	End Function
+      	
+      	%REM
+      		Function getNoteTitle
+      		Description: Compute a descriptive title for a design element or other note being exported/compared.
+      		Arguments:
+      			detype: e.g. "view"
+      			doc: the document or design note.
+      		Return value: e.g. "view All By Date|bydate"
+      	%END REM
+      	Function getNoteTitle(expo As ExportItem, detype$, doc As NotesDocument) As String
+      		Dim pos&
+      		pos = InStr(SINGLETON_TITLES, {|} & detype)
+      		If pos Then
+      			getNoteTitle = StrToken(Left$(SINGLETON_TITLES, pos-1), NEWLINE, -1)
+      			If detype = "acl" Then
+      				getNoteTitle = getNoteTitle & " " & doc.Parentdatabase.Title & " // " & expo.originalFilename
+      			End If
+      			If detype = "sharedactions" Then
+      				If doc.Hasitem("$Language") Then
+      					getNoteTitle = getNoteTitle & " / " & doc.Getitemvalue("$Language")(0)
+      				End If
+      			End If
+      		Else
+      			Select Case detype
+      			Case "doc"
+      				getNoteTitle = getDocTitle(Doc)
+      			Case "profile"
+      				getNoteTitle = doc.Nameofprofile 
+      				If Len(doc.key) Then getnotetitle = getnotetitle & ":" & doc.key
+      			Case "system"
+      				getNoteTitle = Join(FullTrim(doc.Getitemvalue(ITEM_DOLLAR_TITLE)), " | ")
+      				If InStr(getNoteTitle, "/") Then getNoteTitle = StrRight(getNoteTitle, "/")
+      			Case Else
+      				getNoteTitle = Join(FullTrim(doc.Getitemvalue(ITEM_DOLLAR_TITLE)), " | ")
+      				If doc.Hasitem("$Language") Then
+      					getNoteTitle = getNoteTitle & " / " & doc.Getitemvalue("$Language")(0)
+      				End If
+      				
+      		End Select
+      			If getNoteTitle = "" Then getNoteTitle = UNTITLED
+      		End If
+      	End Function
+      	
+      	%REM
+      		Function getFileName
+      		Description: If exporting files, get the base filepath for this document or design element
+      		Arguments:
+      			detype: e.g. "folder"
+      			doc: the note being exported.
+      		Return value:
+      	%END REM
+      	Function getFileName(detype$, doc As NotesDocument) As String
+      		On Error GoTo oops
+      		Dim possName$, prefix$, suffix$, flags$, lang$
+      		Select Case detype
+      			Case "icon"
+      				possname = "3-" & detype
+      			Case "sharedactions"
+      				possname = "5-" & detype
+      				lang = doc.Getitemvalue({$language})(0)
+      			Case "helpabout", "helpusing"
+      				possname = "4-" & detype
+      				lang = doc.Getitemvalue({$language})(0)
+      			Case "acl"
+      				possname = "1-database"
+      			Case "system"
+      				Dim title$
+      				title = doc.getitemvalue("$TITLE")(0)
+      				If InStr(title, "/") Then title = StrRight(title, "/")
+      				possname = filesafename(title)
+      			Case "doc"
+      				possname = "doc/" & filesafename(getDocTitle(Doc))
+      			Case "profile"
+      				title = doc.Nameofprofile
+      				If doc.Key <> "" Then title = title & "-" & Replace(nameabbr(doc.key), "/", "^")
+      				possname = "profile/" & filesafename(title)
+      			Case Else
+      				title = Trim(StrToken(Join(doc.getitemvalue("$TITLE"), "|"), "|", -1))
+      				lang = doc.Getitemvalue({$language})(0)
+      				If detype = "image" Then ' make sure the filename has the appropriate file suffix, gif or whatever
+      					Dim mimetype$, curSuffix$, parts, filetype$
+      					mimetype = doc.Getitemvalue("$MimeType")(0)
+      					If mimetype Like "image/*" Then filetype = StrRightBack(mimetype, "/")
+      					If filetype = "" Then filetype = LCase(StrRightBack(doc.Getitemvalue("$ImageNames")(0), "."))
+      					curSuffix = LCase(StrRightBack(title, "."))
+      					If filetype <> "" Then
+      						If filetype = "jpeg" Then filetype = "jpg"
+      						If curSuffix = "jpeg" Then curSuffix = "jpg"
+      						If curSuffix <> filetype Then
+      							title = title & "." & filetype
+      						End If
+      					End If
+      				End If
+      				possname = StrToken(detype, ".", 1) & "/" & filesafename(title)
+      		End Select
+      		If possName = "" Then possName = UNTITLED
+      		If InStr(FILE_TYPE_ELEMENTS, detype) > 0 And possName Like {*.*} Then
+      			prefix = StrLeftBack(possName, ".")
+      			suffix = Mid$(possName, Len(prefix)+1)
+      		Else
+      			prefix = possname
+      		End If
+      		flags = FilenameFlags(Detype, Doc)
+      		If flags <> "" Then flags = "_" & flags
+      		If lang <> "" Then flags = flags & "-" & lang
+      		possname = prefix & flags & suffix
+      		getfilename = getUniqueFilename(detype, possName)
+      		Exit Function
+      oops:
+      		Error Err, Error & " //" & GetThreadInfo(1) & ":" & Erl
+      	End Function
+      End Class
+      %REM
+      	Class DDDesignElem
+      	Description: Represents a design element (or document) handled by the differencer/exporter.
+      	Constructor:
+      		New DDDesignElem(desElemType$, docDesElem As NotesDocument, parent As DatabaseDiffs, basePath$, filepath$)
+      			where desElemType e.g. "form", if blank the class figures it out so just a time saver if you happen to know.
+      			docDesElem is the note representing the document or design element.
+      			basePath is the root where the export file(s) will be written if we're exporting to disk.
+      			filepath is the path relative to that root. If blank, the class will figure it out and it will be unique.
+      %END REM
+      Private Class DDDesignElem
+      	Public isFile As Boolean ' if true this is a file resource style element, so the DXL output is just the header.
+      	Public title As String ' design element title including aliases, delimited with |
+      	Public UNID As String
+      	Public doc As NotesDocument ' the design note.
+      	Public domeRoot As NotesDOMElementNode ' element at root of DXL of design element, e.g. <view>
+      	Public fileElem As NotesDOMElementNode ' <filedata> or similar element of file-based design note such as stylesheet or image resource.
+      	Public detype As String ' agent, view, form, etc.
+      	' whether to remove 'run' elements and just include their contents instead.
+      	Public runcompact As Integer
+      	
+      	z_sortedCode As ObjectCollection
+      	z_domdoc As NotesDOMDocumentNode
+      	z_ses As NotesSession
+      	z_domp As NotesDOMParser
+      	
+      	z_exportUNID As Boolean
+      	z_keepSigs As Boolean
+      	z_lsCapitalization As Boolean
+      	
+      	' whether to "flag" potentially translatable strings with a special character sequence.
+      	z_flagStrings As Boolean 
+      		
+      	z_basepath As String ' the folder to which we are to export, e.g. "c:\temp\left\"
+      	z_basename As String ' the part of the filename before the ".xml". For a file resource this is the full resource filename.
+      	' e.g. if the file is xx.gif, we would store the DXL header data in xx.gif.xml
+      	
+      	z_resourceSuffix As String ' if this is a file-type element, the suffix to append to the base name to make the resource filename, e.g. ".gif"
+      	z_b64data As String ' for file type elements, the base64 file data.
+      	z_nametype As Integer ' 1=form, 2=xpage, 3=free file, 4=properties
+      	z_parent As DatabaseDiffs
+      	
+      	z_sdfrom As Variant
+      	
+      	Sub New(ei As exportItem, ByVal desElemType$, docDesElem As NotesDocument, parent As DatabaseDiffs, ByVal filepath$)
+      		On Error GoTo oops
+      		Set doc = docDesElem
+      		Set z_parent = parent
+      		z_basepath = ei.fpath
+      		z_exportUNID = z_parent.isopt(DDIF_OPT_UNIDS)
+      		z_keepsigs = z_parent.isopt(DDIF_OPT_SIGN)
+      		z_lsCapitalization = z_parent.IsOpt(DDIF_OPT_LSCAP)		
+      		runcompact = z_parent.runcompact
+      		z_flagStrings = z_parent.IsOpt(DDIF_OPT_HILITE_STRINGS)
+      		If desElemType = "" Then detype = notetype(docDesElem) Else detype = desElemType
+      		Set z_ses = New NotesSession
+      		Dim dxlo As NotesDXLExporter
+      		If detype = "acl" Then
+      			' we can only export the ACL note in descriptive notation as a child of database, so make this the database.xml file.
+      			Dim dbcoll As NotesDocumentCollection
+      			Set dbColl = doc.Parentdatabase.createdocumentcollection
+      			Call dbColl.Adddocument(doc)
+      			Set dxlo = z_ses.Createdxlexporter(dbColl)
+      		Else
+      			isFile = InStr(FILE_TYPE_ELEMENTS, deType) <> 0
+      			PreExportAdjust
+      			Set dxlo = z_ses.Createdxlexporter(doc)			
+      		End If
+      		title = parent.getnotetitle(ei, detype, doc)
+      		If Len(filepath) Then z_basename = filepath Else z_basename = parent.getFileName(Detype, docDesElem)
+      		dxlo.Outputdoctype = False
+      		Set z_domp = z_ses.Createdomparser(dxlo)
+      		z_domp.Inputvalidationoption = 0 ' no validation
+      		On Error GoTo exportFail
+      		dxlo.Process
+      		On Error GoTo oops
+      postExport:
+      		Set z_domdoc = z_domp.Document
+      		Set domeRoot = z_domdoc.Documentelement
+      		If z_basename <> "" Then
+      			If nametype = NAMETYPE_FORM Then
+      				ProcessCode Me.domeRoot
+      			End If
+      		End If
+      		If detype = "acl" Then
+      			Dim lang$
+      			lang = domeroot.Getattribute("defaultlanguage")
+      			If lang <> "" Then title = title & " (" & lang & ")"
+      		End If
+      		Exit Sub
+      doRetry:
+      		On Error GoTo retryFailed
+      		dxlo.process
+      		GoTo postExport
+      exportFail:
+      		Dim bRetry As Boolean
+      		MsgBox Replace(MSG_EXPORTFAILUREPATH, "{0:filename}", title) & NEWLINE & NEWLINE & MSG_RETRYING & NEWLINE & dxlo.Log    
+      		ForAll itum In doc.items
+      			If itum IsA "NotesRichTextItem" Then
+      				itum.compact
+      				bRetry = True
+      			End If
+      		End ForAll
+      		If bRetry Then Resume DoRetry
+      		' else, no point in retrying -- report error.
+      retryFailed:
+      		Me.detype = "unknown"
+      		If title = "" Then title = UNTITLED
+      		Exit Sub
+      oops:
+      		Error Err, Error & " //" & TypeName(Me) & GetThreadInfo(1) & ":" & Erl
+      	End Sub
+      
+      	%REM
+      		Sub ProcessCode
+      		Description: Sort all the modules of a LotusScript object into alphabetical order
+      			(if that option is selected), and change code to CDATA if that was selected.
+      	%END REM
+      	Private Sub ProcessCode(domePar As NotesDOMElementNode)
+      		Dim nlCode As NotesDOMNodeList
+      		Dim i%, domeCode As NotesDOMElementNode, domeScript As NotesDOMElementNode
+      		Dim domeCodePar As NotesDOMElementNode
+      		On Error GoTo ERRHANDLE
+      		Set nlCode = domePar.Getelementsbytagname("code")
+      		For i = 1 To nlCode.Numberofentries
+      			Set domeCode = nlCode.Getitem(i) 	' a 'code' element
+      			Set domeCodePar = domeCode.Parentnode	' whatever contains the 'code' element
+      			If domeCodePar.Getattribute("sorted") <> "1" Then
+      				' the container hasn't been sorted yet.
+      				domeCodePar.Setattribute "sorted", "1"
+      				If z_sortedCode Is Nothing Then Set z_sortedCode = New ObjectCollection
+      				z_sortedCode.add domeCodePar
+      				Dim oos As New LSSortedCollection
+      				Dim domn As NotesDOMNode
+      				Set domn = domeCodePar.Firstchild
+      				Do Until domn.Isnull
+      					If domn.Nodetype = Domnodetype_element_node Then
+      						If domn.Nodename = "code" Then
+      							Dim domeLSIsIt As NotesDOMElementNode
+      							Set domeLSIsIt = DOM_FirstElementChild(domn)
+      							If Not (domeLSIsIt Is Nothing) Then
+      								If domeLSIsIt.Nodename = "lotusscript" Then
+      									oos.SortedInsert domn
+      									Dim domt As NotesDOMTextNode
+      									Set domt = DOM_FirstTextChild(domeLSIsIt)
+      									If Not (domt Is Nothing) Then
+      										' remove extra blank lines at end.
+      										Dim tmp$, bMod As Boolean
+      										bmod = False
+      										tmp = domt.Nodevalue
+      										While Right$(tmp, 1) = NEWLINE
+      											tmp = Left$(tmp, Len(tmp)-1)
+      											bMod = True
+      										Wend
+      										If z_lsCapitalization Then
+      											Dim lspars As New LSPart
+      											lspars.Parse tmp
+      											lspars.StandardizeKeywords
+      											If lspars.isDirty Then
+      												bMod = True
+      												tmp = lspars.Text
+      											End If
+      										End If
+      										If bMod Then domt.Nodevalue = tmp
+      									End If
+      								End If
+      							End If
+      						End If
+      					End If
+      					Set domn = domn.Nextsibling
+      				Loop
+      				oos.ReinsertNodes domeCodePar
+      			End If
+      		Next
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub MakeDirIf
+      		Description: Create the directory the files go into, if it doesn't already exist.
+      	%END REM
+      	Sub MakeDirIf
+      		On Error GoTo ERRHANDLE
+      		If InStr(z_basename, "/") Then
+      			Dim tmpDir$
+      			tmpdir = z_basepath & StrLeftBack(z_basename, "/") ' the folder we will create the file in.
+      			If Not IsElement(GcreatedDirs(tmpdir)) Then
+      				makedir tmpdir
+      				GcreatedDirs(tmpdir) = 1
+      			End If
+      		End If
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub Save
+      		Description: Save the DXL file, if any, to disk, and also any associated files.
+      	%END REM
+      	Sub Save
+      		On Error GoTo oops
+      		If Len(z_basepath) Then
+      			MakeDirIf
+      			CleanupNote
+      			If z_nametype <> NAMETYPE_PROPERTIES Then
+      				Dim streamMid As NotesStream
+      				
+      				' if we had to add a 'sorted=1' to any elements, delete it now.
+      				If Not (z_sortedCode Is Nothing) Then
+      					Dim i%
+      					For i = 1 To z_sortedCode.count
+      						z_sortedCode.objs(i).removeattribute "sorted"
+      					Next
+      				End If
+      				Dim xdecl As NotesDOMXMLDeclNode, nmap As NotesDOMNamedNodeMap, nattr As NotesDOMAttributeNode
+      				Set xdecl = z_domdoc.Firstchild
+      				Dim nuX As NotesDOMXMLDeclNode
+      				Set nux = z_domdoc.Createxmldeclnode("1.0", "UTF-8", "")
+      				z_domdoc.Replacechild nuX, xdecl
+      				Set streamMid = z_ses.Createstream
+      				Dim pp As prettyprinter
+      				Set pp = New prettyprinter(z_domp, "run,font,code,formula")
+      				pp.process
+      				
+      				Dim fn%, outfilepath$, data$, detypetitle$
+      				fn = FreeFile
+      				outfilepath = z_basePath & z_basename & ".xml"
+      				data = DU_Serialize(z_domp.Document.Documentelement, False)
+      				Open outfilepath For Output As fn charset="UTF-8"
+      				If InStr(z_basename, "/") Then detypetitle = StrLeft(z_basename, "/") & " " 
+      				Print #fn, {<!-- <TITLE>: } & detypetitle & title & { -->}
+      				Print #fn, data;
+      				Close fn
+      				If z_b64data <> "" Then
+      					ExportFileData
+      				End If
+      			End If
+      		End If
+      		Exit Sub
+      oops:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0)) & { [} & outfilepath & {]}
+      	End Sub
+      	
+      	%REM
+      		Property mimetype   get, set
+      		Description: MIME type for file based elements.
+      		Arguments:
+      	%END REM
+      	Public Property Get mimetype As String
+      		Dim cset$
+      		mimetype = doc.Getitemvalue("$MimeType")(0)
+      		cset = doc.Getitemvalue("$MimeCharset")(0)
+      		If mimetype <> "" And cset <> "" Then
+      			mimetype = mimetype & ";charset=" & cset
+      		End If
+      		Select Case StrToken(detype, ".", 1)
+      			Case "stylesheet","system", "theme", "properties"
+      utf8plain:
+      				mimetype = "text/plain;charset=UTF-8"
+      			Case "xpage", "customcontrol"
+      				mimetype = "text/xml;charset=UTF-8"
+      			Case "file"
+      				If mimetype = "" Then
+      					If title Like "*.txt" Or title Like "*.properties" Then
+      						GoTo utf8plain
+      					End If
+      				End If
+      		End Select
+      	End Property
+      	
+      	%REM
+      		Sub createDSAttachment
+      		Description: For file-type design elements whose contents aren't text
+      			(or in cases where we're not sure), create a file attachment in the Attachment field.
+      	%END REM
+      	Private Sub createDSAttachment(docDesc As NotesDocument)
+      
+      		On Error GoTo ERROR_HANDLER
+      		If detype = "applet" Then Exit Sub ' too large, not useful to attach.
+      		Dim result As NotesMIMEEntity
+      		Dim hdr As NotesMIMEHeader
+      		Dim tmp1 As NotesMIMEEntity, tmp2 As NotesMIMEEntity
+      		Dim stream As NotesStream
+      
+      		Dim myTitle As Variant
+      		myTitle = Split(title,"|")
+      		
+      		'attach and stream contents
+      		Set result = docDesc.CreateMIMEEntity("Attachment")
+      		Set hdr = result.CreateHeader("Subject")
+      		Call hdr.SetHeaderValAndParams(|attachment|)
+      		Set hdr = result.CreateHeader("MIME-Version")
+      		Call hdr.SetHeaderValAndParams(|1.0|)
+      		' create multipart MIME
+      		result.Preamble = |This is a multipart message in MIME format.
+      |						
+      		Set tmp1 = result.CreateChildEntity( )
+      		' text entity, encoding type ENC_NONE
+      		Set stream = z_ses.CreateStream
+      		stream.WriteText(|
+      						|)
+      		tmp1.SetContentFromText stream, "text/html;charset=US-ASCII", ENC_NONE
+      		Set tmp1 = result.CreateChildEntity( )
+      		Set hdr = tmp1.CreateHeader("Content-Disposition")
+      		Call hdr.SetHeaderValAndParams(|attachment; filename="| & myTitle(0) & |"|)
+      		' text entity, encoding type ENC_IDENTITY_BINARY
+      		stream.Truncate
+      		Call stream.WriteText(z_b64data)
+      
+      		Dim mim$
+      		mim = mimetype
+      		If mim Like "text/*" And InStr(mim, ";") = 0 Then
+      			mim = mim & ";charset=UTF-8" ' if file is text but charset not specified assume UTF-8 which usually works
+      		End If
+      		tmp1.SetContentFromText stream, mim, ENC_BASE64
+      		tmp1.EncodeContent ENC_IDENTITY_BINARY
+      		Call docDesc.CloseMIMEEntities(True, "Attachment")    ' finalize pending changes into the document.
+      		Exit Sub
+      
+      ERROR_HANDLER:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub createDSImageEmbed
+      		Description: As part of the output to design synopsis document of an image element, embed a picture of the element in
+      			a rich text field on the output document. In fact, add two occurrences of the image with different color
+      			backgrounds, in case it doesn't show up against a white background.
+      		Arguments:
+      	%END REM
+      	Sub createDSImageEmbed(fType As String, title As String, docDesc As NotesDocument)
+      		Dim result As NotesMIMEEntity
+      		Set result = docDesc.CreateMIMEEntity("Attachment")
+      		Dim hdr As NotesMIMEHeader
+      		Set hdr = result.CreateHeader("MIME-Version")
+      		Call hdr.SetHeaderValAndParams(|1.0|)
+      		result.Preamble = |This is a multipart message in MIME format.
+      |
+      		Dim tmp1 As NotesMIMEEntity
+      		Set tmp1 = result.CreateChildEntity( )
+      		Dim stream As NotesStream
+      		Dim session As New NotesSession
+      		Set stream = session.CreateStream
+      		stream.WriteText(|<table style="border-collapse:collapse;">
+      <tr><td>
+        <table style="border-collapse:collapse;"><tr>
+        <td bgcolor=#fcfade style="border-style:solid;border-color:#fcfade;border-width:20px;">
+        <img align=bottom src=cid:_a_picture width=16 height=16 style="border:0px solid;">
+        </td></tr></table>
+      </td><td>
+        <table style="border-collapse:collapse;"><tr>
+        <td bgcolor=#222222 style="border-style:solid;border-color:#222222;border-width:20px;">
+        <img align=bottom src=cid:_a_picture width=16 height=16 style="border:0px solid;">
+        </td></tr></table>
+      </td></tr></table>
+      |)
+      		tmp1.SetContentFromText stream, "text/html;charset=US-ASCII", ENC_NONE
+      		Set tmp1 = result.CreateChildEntity( )
+      		Set hdr = tmp1.CreateHeader("Content-ID")
+      		Call hdr.SetHeaderValAndParams(|<_a_picture>|)
+      		' image entity, encoding type ENC_BASE64
+      		stream.Truncate
+      		stream.WriteText z_b64data
+      		tmp1.SetContentFromText stream, doc.Getitemvalue("$MimeType")(0) & ";charset=", ENC_BASE64
+      
+      		Call doc.CloseMIMEEntities(True, "Attachment")	' finalize pending changes into the document.
+      	End Sub
+      	
+      	%REM
+      		Sub SaveToDoc
+      		Description: Save the XML and possibly a file attachment to a Notes document in a design synopsis database.
+      		Arguments:
+      			docDesc: the synopsis document to write to.
+      	%END REM
+      	Sub SaveToDoc(docDesc As NotesDocument)
+      		
+      		On Error GoTo ERROR_HANDLER
+      		
+      		CleanupNote
+      		Dim streamMid As NotesStream
+      		
+      		' if we had to add a 'sorted=1' to any elements, delete it now.
+      		If Not (z_sortedCode Is Nothing) Then
+      			Dim i%
+      			For i = 1 To z_sortedCode.count
+      				z_sortedCode.objs(i).removeattribute "sorted"
+      			Next
+      		End If
+      		Dim xdecl As NotesDOMXMLDeclNode, typeNode As NotesDOMNode
+      		Set xdecl = z_domdoc.Firstchild
+      		Set typeNode = xdecl.Nextsibling
+      		Dim nuX As NotesDOMXMLDeclNode
+      		Set nux = z_domdoc.Createxmldeclnode("1.0", "UTF-8", "")
+      		z_domdoc.Replacechild nuX, xdecl
+      		Set streamMid = z_ses.Createstream
+      		Dim pp As prettyprinter
+      		Set pp = New prettyprinter(z_domp, "run,font,code,formula")
+      		pp.process
+      		Dim dbTarget As NotesDatabase
+      		Set dbTarget = doc.ParentDatabase
+      		Dim form$, desType$
+      		With docDesc
+      			If detype = "acl" Then 
+      				form = "database"
+      				destype = "database"
+      			Else
+      				form = "deselem"
+      				destype = StrToken(detype, ".", 1)
+      				Call .Replaceitemvalue(ITEM_CREATED, doc.Created)
+      			End If
+      			Call .Replaceitemvalue("Form", form)
+      			Call .Replaceitemvalue(ITEM_DBNAME, dbTarget.Title)
+      			Call .Replaceitemvalue(ITEM_TYPE, destype)
+      			Call .Replaceitemvalue(ITEM_UNID, doc.Universalid)
+      			Call .Replaceitemvalue(ITEM_MODIFIED, doc.Lastmodified)
+      			Call .Replaceitemvalue(ITEM_MODIFIEDBY, doc.Getitemvalue(ITEM_DOLLAR_UPDATEDBY))
+      			Call .Replaceitemvalue(ITEM_TITLE, Title)
+      		End With
+      		Dim rtitem As New NotesRichTextItem(docDesc,"Body")
+      		
+      		Dim rts As New RichTextXMLSerializer(rtitem)
+      		Call rts.ProcessDOM(z_domp)
+      		
+      		If Len(z_b64data) Then
+      			If detype = "image" Then
+      				Call createDSImageEmbed(detype, title, docDesc)
+      			Else
+      				Dim mim$
+      				mim = mimetype
+      				If mim Like "text/*" Then
+      					Call streamDSAttachment(docDesc)
+      				Else
+      					Call createDSAttachment(Docdesc)
+      				End If
+      			End If
+      		End If
+      		Call docDesc.Save(True,False)
+      		
+      		Exit Sub
+      		
+      ERROR_HANDLER:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      		
+      	End Sub
+      	
+      	%REM
+      		Sub streamDSAttachments
+      		Description: Stream attached text file contents to the containing document
+      	%END REM
+      	Private Sub streamDSAttachment(docDesc As NotesDocument)
+      
+      		On Error GoTo ERROR_HANDLER
+      		
+      		Dim mime As NotesMIMEEntity
+      		Set mime = docDesc.CreateMIMEEntity("Attachment")
+      		Dim streamIn As NotesStream, streamOut As NotesStream
+      		Set streamIn = z_ses.CreateStream  
+      		Set streamOut = z_ses.CreateStream
+      		Call streamIn.WriteText(z_b64data)
+      		streamIn.Position = 0
+      		Call mime.SetContentFromText(streamIn, mimetype, ENC_BASE64)
+      		Call mime.getcontentastext(streamOut, True)
+      		Call docDesc.Closemimeentities(True, "Attachment")
+      		Exit Sub
+      
+      ERROR_HANDLER:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      
+      	End Sub
+      	
+      	%REM
+      		GET NameType
+      		Description: Return the 'name type' of the design element, reflecting one
+      			of four different ways in which filenames are constructed.
+      	%END REM
+      	Public Property Get NameType As Integer
+      		On Error GoTo ERRHANDLE
+      		If z_nametype = 0 Then
+      			If detype Like "properties*" Then
+      				z_nametype = NAMETYPE_PROPERTIES
+      			ElseIf Not isfile Then
+      				z_nametype = NAMETYPE_FORM
+      			ElseIf detype = "file" Or detype = "image" Then
+      				z_nametype = NAMETYPE_FREE ' could be anything
+      			Else
+      				z_nametype = NAMETYPE_XPAGE ' assumed suffix.
+      			End If
+      		End If
+      		NameType = z_nametype
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		Function ImageType
+      		Description: For an image resource without a suffix, figure out the file type.
+      	%END REM
+      	Function ImageType As String
+      		Dim nCur As NotesDOMNode
+      		On Error GoTo ERRHANDLE
+      		Set nCur = domeRoot.Firstchild
+      		Do Until nCur.Isnull
+      			If nCur.Nodetype = Domnodetype_element_node Then
+      				ImageType = ncur.Nodename
+      				If ncur.Nodename = "gif" Or ncur.Nodename = "png" Or ncur.Nodename = "bmp" Or ncur.Nodename = "jpeg" Then
+      					If ncur.Nodename = "jpeg" Then
+      						Dim tex As NotesDOMTextNode
+      						Set tex = DU_GetTextChild(ncur)
+      						If Not (tex Is Nothing) Then
+      							If Left$(tex.Nodevalue, 4) <> {/9j/} Then
+      								' actually a png. DXL doesn't know about this format yet.
+      								ImageType = {png}
+      							End If
+      						End If
+      					End If
+      					Exit Function
+      				End If
+      			End If
+      			Set ncur = ncur.Nextsibling
+      		Loop
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+        		Sub PreExportAdjust
+      		Description: Some design elements don't export in a useful way. If this is one of those, change $Flags to
+      			make it appear to be another type of design element that does export.
+         %END REM
+      	Sub PreExportAdjust
+      		Dim killflag$, killitems$, flags$
+      		Select Case detype
+      			Case "theme"
+      				killflag = "`"
+      			Case "xpage"
+      				killflag = "K"
+      				killitems = "$Class*"
+      			Case "customcontrol"
+      				killflag = ";"
+      				killitems = "$Class*"
+      			Case "webservice"
+      				killflag = "{"
+      			Case "servlet"
+      				killflag = {[}
+      			Case "wiring"
+      				killflag = ":g"
+      			Case "compositeapp"
+      				killflag = "|g"
+      			Case "compositecomponent"
+      				killflag = "_"
+      			Case "system"
+      				killflag = "~"
+      			Case "properties.xpage"
+      				killflag = "K"
+      			Case "properties.customcontrol"
+      				killflag = ";"
+      			Case Else
+      		End Select
+      		If Len(killflag) Then
+      			flags = doc.Getitemvalue("$Flags")(0)
+      			isFile = True
+      			doc.replaceitemvalue "$Flags", Replace(Replace(flags, Left$(killflag, 1), Mid$(killflag, 2)), "~", "")
+      			If Len(killitems) Then
+      				Dim items2kill
+      				items2kill = Split(killItems, ",")
+      				ForAll anItem In doc.items
+      					ForAll starname In items2kill
+      						If anItem.name Like starname Then
+      							anItem.remove
+      						End If
+      					End ForAll 
+      				End ForAll
+      			End If
+      		End If
+      	End Sub
+      
+      	%REM
+      		Sub CondenseBase64
+      		Description: Find all elements with a given tag and convert their base64 contents to a hashcode and length.
+      	%END REM
+      	Sub CondenseBase64(ByVal tagname$, elRoot As NotesDOMElementNode)
+      		On Error GoTo oops
+      		Dim nl As NotesDOMNodeList, i%, elTmp As NotesDOMElementNode, hash As Long, size As Long, contents$, tex As NotesDOMTextNode
+      		Set nl = elRoot.Getelementsbytagname(Tagname)
+      		For i = 1 To nl.NumberOfEntries
+      			Set elTmp = nl.getitem(i)
+      			Set tex = DOM_FirstTextChild(elTmp)
+      			If Not (tex Is Nothing) Then
+      				contents = tex.Nodevalue
+      				size = Len(contents)
+      				hash = Fletcher32(contents)
+      				elTmp.Removechild tex
+      				elTmp.setattribute "size", size
+      				elTmp.setattribute "hash", Hex(hash)
+      			End If
+      		Next
+      		Exit Sub
+      oops:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Function itemValueToDXL
+      		Description: Create a DXL representation of a Notes item value
+      		Arguments:
+      			valu: the value you want to represent. Can be a scalar or array
+      			makeSingle: TRUE if you want to use a simple representation if possible (text as opposed to textlist) 
+      		Return value: NOTHING if the value couldn't be represented.
+      			Else a node that can appear as a child of an item node to represent its value. 
+      	%END REM
+      	Private Function itemValueToDXL(valu, ByVal makeSingle As Boolean) As NotesDOMElementNode
+      		Dim typ%, elNod As NotesDOMElementNode, elTmp As NotesDOMElementNode
+      		If IsArray(valu) Then
+      			If makeSingle And UBound(valu) = LBound(valu) Then
+      				Set itemValueToDXL = itemValueToDXL(valu(0), True)
+      				Exit Function
+      			End If
+      			ForAll thing In valu
+      				Set elTmp = itemValueToDXL(thing, True)
+      				If elNod Is Nothing Then
+      					Set elNod = z_domdoc.Createelementnode(elTmp.Nodename & {list})
+      				End If
+      				elNod.Appendchild elTmp
+      			End ForAll
+      		Else ' not an array
+      			If TypeName(valu) = "NOTESDATETIME" Then
+      				Set elNod = z_domdoc.Createelementnode("datetime")
+      				Call elNod.Appendchild(z_domdoc.Createtextnode(GCU.dateTimeToISO8601(valu)))
+      			Else
+      				typ = DataType(valu)
+      				Select Case typ
+      				Case V_EMPTY
+      					Exit Function
+      				Case V_string
+      					Set elNod = z_domdoc.Createelementnode("text")
+      					Call elNod.Appendchild(z_domdoc.Createtextnode(valu))
+      				Case V_date
+      					Set elNod = z_domdoc.Createelementnode("datetime")
+      					Call elNod.Appendchild(z_domdoc.Createtextnode(GCU.dateTimeToISO8601(valu)))
+      				Case Else
+      					Set elNod = z_domdoc.Createelementnode("number")
+      					Call elNod.Appendchild(z_domdoc.Createtextnode(Replace(CStr(valu), ",", ".")))
+      			End Select
+      			End If
+      		End If
+      		Set itemValueToDXL = elNod		
+      	End Function
+      	
+      	%REM
+      		Function cleanupItem
+      		Description: Standardize the contents of an "item" element.
+      		Arguments:
+      		Return value:
+      	%END REM
+      	Function cleanupItem(domeItem As NotesDOMElementNode) As NotesDOMElementNode
+      		On Error GoTo oops
+      		If domeItem.Haschildnodes Then
+      			Dim domeDtype As NotesDOMNode
+      			Set domeDtype = DU_GetChildOfType(domeItem, Domnodetype_element_node)
+      			If domeDtype.nodename = "richtext" Then
+      				ProcessRTBody domeItem
+      			ElseIf domeDtype.Nodename Like "*list" Then
+      				Dim domeScalarType As NotesDOMElementNode
+      				Set domeScalarType = DU_GetChildOfType(domeDtype, Domnodetype_element_node)
+      				If Not domeScalarType Is Nothing Then
+      					If DU_getnextoftype(domeScalarType) Is Nothing Then
+      						' it's a list type but there's only a single value in the list, so it's the same as a scalar.
+      						domeItem.Removechild domeDtype
+      						domeItem.Appendchild domeScalarType
+      					End If
+      				End If
+      			ElseIf domeDtype.Nodename = "rawitemdata" Then
+      				Dim fldnam$
+      				fldnam = domeItem.Getattribute("name")
+      				If fldnam = "$Header" Or fldnam = "$Footer" Then
+      					Dim tex As NotesDOMTextNode, elTmp As NotesDOMElementNode
+      					Dim cdrec As CDRecord, recs As CDRecordStream
+      					Set tex = DU_GetTextChild(domeDtype)
+      					Set recs = New CDRecordStream(tex.Nodevalue)
+      					Set cdrec = recs.fetch
+      					Do Until cdrec Is Nothing
+      						Set elTmp = cdrec.toDOM(z_domdoc)
+      						domeItem.Appendchild elTmp
+      						Set cdrec = recs.fetch
+      					Loop
+      					domeItem.Removechild domeDtype
+      				End If
+      			End If
+      		End If
+      		Set cleanupItem = domeItem
+      		Exit Function
+      oops:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Function shouldItemBeDeleted
+      		Description: Determine whether an "item" element should be deleted from a design note description.
+      		Arguments:
+      		Return value:
+      	%END REM
+      	Function shouldItemBeDeleted(domeItem As NotesDOMElementNode) As Boolean
+      		Dim itemname$
+      		itemname = domeItem.Getattribute("name")
+      		If itemname Like "$*_O" Or itemname Like {$SCRIPTOBJ_*} Then ' object code, delete.
+      			shouldItemBeDeleted = True
+      		ElseIf IsElement(GkillFields(itemname)) Then
+      			shouldItemBeDeleted = True
+      		ElseIf itemname Like "$$*" Then
+      			Dim elTex As NotesDOMElementNode
+      			Set elTex = DU_GetChildOfType(domeItem, DOMNODETYPE_ELEMENT_NODE)
+      			If Not (elTex Is Nothing) Then
+      				If elTex.nodename = "text" Then
+      					Dim script$
+      					script = DU_GetTextFromNode(elTex)
+      					If Left$(script, Len(LSCRIPT_HEADER)) = LSCRIPT_HEADER Then
+      						shouldItemBeDeleted = True
+      					End If
+      				End If
+      			End If
+      		ElseIf detype Like "*form" Then ' forms and subforms may have useless number items corresponding to fields
+      			Dim elValue As NotesDOMElementNode
+      			Set elValue = DU_GetChildOfType(domeItem, DOMNODETYPE_ELEMENT_NODE)
+      			If Not (elValue Is Nothing) Then
+      				shouldItemBeDeleted = (elValue.nodename = "number")
+      			End If
+      		End If
+      	End Function
+      	
+      	%REM
+      		Sub explainflags
+      		Description: Annotate a $flags item with explanations of the meanings of the flags.
+      		Arguments:
+      	%END REM
+      	Sub explainflags(ByVal itemName$, explanations$)
+      		Dim elFlags As NotesDOMElementNode, elTex As NotesDOMElementNode, fltxt$, i%, ch$, pos&
+      		Set elFlags = DU_GetChildWithAttr(domeroot, {item}, {name}, itemname, 1)
+      		If Not (elFlags Is Nothing) Then
+      			Set elTex = DU_GetChildNamed({text}, elFlags)
+      			If Not (elTex Is Nothing) Then
+      				Dim flgex$, n
+    signed: true
+    nonsummary: true
+  - name: $ScriptLib
+    type: text
+    data: |
+      tx As NotesDOMTextNode, flglist$
+      				Set ntx = DU_GetTextChild(elTex)
+      				If Not (ntx Is Nothing) Then
+      					fltxt = ntx.Nodevalue
+      					For i = 1 To Len(fltxt)
+      						ch = Mid$(fltxt, i, 1)
+      						flglist = flglist & DOTT & ch
+      						pos = InStr(explanations, ch & ":")
+      						If pos Then
+      							flgex = flgex & NEWLINE & StrToken(Mid$(explanations, pos, 40), NEWLINE, 1)
+      						End If
+      					Next
+      					If Len(flgex) Then
+      						Dim tmp
+      						tmp = Split(Mid$(flgex, 2), NEWLINE)
+      						GCU.SimpleSortStrings tmp, 1 ' sort flag explanations alphabetically
+      						elTex.Setattribute "describe", Join(tmp, ", ")
+      					End If
+      					If Len(flglist) Then ' sort flags chars alphabetically too
+      						tmp = Split(Mid$(flglist, 2), DOTT)
+      						GCU.SimpleSortStrings tmp, 0
+      						ntx.nodevalue = Join(tmp, "")
+      					End If
+      				End If
+      			End If
+      		End If
+      	End Sub
+      	
+      	%REM
+      		Sub flagAttribute
+      		Description: check whether an attribute is present and complex enough of a string to warrant flagging as a
+      			potentially translatable stringp, and if so, flag it.
+      		Arguments:
+      	%END REM
+      	Sub flagAttribute(el As NotesDOMElementNode, attr$)
+      		Dim fo$
+      		fo = el.Getattribute(attr)
+      		If looksTranslatable(fo) Then
+      			el.Setattribute attr, QFLAGSTART & fo & QFLAGEND
+      		End If
+      	End Sub
+      
+      	%REM
+      		Sub flagNoteElements
+      		Description: Flag the strings in attributes and text nodes of a design note.
+      		Arguments:
+      	%END REM
+      	Sub flagNoteElements
+      		If z_flagStrings Then
+      			If me.detype = "acl" Then
+      				flagAttribute domeRoot, {title} ' database title.
+      			Else
+      				flagAttribute domeRoot, {name} ' design element title.
+      				flagElements domeRoot, GNoteStringElements
+      				flagMacros domeRoot
+      				flagLotusScript domeRoot
+      			End If
+      		End If
+      	End Sub
+      	
+      	%REM
+      		Sub flagLotusScript
+      		Description: Put markers around every string literal in the LotusScript code of a design element.
+      		Arguments:
+      	%END REM
+      	Sub flagLotusScript(el As NotesDOMElementNode)
+      		Dim nl As NotesDOMNodeList, i%, elScript As NotesDOMElementNode, ntex As NotesDOMTextNode
+      		Set nl = el.Getelementsbytagname("lotusscript")
+      		For i = 1 To nl.Numberofentries
+      			Set elScript = nl.Getitem(i)
+      			Set ntex = DU_GetTextChild(elScript)
+      			If Not (ntex Is Nothing) Then
+      				GLSFlagger.Parse ntex.nodevalue
+      				If GLSFlagger.Updated Then
+      					ntex.Nodevalue = GLSFlagger.Output.Readtext
+      				End If
+      			End If
+      		Next
+      	End Sub
+      
+      	%REM
+      		Sub flagMacros
+      		Description: Put markers around every string literal in the formulas of a design element.
+      		Arguments:
+      	%END REM
+      	Sub flagMacros(el As NotesDOMElementNode)
+      		Dim nl As NotesDOMNodeList, i%, elFormula As NotesDOMElementNode, ntex As NotesDOMTextNode
+      		Set nl = el.Getelementsbytagname("formula")
+      		For i = 1 To nl.Numberofentries
+      			Set elFormula = nl.Getitem(i)
+      			Set ntex = DU_GetTextChild(elFormula)
+      			If Not (ntex Is Nothing) Then
+      				GMacroFlagger.Parse ntex.nodevalue
+      				If GMacroFlagger.Updated Then
+      					ntex.Nodevalue = GMacroFlagger.Output.Readtext
+      				End If
+      			End If
+      		Next
+      	End Sub
+      
+      	%REM
+      		Sub flagTextChildren
+      		Description: "flag" as translatable strings all text nodes which are children of a given element. 
+      		Arguments:
+      	%END REM
+      	Sub flagTextChildren(el As NotesDOMElementNode)
+      		Dim nod As NotesDOMNode
+      		Set nod= el.Firstchild
+      		Do Until nod.Isnull
+      			If nod.Nodetype = Domnodetype_text_node Then
+      				If looksTranslatable(nod.Nodevalue) Then
+      					nod.Nodevalue = QFLAGSTART & nod.nodevalue & QFLAGEND
+      				End If
+      			End If
+      			Set nod = nod.Nextsibling
+      		Loop 
+      	End Sub
+      	
+      	%REM
+      		Sub flagElements
+      		Description: Process a design element's XML to flag all strings in element attributes and texts.
+      		Arguments:
+      	%END REM
+      	Sub flagElements(el As NotesDOMElementNode, attrList)
+      		Dim nl As NotesDOMNodeList, nam$, elTmp As NotesDOMElementNode
+      		If z_flagStrings Then
+      			ForAll attrEntry In attrList
+      				nam = ListTag(attrEntry)
+      				Set nl = el.Getelementsbytagname(nam)
+      				If nl.NumberOfEntries Then
+      					Dim i%, attrs
+      					attrs = Split(attrEntry, ",")
+      					For i = 1 To nl.NumberOfEntries
+      						Set elTmp = nl.GetItem(i)
+      						ForAll anAttr In attrs
+      							If anAttr = "*" Then
+      								flagTextChildren elTmp
+      							Else
+      								flagAttribute ElTmp, (anAttr)
+      							End If
+      						End ForAll
+      					Next
+      				End If
+      			End ForAll
+      		End If
+      	End Sub
+      	%REM
+      		Sub CleanupNote
+      		Description: Remove all the chaff we don't care about when comparing notes;
+      			mod times, versions, blah. Also sort any item elements found.
+      	%END REM
+      	Private Sub CleanupNote
+      		On Error GoTo oops
+      		Dim oss As New DomSortedCollection("name", True)
+      		Dim domnTmp As NotesDOMNode, domnNext As NotesDOMNode, domeTmp As NotesDOMElementNode, domnl As NotesDOMNodeList
+      		Dim i%, bDelNl As Boolean, tex As NotesDOMTextNode, szTmp$
+      		If detype <> {acl} Then domeRoot.Removeattribute "replicaid"
+      		'		If z_parent.isopt(DDIF_OPT_NO_DESVER) Then
+      		domeRoot.Removeattribute "designerversion"
+      		'		End If
+      		If Not z_parent.IsOpt(DDIF_OPT_LANGUAGE) Then
+      			domeRoot.Removeattribute "language"
+      		End If
+      		If z_parent.isopt(DDIF_OPT_FROMTEMPLATE) Then
+      			domeRoot.Removeattribute "fromtemplate"
+      		End If
+      		domeRoot.Removeattribute {xmlns}
+      		
+      		' special processing for specific design element types
+      		Select Case detype
+      			Case "outline"
+      				Dim repOfDb$
+      				repOfDb = doc.Parentdatabase.Replicaid
+      				Set domnl = domeRoot.Getelementsbytagname("imageref")
+      				For i = 1 To domnl.Numberofentries
+      					Set domeTmp = domnl.Getitem(i)
+      					If domeTmp.Getattribute("database") = repOfDb Then
+      						domeTmp.Setattribute "database", "current"
+      					End If
+      				Next
+      			Case "sharedactions"
+      				domeRoot.Removeattribute("maxid")
+      				Call removeDisabledEvents(domeRoot)
+      				' sort actions by ID.
+      				Dim ossActions As New DomSortedCollection("id", True)
+      				ossActions.attrType = 1 ' number
+      				Set domnl = domeRoot.Getelementsbytagname("action")
+      				Call ossActions.SortedInsertNodeList(domnl)
+      				Call ossActions.ReinsertNodes(domeRoot)
+      			Case "image"
+      				domeRoot.Removeattribute("refresh")
+      				domeRoot.Removeattribute("imagename")
+      				Set domeTmp = DU_GetChildWithAttr(domeRoot, "item", "name", {$EditFilePath}, 0)
+      				If Not (domeTmp Is Nothing) Then domeRoot.Removechild domeTmp
+      			Case "acl"
+      				domeRoot.Removeattribute {path} ' naturally the path is different but the user knows that already.
+      				Set domeTmp = DU_GetChildNamed({databaseinfo}, domeRoot)
+      				If Not domeTmp Is Nothing Then RemoveElementAndWhitespaceAfter domeTmp
+      				Set domnl = domeRoot.Getelementsbytagname({logentry})
+      				For i = domnl.Numberofentries To 1 Step -1
+      					Set domeTmp = domnl.Getitem(i)
+      					Call RemoveElementAndWhitespaceAfter(domeTmp)
+      				Next
+      				Set domeTmp = DU_GetChildNamed("acl", domeRoot)
+      				If Not (domeTmp Is Nothing) Then
+      					DU_SortChildElements domeTmp, {aclentry}, {name}
+      				End If
+      			Case {icon} ' remove items that are already represented adequately in the database note.
+      				removeItemElement {$DefaultFrameset, $DefaultWebFrameset, $RevisionsLimit, $TITLE, $UpdatedByLimit, $DefaultCompAppPage, $DefaultCompApp, $DefaultWebLaunchPage} & _
+      				{, $DefaultClientXPage, $DefaultXPage, $LaunchWebViewName, $DefaultNavigator, $DefaultWebNavigator, $DefaultWebPage, $DefaultOutline, $SoftDeleteExpireHours} & _
+      				{, $LaunchViewName, $LaunchWebDoclink, $DefaultLanguage, $DefaultCollation, $CollationType,$TemplateFileName,$TemplateModTime,$TemplateServerName,$PIRCRefreshModTime}
+      				explainflags {$Flags}, ICONFLAG_EXPLAIN
+      				explainflags {$FlagsNoRefresh}, DNRFLAG_EXPLAIN
+      			Case {agent}, {scriptlibrary}
+      				' for Java agents and libraries the codepath is irrelevant. That's just the editing user's data directory and affects nothing.
+      				Set domnl = domeRoot.Getelementsbytagname({javaproject})
+      				For i = 1 To domnl.Numberofentries
+      					Set domeTmp = domnl.Getitem(i)
+      					domeTmp.Removeattribute({codepath})
+      				Next
+      			Case {applet}
+      				' Summarize richtextdata elements with Fletcher hash.
+      				Set domnl = domeRoot.Getelementsbytagname("javaresource")
+      				For i = domnl.Numberofentries To 1 Step -1
+      					Set domeTmp = domnl.Getitem(i)
+      					Set tex = DU_GetTextChild(domeTmp)
+      					If Not (tex Is Nothing) Then
+      						sztmp = tex.Nodevalue
+      						domeTmp.Setattribute "hash", Hex(Fletcher32(szTmp))
+      						domeTmp.Setattribute "length", CStr(CLng(Len(szTmp)*0.75))
+      						domeTmp.Removechild tex
+      					End If
+      				Next
+      			Case {sharedfield}
+      				' make sure the $TemplateBuild item is present (it tends to get removed because the item has the same name as the field)
+      				If domeRoot.Getattribute("name") = "$TemplateBuild" Then
+      					addBackMissingItem {$TemplateBuild}						
+      				End If
+      			Case {view}, {folder}, {sharedcolumn}
+      				Call removeDisabledEvents(domeRoot)
+      		End Select
+      		
+      		flagNoteElements ' if we're flagging strings, apply the rules for note-level flagging
+      		Set domnTmp = domeRoot.Firstchild
+      		Do Until domnTmp.Isnull
+      			Set domnNext = domnTmp.Nextsibling
+      			If domnTmp.Nodetype = DOMNODETYPE_TEXT_NODE Then
+      				If bDelNL Then
+      					bDelNL = False
+      					If domnTmp.Nodevalue = NEWLINE Then domeRoot.Removechild domnTmp
+      				End If
+      			ElseIf domnTmp.Nodetype = DOMNODETYPE_ELEMENT_NODE Then
+      				bDelNL = False
+      				Set domeTmp = domnTmp
+      				Select Case domeTmp.Nodename
+      				Case "item"
+      					If detype = "doc" Then
+      						If IsElement(GkillFields(domeTmp.Getattribute({name}))) Then
+      							domeRoot.Removechild domeTmp
+      							bDelNL = True
+      						Else
+      							cleanupItem domeTmp
+      							CondenseBase64 "filedata", domeTmp ' if the item has a filedata element in it, replace the data with a hash value, for brevity
+      							CondenseBase64 "rawitemdata", domeTmp
+      							oss.SortedInsert domeTmp
+      						End If
+      					ElseIf shouldItemBeDeleted(domeTmp) Then
+      						domeRoot.Removechild domeTmp
+      						bDelNL = True
+      					Else
+      						cleanupItem domeTmp
+      						CondenseBase64 "filedata", domeTmp ' if the item has a filedata element in it, replace the data with a hash value, for brevity
+      						CondenseBase64 "rawitemdata", domeTmp
+      						oss.SortedInsert domeTmp
+      						If z_parent.isopt(DDIF_OPT_SIGNBIT) Then
+      							domeTmp.Removeattribute "sign"
+      						End If
+      					End If
+      				Case "body" ' the body of a form, page etc.
+      					ProcessRTBody domeTmp						
+      				Case "noteinfo"
+      					domeTmp.Removeattribute "noteid"
+      					domeTmp.Removeattribute "sequence"
+      					If Not z_exportUNID Then
+      						domeTmp.Removeattribute "unid"
+      					End If
+      					DOM_DiscardChildren domeTmp
+      				Case "code"
+      					domeTmp.Removeattribute "codepath"	' the last editor's data directory, no functional effect.
+      				Case "filedata", "jpeg", "gif", "notesbitmap", "cgm", "png"
+      					' Anytime we encounter filedata, extract base64 file data and hold it separately, then
+      					' delete it from the DOM tree.
+      					If isFile Then
+      						' this was expected...
+      						Dim domt As NotesDOMTextNode, domc As NotesDOMCDATASectionNode
+      						Dim streamMid As NotesStream, pp As prettyPrinter, midDomp As NotesDOMParser
+      						Set domnTmp = domeTmp.Firstchild
+      						Do Until domnTmp.Isnull
+      							If domnTmp.Nodetype = Domnodetype_text_node Or domnTmp.Nodetype = DOMNODETYPE_CDATASECTION_NODE Then
+      								z_b64data = z_b64data & domnTmp.Nodevalue
+      							End If
+      							Set domnTmp = domnTmp.Nextsibling
+      						Loop
+      						domeRoot.Removechild domeTmp
+      						bDelNL = True
+      					End If
+      				Case "actionbar"
+      					Set domnl = domeTmp.Getelementsbytagname("sharedactionref")
+      					' these elements are duplicates of info in shared action design element, not used at runtime 
+      					For i = 1 To domnl.Numberofentries
+      						Set domeTmp = domnl.Getitem(i)
+      						Dim domeAction As NotesDOMElementNode
+      						Set domeAction = DU_GetChildNamed("action", domeTmp)
+      						If Not (domeAction Is Nothing) Then
+      							domeTmp.Setattribute {title}, domeAction.Getattribute({title})
+      						End If
+      						DOM_DiscardChildren domeTmp
+      					Next
+      				Case "wassignedby"
+      					If Not z_keepsigs Then
+      						domeRoot.Removechild domeTmp
+      						bDelNL = True
+      					End If
+      				Case "updatedby", "revisions", "designchange", "agentmodified", "rundata"
+      					domeRoot.Removechild domeTmp
+      					bDelNL = True
+      			End Select
+      			End If
+      			Set domnTmp = domnNext
+      		Loop
+      		If oss.Size Then
+      			oss.ReinsertNodes domeRoot
+      		End If
+      		Exit Sub
+      oops:
+      		Dim strextra$
+      		If Not (middomp Is Nothing) Then strExtra = " " & Replace(middomp.Log, NEWLINE, "")
+      		strextra = "(" & domeRoot.Getattribute("name") & " )" & strextra
+      		Error Err, Error & " //" & GetThreadInfo(1) & ":" & Erl & strextra
+      	End Sub
+      	
+      	%REM
+      		Function cleanUpXML
+      		Description: Apply the "pretty printer" to a character stream we know to be XML data.
+      		Arguments: none, read from base64 data stored in object.
+      		Return value:
+      	%END REM
+      	Function cleanUpXML As NotesDOMParser
+      		Dim pp As PrettyPrinter, streamMid As NotesStream, streamXML As NotesStream
+      		Set streamMid = z_ses.Createstream
+      		Set cleanUpXML = z_ses.Createdomparser()
+      		cleanUpXML.Inputvalidationoption = VALIDATE_NEVER 
+      		cleanUpXML.Setinput streamMid
+      		streamMid.WriteDecoded z_b64data,ENC_BASE64
+      		streamMid.Position = 0
+      		cleanUpXML.Parse
+      		Set pp = New PrettyPrinter(cleanUpXML, "run")
+      		pp.process
+      	End Function
+      	
+      	%REM
+      		Sub ExportFileData
+      		Description: If there's base64 file data we copied from a filedata or similar DOM element, write it to a file.  
+      	%END REM
+      	Sub ExportFileData
+      		If z_b64data = "" Then Exit Sub
+      		Dim streamOut As NotesStream, streamMid As NotesStream, midDomp As NotesDOMParser, i%
+      		Set streamOut = z_ses.Createstream
+      		If z_baseName Like "*.xsp" Then
+      			Set midDomp = cleanUpXML
+      			streamOut.Open z_basepath & z_basename, "UTF-8"
+      			Call midDomp.SetOutput(streamOut)
+      			midDomp.serialize
+      		ElseIf detype = "properties" Then
+      			' sort each section of the properties file alphabetically to hide differences which are just line order.
+      			Set streamMid = z_ses.Createstream()
+      			Call Base64ToBinary(z_b64data, streamMid)
+      			Dim texData$, lines, swap$, k%, lNum%
+      			texData = StreamToText(streamMid, "UTF-8")
+      			lines = Split(Replace(texData, Chr$(13), {}), NEWLINE)
+      			lNum = 0
+      			For i = 0 To UBound(lines)-1
+      				If Left$(lines(i), 1) = "#" Or lines(i) = "" Then
+      					lNum = i+1
+      					If lines(i) Like {[#]* ##:##:## * 20##} Then
+      						lines(i) = {#<timestamp redacted>}
+      					End If
+      				ElseIf Right(lines(i), 1) = {\} And i < UBound(lines) Then
+      					' continued line
+      					lines(i+1) = lines(i) & NEWLINE & lines(i+1)
+      					lines(i) = {KILL}
+      				Else
+      					lines(i) = processPropertyLine(lines(i)) ' standardize \u code case
+      					' let this line bubble up until it's in alpha order among the lines
+      					' above it, up to the latest comment line.
+      					For k = i-1 To lNum Step -1
+      						If lines(k) > lines(k+1) Then
+      							swap = lines(k)
+      							lines(k) = lines(k+1)
+      							lines(k+1) = swap 
+      						End If
+      					Next
+      				End If
+      			Next
+      			streamOut.Open z_basepath & z_basename, "UTF-8"
+      			If z_exportUNID Then streamOut.Writetext {# UNID=} & doc.Universalid, EOL_PLATFORM
+      			If doc.Hasitem({$BabelInfo}) Then
+      				streamOut.Writetext {# $BabelInfo=} & Join(doc.getItemValue({$BabelInfo}), " : "), EOL_PLATFORM
+      			End If
+      			ForAll aLine In lines
+      				If aLine <> {KILL} Then
+      					Call streamOut.Writetext(aLine, EOL_PLATFORM)
+      				End If
+      			End ForAll 
+      		Else
+      plainWrite:
+      			streamOut.Open z_basepath & z_basename, "binary"
+      			streamOut.WriteDecoded z_b64data,ENC_BASE64
+      		End If
+      		streamOut.Close
+      	End Sub
+      	
+      	%REM
+      		Sub removeDisabledEvents
+      		Description: Find all CODE events that have attribute "enabled" = false. These affect nothing and we want them gone.
+      	%END REM
+      	Sub removeDisabledEvents(elBase As NotesDOMElementNode)
+      		Dim nl As NotesDOMNodeList, i%, elCode As NotesDOMElementNode
+      		Set nl = domeroot.Getelementsbytagname("code")
+      		For i = nl.Numberofentries To 1 Step -1
+      			Set elCode = nl.Getitem(i)
+      			If elCode.Getattribute("enabled") = "false" Then
+      				elCode.Parentnode.Removechild elCode
+      			End If
+      		Next
+      	End Sub
+      	
+      	%REM
+      		Sub addBackMissingItem
+      		Description: An item was maybe removed inappropriately from the DXL output -- put it back.
+      		Arguments:
+      			itemName: name of item to replace.
+      	%END REM
+      	Private Sub addBackMissingItem(itemName$)
+      		Dim elTmp As NotesDOMElementNode, elVal As NotesDOMElementNode
+      		Set elTmp = DU_GetChildWithAttr(domeRoot, {item}, {name}, itemName, 1)
+      		If elTmp Is Nothing Then
+      			Dim valu, item As NotesItem
+      			Set item = doc.Getfirstitem(Itemname)
+      			If Not (item Is Nothing) Then
+      				If item.Valuelength > 0 Then ' don't re-insert the field unless it has a value.
+      					valu = item.Values
+      					Set elVal = itemValueToDXL(Valu, True)
+      					If Not (elVal Is Nothing) Then
+      						Set elTmp = z_domdoc.Createelementnode("item")
+      						Call elTmp.Setattribute("name", itemName)
+      						elTmp.Appendchild elVal
+      						domeRoot.Appendchild elTmp
+      					End If
+      				End If
+      			End If
+      		End If
+      	End Sub
+      	
+      	%REM
+      		Sub removeItemElement
+      		Description: Remove an "item" element with a given name from the root element.
+      		Arguments:
+      	%END REM
+      	Sub removeItemElement(ByVal itemnames$)
+      		Dim inames, nl As NotesDOMNodeList, i%
+      		inames = FullTrim(Split(itemnames, ","))
+      		Dim elTmp As NotesDOMElementNode
+      		Set nl = domeroot.Getelementsbytagname("item")
+      		For i = nl.NumberOfEntries To 1 Step -1
+      			Set elTmp = nl.Getitem(i)
+      			If Not IsNull(ArrayGetIndex(inames, elTmp.Getattribute({name}), 1)) Then
+      				RemoveElementAndWhitespaceAfter elTmp
+      			End If
+      		Next
+      	End Sub
+      	
+      	%REM
+      		Function processPropertyLine
+      		Description: Process out unimportant differences in properties files lines.
+      		Argument:
+      			aLine: line read from .properties
+      		Returns:
+      			aLine modified for conformity, including changing \uhhhh to \uHHHH
+      	%END REM
+      	Function processPropertyLine(aLine As String) As String
+      		Dim parts, i%
+      		On Error GoTo ERRHANDLE
+      		parts = Split(aLine, {\})
+      		For i = 1 To UBound(parts)
+      			If LCase(parts(i)) Like {u[0-9a-f][0-9a-f][0-9a-f][0-9a-f]*} Then
+      				parts(i) = {u} & UCase(Mid$(parts(i), 2, 4)) & Mid$(parts(i), 6)
+      			End If
+      		Next
+      		processPropertyLine = Join(parts, {\})
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      
+      	%REM
+      		Sub RemoveStaticRichText
+      		Description: Remove all the static text from a form/page/etc.
+      	%END REM
+      	Sub RemoveStaticRichText(elBody As NotesDOMElementNode)
+      		On Error GoTo ERRHANDLE
+      		Call RemoveDescendantElems(elBody, "run")
+      
+      		Call FlattenElements(elBody, "par", True)
+      		Call FlattenElements(elBody, "tablecell", True)
+      		Call FlattenElements(elBody, "tablerow", True)
+      		Call FlattenElements(elBody, "table", True)
+      		Call RemoveDescendantElems(elBody, "sectiontitle")
+      		' we can't just remove sections because they might contain section editor lists.
+      		' But we can remove them if they're empty.
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Function getFontAttrs
+      		Description: Given a "font" node, return an abbreviated list of attributes that omits the attribute names.
+      	%END REM
+      	Function getFontAttrs(elFont As NotesDOMElementNode) As String
+      		getFontAttrs = Replace(LTrim(DU_serializeattrs(elFont, True)), GRtfFontAttrCut, "")
+      	End Function
+      	
+      	%REM
+      		Sub surfaceRun
+      		Description: Called if we're stripping <run> elements from the output. Take the contents of the run
+      			and make then direct descendants of the parent node instead. If there's a font element as the
+      			first child of the run, make it the parent of the contents instead.
+      		Arguments:
+      			elRun: the <run> element.
+      	%END REM
+      	Sub surfaceRun(elRun As NotesDOMElementNode)
+      		Dim elPar As NotesDOMElementNode, elFont As NotesDOMElementNode, attrs$, fontAttrs$, prevAttrs$
+      		Dim nod As NotesDOMNode, nodNext As NotesDOMNode, nodPrev As NotesDOMNode
+      		On Error GoTo ERRHANDLE
+      		Set elPar = elRun.Parentnode
+      		If elRun.Numberofchildnodes = 0 Then ' nothing in the run, why is it even here?
+      			elPar.Removechild elRun
+      			Delete elRun
+      			Exit Sub
+      		End If
+      		Set nod = elRun.Firstchild
+      		If nod.Nodetype = Domnodetype_element_node And nod.Nodename = "font" Then
+      			' run starts with a font element.
+      			Set elFont = nod
+      			If elRun.Numberofchildnodes = 1 Then
+      				' and there's only the font element in the run. Waste of space, delete run.
+      				elPar.Removechild elRun
+      				Delete elRun
+      				Exit Sub
+      			End If
+      			' the font applies to something but we don't need a separate element for it.
+      			elFont.Removeattribute "pitch"
+      			elFont.Removeattribute "familyid"
+      			fontAttrs = getFontAttrs(elFont)
+      			Call elRun.Setattribute("font", fontattrs)
+      			elRun.Removechild elFont
+      			Set nod = elRun.Firstchild
+      		End If
+      		
+      		attrs = DU_serializeattrs(elRun, True)
+      		Set nodPrev = elRun.Previoussibling
+      		If attrs = "" Then
+      			' uses default formatting -- we don't need this element, just the contents
+      			If elRun.Numberofchildnodes = 1 Then
+      				elRun.Removechild nod
+      				If nodPrev.isnull Then
+      					elPar.Replacechild nod, elRun
+      				ElseIf nodPrev.nodetype = Domnodetype_text_node And nod.Nodetype = Domnodetype_text_node Then
+      					nodPrev.Nodevalue = nodPrev.Nodevalue & nod.Nodevalue
+      					elPar.Removechild elRun
+      				Else
+      					elPar.Replacechild nod, elRun
+      				End If
+      			End If
+      		Else ' there is some formatting here. Can it be merged with previous run?
+      			If Not nodPrev.Isnull Then
+      				If nodPrev.Nodename = "run" Then
+      					Dim elPrev As NotesDOMElementNode
+      					Set elPrev = nodPrev
+      					prevAttrs = DU_serializeattrs(elPrev, True)
+      					If prevAttrs = attrs Then ' they can be merged
+      						MergeRuns elPrev
+      					End If
+      				End If
+      			End If
+      		End If
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub MergeRuns
+      		Description: Merge two adjacent "run" elements that have the same formatting.
+      		Arguments:
+      			elFirst: the first node to merge. The one following it is merged with it
+      				and then destroyed.
+      	%END REM
+      	Sub MergeRuns(elFirst As NotesDOMElementNode)
+      		Dim nodFrom As NotesDOMNode, nodTo As NotesDOMNode, elFrom As NotesDOMElementNode
+      		On Error GoTo ERRHANDLE
+      		Set nodTo = elFirst.Lastchild
+      		Set elFrom = elFirst.Nextsibling
+      		' if the destination ends with text and the source starts with text, put them both in one node. 
+      		If nodTo.Nodetype = Domnodetype_text_node Then
+      			Set nodFrom = elFrom.Firstchild
+      			If nodFrom.Nodetype = Domnodetype_text_node Then
+      				If runcompact = 1 Then
+      					nodTo.Nodevalue = nodTo.Nodevalue & DOTT & nodFrom.Nodevalue
+      				Else
+      					nodTo.Nodevalue = nodTo.Nodevalue & nodFrom.Nodevalue	
+      				End If
+      				
+      				elFrom.Removechild nodFrom
+      			End If
+      		End If
+      		While elFrom.Haschildnodes
+      			Set nodFrom = elFrom.Firstchild
+      			elFrom.Removechild nodFrom
+      			elFirst.Appendchild nodFrom
+      		Wend
+      		elFirst.Parentnode.Removechild elFrom
+      		Delete elFrom
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub stripRuns
+      		Description: Remove "run" elements that aren't needed in a rich text item.
+      		Arguments:
+      	%END REM
+      	Private Sub stripRuns(elBody As NotesDOMElementNode)
+      		On Error GoTo ERRHANDLE
+      		Dim snl As New StableDOMNodeList(elBody, "run")
+      		Dim elRun As NotesDOMElementNode
+      		Set elRun = snl.First
+      		Do Until elRun Is Nothing
+      			surfaceRun elRun
+      			Set elRun = snl.Next
+      		Loop
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub ProcessRTBody
+      		Description: Process the contents of a "body" element so as to hide unimportant differences.
+      	%END REM
+      	Sub ProcessRTBody(elBody As NotesDOMElementNode)
+      		On Error GoTo oops
+      		Dim parAlias List As String ' key = pardef ID, value = "new hashed ID,hideattrs".
+      		Dim pardefHashes List As NotesDOMElementNode ' key=pardef hashed value, to avoid outputting dups.
+      		Dim dnl As NotesDOMNodeList, elPardef As NotesDOMElementNode, elPar As NotesDOMElementNode
+      		Dim attrs, szAttrs$, dal As NotesDOMNamedNodeMap, atNode As NotesDOMAttributeNode, i%, k%
+      		Dim newId$, oldId$, elTmp As NotesDOMElementNode, szTmp$, hide$, hideDisp$, fhash$
+      		Dim formula$, elFormula As NotesDOMElementNode, dnlSub As NotesDOMNodeList, nodeTmp As NotesDOMNode
+      		Dim node As NotesDOMNode, ntex As NotesDOMTextNode, parts
+      		
+      		' if you add a paragraph early on a form, with a new style definition (pardef),
+      		' it renumbers the ids of all subsequent pardefs, so you get a lot of differences
+      		' for paragraphs whose style didn't really change. Replace the pardef ID with a
+      		' hash value of the paragraph attributes so that it will be unchanged when the defs
+      		' are renumbered.
+      		Dim doomedElements As New ObjectCollection
+      		Set dnl = elBody.Getelementsbytagname("pardef")
+      		For i = 1 To dnl.Numberofentries
+      			Set elPardef = dnl.Getitem(i)
+      			Set dal = elPardef.Attributes
+      			szattrs = ""
+      			hideDisp = ""
+      			formula = ""
+      			fhash = ""
+      			For k = 1 To dal.Numberofentries
+      				Set atNode = dal.Getitem(k)
+      				If atNode.Attributename = "hide" Then
+      					hideDisp = ",hide=" & atNode.Attributevalue
+      				ElseIf atNode.Attributename <> "id" Then
+      					szAttrs = szAttrs & NEWLINE & atNode.Attributename & "=" & atNode.Attributevalue
+      				Else
+      					oldId = atNode.Attributevalue
+      				End If
+      			Next
+      			
+      			Set elTmp = DU_GetChildWithAttr(elPardef, "code", "event", "hidewhen", 0)
+      			If Not (elTmp Is Nothing) Then
+      				If elTmp.Getattribute("enabled") <> "false" Then
+      					Set elFormula = DU_GetChildNamed("formula", elTmp)
+      					formula = DU_GetTextFromNodeInclCDATA(elFormula)
+      					fhash = "@" & Hex(Fletcher32(formula))
+      					If formula Like "*[&<>]*" Or InStr(formula, NEWLINE) Or Len(formula) > 50 Then
+      						' too complex
+      						formula = {@}
+      						elFormula.Setattribute "hash", fhash
+      					End If
+      					If Len(hideDisp) Then
+      						hideDisp = hideDisp & "," & formula
+      					Else
+      						hideDisp = ",hide=" & formula
+      					End If
+      				End If
+      			End If
+      			Set elTmp = DU_GetChildNamed("parstyle", elPardef)
+      			If Not (elTmp Is Nothing) Then
+      				szAttrs = szAttrs & NEWLINE & DU_Serialize(elTmp, False)
+      			End If
+      			szAttrs = Mid$(szAttrs, 2) & hideDisp
+      
+      			newId = Hex(Fletcher32(szAttrs)) ' compute hash code based on attrs of pardef.
+      			If Len(formula) Then
+      				newId = newId & " " & fhash
+      			End If
+      			If IsElement(pardefHashes(newid)) Then
+      				' a duplicate - remove it later (deleting it during loop processing messes with the collection we're scanning)
+      				doomedElements.add elParDef
+      			Else
+      				Set pardefHashes(newid) = elParDef
+      				elPardef.Setattribute "id", newId
+      				elPardef.Setattribute "unused", "1"
+      				doomedElements.add elPardef ' remove it from its current position because it should go at the end.
+      			End If
+      			parAlias(oldId) = newId & hideDisp
+      		Next
+      		
+      		' Embedded outlines remove height attribute if it has no effect.
+      		Set dnl = elBody.Getelementsbytagname("embeddedoutline")
+      		For i = dnl.Numberofentries To 1 Step -1
+      			Set elTmp = dnl.Getitem(i)
+      			If elTmp.Getattribute({heighttype}) Like "fit*" Then
+      				elTmp.Removeattribute("height")		
+      			End If
+      		Next
+      		
+      		' Embedded views remove height attribute if it has no effect.
+      		Set dnl = elBody.Getelementsbytagname("embeddedview")
+      		For i = dnl.Numberofentries To 1 Step -1
+      			Set elTmp = dnl.Getitem(i)
+      			If elTmp.Getattribute({heighttype}) Like "fit*" Then
+      				elTmp.Removeattribute("height")
+      			End If
+      		Next
+      		
+      		' in all section elements, remove the expanded property.
+      		Set dnl = elBody.Getelementsbytagname("section")
+      		For i = dnl.Numberofentries To 1 Step -1
+      			Set elTmp = dnl.Getitem(i)
+      			'	If elTmp.Getattribute("expanded") <> "" Then
+      			elTmp.Removeattribute("expanded")
+      			'	End If
+      		Next
+      		
+      		' in field elements, remove properties which have no effect given other attributes.
+      		Set dnl = elBody.Getelementsbytagname("field")
+      		For i = dnl.Numberofentries To 1 Step -1
+      			Set elTmp = dnl.Getitem(i)
+      			If InStr("names,authors,readers", elTmp.Getattribute({type})) = 0 Then
+      				elTmp.Removeattribute {lookupaddressonrefresh}
+      				elTmp.Removeattribute {lookupeachchar}
+      			Else ' remove name attributes that have their default value.
+      				If elTmp.Getattribute({lookupeachchar}) = "false" Then elTmp.Removeattribute {lookupeachchar}
+      				If elTmp.Getattribute({lookupaddressonrefresh}) = "false" Then elTmp.Removeattribute {lookupaddressonrefresh}
+      			End If
+      			Set elTmp = DU_GetChildNamed("keywords", elTmp)
+      			If Not (elTmp Is Nothing) Then
+      				' keyword list doesn't need to be a <textlist> for human consumption
+      				ConvertTextlistToTextElement elTmp, False
+      				' remove attributes that don't apply to the UI type of the field.
+      				' there are probably more we can do but I only add these when I've seen them actually occur.
+      				szTmp = elTmp.Getattribute("ui")
+      				If szTmp <> "checkbox" And szTmp <> "radiobutton" Then
+      					elTmp.Removeattribute "columns"
+      				End If
+      			End If
+      		Next
+      		
+      		
+      		' Summarize richtextdata elements with Fletcher hash.
+      		Set dnl = elBody.Getelementsbytagname("richtextdata")
+      		For i = dnl.Numberofentries To 1 Step -1
+      			Set elTmp = dnl.Getitem(i)
+      			Set ntex = DU_GetTextChild(elTmp)
+      			If Not (ntex Is Nothing) Then
+      				fhash = Fletcher32(ntex.Nodevalue)
+      				elTmp.Removechild ntex
+      				elTmp.Setattribute "hash", fhash
+      			End If
+      			Const KNOWNTYPES = {fffd:Embedded Scheduler}
+      			szTmp = Trim(StrToken(StrRight(KNOWNTYPES, elTmp.Getattribute("type") & ":"), ",", 1))
+      			If Len(szTmp) Then elTmp.Setattribute "desc", szTmp
+      		Next
+      		
+      		Dim havdefs, parm$
+      		havdefs = Split("par,sectiontitle", ",")
+      		ForAll tagname In havdefs
+      			If tagname = {sectiontitle} Then parm = "pardef" Else parm = "def"
+      			Set dnl = elBody.Getelementsbytagname(tagname)
+      			For i = 1 To dnl.Numberofentries
+      				Set elPar = dnl.Getitem(i)
+      				szTmp = elPar.Getattribute(parm)
+      				If Len(szTmp) Then
+      					' there is a pardef reference: map it to the hash code. 
+      					If IsElement(parAlias(szTmp)) Then
+      						szTmp = parAlias(szTmp)
+      						newId = StrToken(szTmp, ",", 1)
+      						elPar.Setattribute parm, newId
+      						If InStr(szTmp, ",") Then
+      							hide = StrRight(szTmp, "hide=")
+      							elPar.Setattribute "hide", hide
+      						End If
+      						If IsElement(pardefHashes(newId)) Then
+      							Call pardefHashes(newId).Removeattribute("unused")
+      						End If
+      					End If
+      				End If
+      			Next
+      		End ForAll
+      
+      		' in all tablecolumn elements, round the width off to 1 significant digit.
+      		Set dnl = elBody.Getelementsbytagname("tablecolumn")
+      		For i = dnl.Numberofentries To 1 Step -1
+      			Set elTmp = dnl.Getitem(i)
+      			If z_parent.isopt(DDIF_OPTRT_FORMAT) Then
+      				' there's nothing in this element except formatting. 
+      				doomedElements.add elTmp
+      			Else
+      				elTmp.Removeattribute "refwidth"
+      				If elTmp.Getattribute("sizetofit") = "true" Then
+      					elTmp.Removeattribute("width") ' the width is the width of the contents -- the number is irrelevant
+      				Else
+      					szTmp = elTmp.Getattribute("width")
+      					If szTmp Like "*%" Then
+      						If GDecimal = "," Then szTmp = Replace(szTmp, ".", ",")
+      						szTmp = Round(CDbl(Left$(szTmp, Len(szTmp)-1)), 1) & "%"
+      						elTmp.Setattribute "width", szTmp
+      					End If
+      				End If
+      			End If
+      		Next
+      		
+      		' Process table elements and at least remove the refwidth, maybe more.
+      		Set dnl = elBody.Getelementsbytagname("table")
+      		For i = 1 To dnl.Numberofentries
+      			Set elTmp = dnl.Getitem(i)
+      			elTmp.Removeattribute("refwidth")
+      		Next
+      		
+      		If z_parent.isopt(DDIF_OPTRT_FORMAT) Then
+      			'			ForAll attrlist In GelemFormatAttrs
+      			'				Set dnl = elBody.Getelementsbytagname(ListTag(attrlist))
+      			'				For i = 1 To dnl.Numberofentries
+      			'					Set elTmp = dnl.Getitem(i)
+      			'					KillAttrs elTmp, attrlist
+      			'				Next
+      			'			End ForAll
+      			
+      			Set dnl = elBody.Getelementsbytagname("font")
+      			For i = dnl.Numberofentries To 1 Step -1
+      				Set elTmp = dnl.Getitem(i)
+      				Set elPar = elTmp.Parentnode
+      				elPar.Removechild elTmp
+      				' if there are two consecutive runs, merge them.
+      				Set node = elPar.Nextsibling
+      				If node.Nodetype = Domnodetype_element_node Then
+      					If node.nodename = "run" Then
+      						Set elTmp = node
+      						DU_ReplaceText z_domdoc, elPar, DU_GetTextFromNode(elPar) & DU_GetTextFromNode(elTmp), False
+      						elTmp.Parentnode.Removechild elTmp
+      					End If
+      				End If
+      			Next
+      		End If
+      		
+      		' keyword list doesn't need to be a <textlist> for human consumption
+      		Set dnl = elBody.Getelementsbytagname("keywords")
+      		For i = 1 To dnl.Numberofentries
+      			Set elTmp = dnl.Getitem(i)
+      			ConvertTextlistToTextElement elTmp, False
+      		Next
+      		
+      		' remove unnecessary settings from field elements
+      		Set dnl = elBody.Getelementsbytagname("datetimeformat")
+      		For i = 1 To dnl.Numberofentries
+      			Set elTmp = dnl.Getitem(i)
+      			If elTmp.Getattribute("preference") = "usersetting" Then
+      				elTmp.Removeattribute "dateformat"
+      				elTmp.Removeattribute "dateseparator1"
+      				elTmp.Removeattribute "dateseparator2"
+      				elTmp.Removeattribute "dateseparator3"
+      				elTmp.Removeattribute "timeformat24"
+      				elTmp.Removeattribute "timeseparator"
+      				elTmp.Removeattribute "fourdigityearfor21stcentury"
+      			End If
+      		Next
+      		
+      		' remove the afterparcount and delete composite field properties which are the default.
+      		Set dnl = elBody.Getelementsbytagname("compositedata")
+      		For i = 1 To dnl.Numberofentries
+      			Dim elPrev As NotesDOMElementNode
+      			Set elPrev = Nothing
+      			Set elTmp = dnl.Getitem(i)
+      			elTmp.Removeattribute "afterparcount"
+      			elTmp.Removeattribute "afterbegincount"
+      			If elTmp.Getattribute({type})= "98" Then
+      				szTmp = FullTrim(DU_GetTextFromNode(elTmp))
+      				Dim cds As New CDRecordStream(szTmp), cdr As CDRecord, cdflags As CDDataflags
+      				Set cdr = cds.fetch
+      				If cdr IsA "CDDataflags" Then
+      					Set cdflags = cdr
+      					If cdflags.appliesTo <> "" Then
+      						elTmp.Setattribute {type}, cdflags.appliesTo
+      						Set elPrev = DU_GetPrevsibNamed(elTmp, cdflags.appliesTo)
+      					End If
+      				End If
+      				If IsElement(cdr.props({attributes})) Then
+      					' we recognized this record.
+      					szattrs = cdr.props({attributes})
+      					If Len(szattrs) Then
+      						' there's something other than default values in it.
+      						attrs = Split(szAttrs, NEWLINE)
+      						If Not (elPrev Is Nothing) Then
+      							DU_AddAttrs elPrev, attrs
+      							doomedElements.add elTmp
+      						Else
+      							DU_AddAttrs elTmp, attrs
+      							elTmp.Removeattribute "nexttype"
+      							elTmp.Removeattribute "prevtype"
+      							elTmp.Removeattribute "containertype"
+      							elTmp.Removeattribute "aftercontainercount"
+      							elTmp.Removechild elTmp.firstchild ' throw away base64 binary data which we have interpreted.
+      						End If
+      					Else
+      						' recognized CD record and it has nothing in it but default values; delete.
+      						doomedElements.add elTmp
+      					End If
+      				End If
+      			End If
+      		Next
+      		
+      		'if the option is selected, delete empty "run" elements and merge adjacent runs with identical formatting.
+      		If runcompact Then
+      			Call stripRuns(elBody)
+      		End If
+      		
+      		If z_flagStrings Then
+      			' search for every place we know there are strings visible in the UI.
+      			flagElements elBody, GRtfStringElements
+      		End If
+      
+      		' now that deleting them doesn't harm anything, get rid of elements we flagged for deletion
+      		' this includes all the pardefs.
+      		For i = 1 To doomedElements.count
+      			Set elTmp = doomedElements.objs(i)
+      			RemoveElementAndWhitespaceAfter elTmp
+      		Next
+      		Delete doomedElements
+      		
+      		' reinsert all the pardefs at the end, sorted by hash value.
+      		Dim tagz
+      		tagz = GCU.listTags(pardefHashes)
+      		GCU.SimpleSort tagz
+      		ForAll hash In tagz
+      			If hash <> "" Then
+      				Set elPardef = pardefHashes(hash)
+      				If elPardef.Getattribute("unused") = "" Then
+      					' the definition is used. reinsert it at the end.
+      					Call elBody.Appendchild(elPardef)
+      				End If
+      			End If
+      		End ForAll
+      		
+      		' replace large blobs with hash values.
+      		CondenseBase64 "gif", elBody
+      		CondenseBase64 "notesbitmap", elBody
+      		CondenseBase64 "png", elBody
+      		CondenseBase64 "jpeg", elBody
+      		CondenseBase64 "javaresource", elBody
+      		Exit Sub
+      oops:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub ConvertTextlistToTextElement
+      		Description: If the node we are passed contains a <textlist> child element, convert it to
+      			a text node with values delimited by newline.
+      	%END REM
+      	Sub ConvertTextlistToTextElement(elPar As NotesDOMElementNode, ByVal forceNewline As Boolean)
+      		Dim texNu As NotesDOMTextNode, dnl As NotesDOMNodeList, elTL As NotesDOMElementNode
+      		Dim i%, k%, elText As NotesDOMElementNode, tval$, dnlT As NotesDOMNodeList, elTruPar As NotesDOMElementNode
+      		On Error GoTo ERRHANDLE
+      		Set dnl = elPar.Getelementsbytagname({textlist})
+      		For i = dnl.Numberofentries To 1 Step -1
+      			Set elTL = dnl.Getitem(i)
+      			Set elTruPar = elTL.Parentnode
+      			Set dnlT = elTL.Getelementsbytagname("text")
+      			For k = 1 To dnlT.Numberofentries
+      				Set elText = dnlT.Getitem(k)
+      				tval = tval & NEWLINE & DU_GetTextFromNode(elText)
+      			Next
+      			If Len(tval) Then
+      				If k > 2 Or forceNewline Then ' multiple values, newline before and after.
+      					elTruPar.Appendchild  z_domdoc.Createtextnode(tval & NEWLINE)
+      				Else ' one value, do inline.
+      					elTruPar.Appendchild  z_domdoc.Createtextnode(Mid$(tval, 2))
+      				End If
+      			End If
+      			elTruPar.Removechild elTL 
+      		Next
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub KillAttrs
+      		Description: Remove from a DOM element all attributes in an array of names.
+      	%END REM
+      	Sub KillAttrs(el As NotesDOMElementNode, attrs)
+      		On Error GoTo ERRHANDLE
+      		ForAll attr In attrs
+      			el.Removeattribute attr
+      		End ForAll
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub RemoveChildElems
+      		Description: Remove all child elements of a node, whose node names are in
+      			an array of names.
+      	%END REM
+      	Sub RemoveChildElems(el As NotesDOMElementNode, childnames)
+      		Dim node As NotesDOMNode, nodeNext As NotesDOMNode
+      		On Error GoTo ERRHANDLE
+      		Set node = el.Firstchild
+      		Do Until node.Isnull
+      			Set nodeNext = node.Nextsibling
+      			If node.Nodetype = Domnodetype_element_node Then
+      				If Not IsNull(ArrayGetIndex(childnames, node.Nodename, 0)) Then
+      					el.Removechild node
+      				End If 
+      			End If
+      			Set node = nodeNext
+      		Loop
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub RemoveDescendantElems
+      		Description: Delete all occurrences of an element.
+      	%END REM
+      	Sub RemoveDescendantElems(elRoot As NotesDOMElementNode, tag$)
+      		Dim dnl As NotesDOMNodeList, elDoomed As NotesDOMElementNode, i%
+      		On Error GoTo ERRHANDLE
+      		Set dnl = elRoot.Getelementsbytagname(tag)
+      		For i = dnl.Numberofentries To 1 Step -1
+      			Set elDoomed = dnl.Getitem(i)
+      			TidyRemoveElement elDoomed
+      		Next
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Function isTextNode
+      		Description: Return True if a node is a text node (without causing error if node is null).
+      	%END REM
+      	Function isTextNode(node As NotesDOMNode) As Boolean
+      		On Error GoTo ERRHANDLE
+      		If Not node.isnull Then
+      			isTextNode = (node.Nodetype = Domnodetype_text_node)
+      		End If
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      
+      	%REM
+      		Sub FlattenElements
+      		Description: Scan a DOM tree for all elements with a given tag, and
+      			delete those elements, substituting their contents for them.
+      	%END REM
+      	Private Sub FlattenElements(elRoot As NotesDOMElementNode, ByVal tag$, ByVal bSkipText As Boolean)
+      		Dim dnl As NotesDOMNodeList, elDoomed As NotesDOMElementNode
+      		Dim nodePrev As NotesDOMNode, nodeNext As NotesDOMNode, i%, nodeTmp As NotesDOMNode
+      		On Error GoTo ERRHANDLE
+      		Set dnl = elRoot.Getelementsbytagname(tag)
+      		For i = dnl.Numberofentries To 1 Step -1
+      			Set elDoomed = dnl.Getitem(i)
+      			SurfaceContents elDoomed, bSkipText
+      		Next
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub DeleteTextFromElements
+      		Description: Delete all text that's a child of specified element types.
+      	%END REM
+      	Sub DeleteTextFromElements(elRoot As NotesDOMElementNode, ByVal tag$, ByVal bDelIfEmpty As Boolean)
+      		Dim dnl As NotesDOMNodeList, elPar As NotesDOMElementNode, bHasKids As Boolean
+      		Dim nodeCur As NotesDOMNode, nodeNext As NotesDOMNode, i%
+      		On Error GoTo ERRHANDLE
+      		Set dnl = elRoot.Getelementsbytagname(tag)
+      		For i = dnl.Numberofentries To 1 Step -1
+      			Set elPar = dnl.Getitem(i)
+      			Set nodeCur = elPar.Firstchild
+      			Do Until nodeCur.isnull
+      				Set nodeNext = nodeCur.Nextsibling
+      				If nodeCur.Nodetype = Domnodetype_text_node Then
+      					elPar.Removechild nodeCur
+      				Else
+      					bHasKids = True ' the node has contents; don't delete it.
+      				End If
+      				Set nodeCur = nodeNext
+      			Loop
+      			If Bdelifempty And Not bHasKids Then
+      				' no non-text contents found, and we were told to delete the element in that case.
+      				elPar.Parentnode.Removechild elPar
+      			End If
+      		Next
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      
+      	%REM
+      		Sub TidyRemoveElement
+      		Description: Remove an element node; if there are text nodes before and after
+      			the element, merge them.
+      	%END REM
+      	Sub TidyRemoveElement(elDie As NotesDOMElementNode)
+      		Dim nodePrev As NotesDOMNode, nodeNext As NotesDOMNode, elPar As NotesDOMElementNode
+      		On Error GoTo ERRHANDLE
+      		Set nodePrev = elDie.Previoussibling
+      		Set nodeNext = elDie.Nextsibling
+      		Set elPar = elDie.Parentnode
+      		If isTextNode(nodePrev) And isTextNode(nodeNext) Then
+      			nodePrev.Nodevalue = nodePrev.Nodevalue & nodeNext.Nodevalue
+      			elPar.Removechild nodeNext
+      		End If
+      		elPar.Removechild elDie
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      
+      	%REM
+      		Sub RemoveElementAndWhitespaceAfter
+      		Description: Delete an element, and if there's whitespace (space, tab, newline) following it, delete all that too.
+      			After that, if there's text before and after, merge them into one text node. 
+      	%END REM
+      	Sub RemoveElementAndWhitespaceAfter(elDie As NotesDOMElementNode)
+      		Dim nodePrev As NotesDOMNode, nodeNext As NotesDOMNode, elPar As NotesDOMElementNode
+      		Dim szAft$, tna As Boolean, tnb As Boolean
+      		On Error GoTo ERRHANDLE
+      		Set nodePrev = elDie.Previoussibling
+      		Set nodeNext = elDie.Nextsibling
+      		Set elPar = elDie.Parentnode
+      		tna = isTextNode(nodeNext)
+      		If tna Then
+      			szAft = GCU.SuperTrim(nodeNext.Nodevalue, 1)
+      		End If
+      		tnb = isTextNode(nodePrev)
+      		If tnb Then
+      			szAft = GCU.SuperTrim(nodePrev.Nodevalue, 2) & szAft
+      		End If
+      		elPar.Removechild elDie
+      		If Len(szAft) Then
+      			If tna And tnb Then
+      				elpar.Removechild nodeNext
+      				nodePrev.Nodevalue = szAft
+      			ElseIf tna Then
+      				nodeNext.Nodevalue = szAft
+      			Else
+      				nodePrev.Nodevalue = szAft
+      			End If
+      		Else
+      			If tna Then elpar.Removechild nodeNext
+      			If tnb Then elpar.Removechild nodePrev
+      		End If
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub SurfaceContents
+      		Description: Delete the DOM element node, but insert its children in its place.
+      			Don't leave two consecutive text nodes (so it's possible the next sibling will
+      			also be deleted).
+      		Arguments:
+      			el: the element to be deleted.
+      			bSkipText: if True, we were going to delete the text elements which were
+      				children of this one anyway, so don't bother to preserve them; only
+      				keep children of other kinds.
+      	%END REM
+      	Private Sub SurfaceContents(el As NotesDOMElementNode, ByVal bSkipText As Boolean)
+      		Dim dop As NotesDOMDocumentFragmentNode, nodeCur As NotesDOMNode, nodenext As NotesDOMNode
+      		Dim nodeprev As NotesDOMNode
+      
+      		On Error GoTo ERRHANDLE
+      		If Not bSkipText Then
+      			' if the last child is text and the following node is text, merge them.
+      			Set nodenext = el.Nextsibling
+      			Set nodeCur = el.Lastchild
+      			If isTextNode(nodeNext) And isTextNode(nodeCur) Then
+      				nodeNext.Nodevalue = nodeCur.Nodevalue & nodeNext.Nodevalue
+      				el.Removechild nodeCur
+      			End If
+      
+      			' if the first child is text and the previous node is text, merge them.
+      			Set nodeprev = el.Previoussibling
+      			Set nodeCur = el.Firstchild
+      			If isTextNode(nodePrev) And isTextNode(nodeCur) Then
+      				nodePrev.Nodevalue = nodePrev.Nodevalue & nodeCur.Nodevalue
+      				el.Removechild nodeCur
+      			End If
+      		End If
+      
+      		' if no nodes remain, delete the element, but don't leave consecutive text nodes.
+      		Set nodeCur = el.Firstchild
+      		If nodeCur.Isnull Then
+      			' no child nodes left
+      			TidyRemoveElement el
+      		Else
+      			' There are still child nodes to replace the one being deleted.
+      			' Move them to a document fragment.
+      			Set dop = z_domdoc.Createdocumentfragmentnode
+      			Do Until nodeCur.isnull
+      				Set nodeNext = nodecur.Nextsibling
+      				If bSkipText Then
+      					If nodeCur.Nodetype <> Domnodetype_text_node Then
+      						dop.Appendchild nodeCur
+      					End If
+      				Else
+      					dop.Appendchild nodeCur
+      				End If
+      				Set nodeCur = nodeNext
+      			Loop
+      			If dop.Haschildnodes Then
+      				el.Parentnode.Replacechild dop, el
+      			Else
+      				TidyRemoveElement el
+      			End If
+      		End If 
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub PushAttributeDescendants
+      		Description: Traverse a DOM tree and find elements with specified tags.
+      			Add a specified attribute to these elements.
+      	%END REM
+      	Sub PushAttributeDescendants(elRoot As NotesDOMElementNode, ByVal attrName$, ByVal attrVal, tags)
+      		Dim nodeCur As NotesDOMNode
+      		On Error GoTo ERRHANDLE
+      		Set nodeCur = elRoot.Firstchild
+      		Do Until nodeCur.Isnull
+      			If nodeCur.Nodetype = Domnodetype_element_node Then
+      				Dim elTmp As NotesDOMElementNode
+      				Set elTmp = nodeCur
+      				If Not IsNull(ArrayGetIndex(tags, elTmp.Nodename)) Then
+      					elTmp.Setattribute attrname, Attrval
+      				End If
+      				PushAttributeDescendants elTmp, Attrname, Attrval, Tags
+      			End If
+      			Set nodeCur = nodeCur.Nextsibling
+      		Loop
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      End Class
+      %REM
+      	Class ExportItem
+      	Description: Contains information about a database to be exported.
+      %END REM
+      Private Class ExportItem
+      	Public db As NotesDatabase
+      	' may differ from db.path if we're working with a temporary copy.
+      	Public originalPath As String
+      	Public nnc As NotesNoteCollection
+      	Public fpath As String
+      	Public bLeft As Boolean ' true if it is the "left", i.e. first database of a pair.
+      	Public bDoc As Boolean ' true if we want to export to a document
+      	Public siglist List As Long ' how many notes were signed by each signer.
+      	Public originalFilename As String
+      	
+      	Private z_docsNotExported As Boolean
+      	
+      	Sub New(aDB As NotesDatabase, ByVal origPath$, aNNC As NotesNoteCollection, ByVal aPath$, ByVal asDoc As Boolean)
+      		On Error GoTo ERRHANDLE
+      		Set db = aDB
+      		Set nnc = aNNC
+      		fpath = aPath
+      		originalPath = origPath
+      		If Len(origpath) Then
+      			originalFilename = StrToken(Replace(origpath, "/", "\"), "\", -1)
+      		Else
+      			originalFilename = db.Filename
+      		End If
+      		bDoc = asDoc
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub RegisterSig
+      		Description: Keep a count of how many notes were signed by whom.
+      		Arguments:
+      			doc: the document whose signer we are to note.
+      			isDesElem: TRUE if this is a design element.
+      	%END REM
+      	Sub RegisterSig(doc As NotesDocument, ByVal detype As String)
+      		Dim sig$
+      		sig = doc.Signer
+      		If sig = "" Then sig = "unsigned"
+      		If detype = "doc" Then sig = "!" & sig
+      		If IsElement(sigList(sig)) Then
+      			sigList(sig) = sigList(sig) + 1
+      		Else
+      			sigList(sig) = 1
+      		End If
+      	End Sub
+      	
+      	%REM
+      		Sub RegisterAllDocSigs
+      		Description: Call this if we're not exporting documents but need to record their signatures for the summary.
+      			This also causes a warning to be added tot he summary information that documents were not exported.
+      		Arguments:
+      	%END REM
+      	Sub RegisterAllDocSigs
+      		z_docsNotExported = True
+      		Dim coll As NotesDocumentCollection, docTmp As NotesDocument
+      		Set coll = db.Alldocuments
+      		Set docTmp = coll.Getfirstdocument
+      		Do Until docTmp Is Nothing
+      			Call RegisterSig(docTmp, False)
+      			Set docTmp = coll.Getnextdocument(docTmp)
+      		Loop
+      	End Sub
+      	
+      	%REM
+      		Property SignatureSummary   get
+      		Description: Return a list of the signatures of notes in the database (contents for signatures.txt)
+      	%END REM
+      	Public Property Get SignatureSummary As String
+      		' if the user requested not to include signatures in the output, still make sure they're aware if there are signature differences.
+      		' This guards against the case where signatures really do matter, but the user just forgot to enable this option.
+      		Dim tmp$, lines, aLine$, sig$, res$, dbpath$
+      		If db.server <> "" Then 
+      			dbpath = nameabbr(db.server) & {!!} & db.Filepath
+      		ElseIf Len(originalPath) Then
+      			dbpath = gcu.dataRelativePath(originalPath)
+      		Else
+      			dbpath = gcu.dataRelativePath(db.Filepath)
+      		End If
+      		ForAll thing In siglist
+      			sig = ListTag(thing)
+      			If sig Like {!*} Then
+      				aLine = "doc: "
+      				sig = Mid$(sig, 2)
+      			Else
+      				aLine = "design: "
+      			End If
+      			aLine = aLine & nameabbr(sig) & {: } & thing
+      			tmp = tmp & NEWLINE & aline
+      		End ForAll
+      		If tmp = "" Then tmp = MSG_NONOTES
+      		lines = Split(Mid$(tmp, 2), NEWLINE)
+      		GCU.SimpleSortStrings lines, 1
+      		res = MSG_PATHLABEL & dbpath & NEWLINE & Join(lines, NEWLINE)
+      		If z_docsNotExported Then res = res & NEWLINE & MSG_DOCCOMPDISABLED
+      		SignatureSummary = res
+      	End Property
+      
+      	Sub Delete
+      		Delete db
+      	End Sub
+      End Class
+      %REM
+      	Class QPLSFlagger
+      	Description: Class to scan LotusScript code and insert tags around string literals.
+      %END REM
+      Private Class QPLSFlagger As QuickParseLS
+      	Sub New
+      		Call flag(QP_FLAGMODE_INNER, "quo*", QFLAGSTART, QFLAGEND)
+      	End Sub
+      	
+      	Function needsFlagging(szDat$) As Boolean
+      		needsFlagging = looksTranslatable(szDat)
+      	End Function 
+      End Class
+      
+      %REM
+      	Class QPMacroFlagger
+      	Description: Class to scan formula code and insert tags around string literals.
+      %END REM
+      Private Class QPMacroFlagger As QuickParseMacro
+      	Sub New
+      		Call flag(QP_FLAGMODE_INNER, "quo*", QFLAGSTART, QFLAGEND)
+      	End Sub
+      	
+      	Function needsFlagging(szDat$) As Boolean
+      		needsFlagging = looksTranslatable(szDat)
+      	End Function 
+      End Class
+      %REM
+      	Class StableDOMNodeList
+      	Description: Like NotesDOMNodeList, except it doesn't recalculate every time you
+      		change or delete a node that was in the list.
+      	Constructor: New StableDOMNodeList(domelement, tagname)
+      		where domelement is the root you want to search for occurrences of a tag, and
+      		tagname is the tag to search for.
+      %END REM
+      Class StableDOMNodeList As ObjectListLite
+      	Sub New(elRoot As NotesDOMElementNode, ByVal tag$)
+      		Dim i As Long
+      		Dim nnl As NotesDOMNodeList
+      		Set nnl = elRoot.Getelementsbytagname(tag)
+      		For i = 1 To nnl.Numberofentries
+      			me.Append nnl.Getitem(i)
+      		Next
+      	End Sub
+      End Class
+      %REM
+         Class exportPair
+         Description: Represents a pair of databases that are to be exported and compared.
+         Constructor: new ExportPair(parent as DatabaseDiffs, eiSource as ExportItem, eiTarget as ExportItem)
+      %END REM
+      Private Class exportPair
+      	Public eiLeft As ExportItem
+      	Public eiRight As ExportItem
+      	Public pairings As massivearray
+      	parent As DatabaseDiffs
+      	
+      	Sub New(ddif As databasediffs, dbLeft As ExportItem, dbRight As ExportItem)
+      		Set parent = ddif
+      		Set eiLeft = dbLeft
+      		Set eiRight = dbRight
+      	End Sub
+      	
+      	%REM
+            Function calcFlags
+            Description: Figure the flags needed for the matcher.
+      	%END REM
+      	Function calcFlags(ByVal detype$, doc As NotesDocument) As String
+      		calcflags = Replace(FilenameFlags(Detype, Doc), {_}, {,})
+      		If InStr(calcflags, "-") Then
+      			calcflags = StrLeft$(calcflags, "-") & "," & calcflags
+      		End If
+      	End Function
+      	
+      	%REM
+            Sub generatePairings
+            Description: In the pair of databases to be exported, figure out which notes match to which.
+      	%END REM
+      	Sub generatePairings
+      		On Error GoTo oops
+      		Dim pmc As New PairMatcherList
+      		Dim pm As PairMatcher
+      		Dim dbSource As NotesDatabase, dbTarget As NotesDatabase
+      		Dim doc As NotesDocument, deType$, id$, title$, flags$, key$
+      		Set dbSource = eiLeft.db
+      		Set dbTarget = eiRight.db
+      		id = eiLeft.nnc.Getfirstnoteid
+      		Do Until id = ""
+      			Set doc = dbSource.Getdocumentbyid(id)
+      			deType = noteType(doc)
+      			If detype = "doc" Then key = "doc." & doc.Getitemvalue("FORM")(0) Else key = detype
+      			Set pm = pmc.pm(key)
+      			title = parent.getNoteTitle(eileft, detype, doc)
+      			flags = calcFlags(detype, doc)
+      			Call pm.AddSource(doc.Universalid, title, flags, doc.Size)
+      			id = eileft.nnc.Getnextnoteid(id)
+      		Loop
+      		id = eiRight.nnc.Getfirstnoteid
+      		Do Until id = ""
+      			Set doc = dbTarget.Getdocumentbyid(id)
+      			deType = noteType(doc)
+      			If detype = "doc" Then key = "doc." & doc.Getitemvalue("FORM")(0) Else key = detype
+      			Set pm = pmc.pm(key)
+      			title = parent.getNoteTitle(eiright, detype, doc)
+      			flags = calcFlags(detype, doc)
+      			Call pm.AddTarget(doc.Universalid, title, flags, doc.Size)
+      			id = eiRight.nnc.Getnextnoteid(id)
+      		Loop
+      		Set pairings = New MassiveArray
+      		ForAll pmTmp In pmc.PMByType
+      			Dim aMatch$, idSrc$, idTarg$
+      			detype = ListTag(pmTmp)
+      			If detype Like "doc.*" Then detype = "doc"
+      			aMatch = pmTmp.First
+      			Do Until aMatch = ""
+      				pairings.value(pairings.count) = detype & DOTT & aMatch
+      				aMatch = pmTmp.Next
+      			Loop
+      		End ForAll
+      		Exit Sub
+      oops:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-GetThreadInfo(0))
+      	End Sub
+      End Class
+      
+      %REM
+         Class NoteCompareInfo
+         Description: Information about a pair of notes to be compared -- may be design elements or documents.
+         Constructor: 
+      %END REM
+      Private Class NoteCompareInfo
+      	Public sourceUnid As String
+      	Public targetUnid As String
+      	Public filepath As String
+      End Class
+      '++LotusScript Development Environment:2:2:Initialize:1:10
+      Sub Initialize
+      	GDecimal = DECIMALCHAR
+      	Dim tmp
+      	
+      	tmp = Split(RTF_STRING_ELEMENTS, NEWLINE)
+      	ForAll thing In tmp
+      		GRtfStringElements(StrToken(thing, ":", 1)) = StrRight(thing, ":")
+      	End ForAll
+      	
+      	tmp = Split(NOTE_STRING_ELEMENTS, NEWLINE)
+      	ForAll thang In tmp
+      		GNoteStringElements(StrToken(thang, ":", 1)) = StrRight(thang, ":")
+      	End ForAll
+      	
+      	Gstopwords = Split(TRANSLATION_STOPWORDS, " ")
+      
+      	GRtfFontAttrCut = Split(FONT_ATTR_REPLACEMENTS, ",")
+      End Sub
+      
+      '++LotusScript Development Environment:2:1:looksTranslatable:9:8
+      
+      %REM
+      	Function looksTranslatable
+      	Description: Based on common sense rules of what should be translated, decide whether it's
+      		worth flagging a string literal in the output.
+      	Arguments: the string in question.
+      	Return value: TRUE if this looks like a string that possibly should be translated
+      %END REM
+      Function looksTranslatable(tex$) As Boolean
+      	If Len(tex) > 0 Then
+      		If IsNumeric(tex) Then Exit Function ' returning false
+      		If Not (tex Like {*[!- 	
+      0-9.,?*%!:+/\"'$#|@~`&[]*}) Then Exit Function
+      		If tex Like "//*" Then Exit Function
+      		If Not IsNull(ArrayGetIndex(GStopWords, tex, 1)) Then Exit Function
+      		looksTranslatable = True
+      	End If
+      End Function
+      
+      '++LotusScript Development Environment:2:1:ctrlSub:9:8
+      %REM
+      	Function ctrlSub
+      	Description: change all control characters in a string to the designated character.
+      	Arguments:
+      		szIn: string to process
+         		szReplacement: "" or string to substitute for every control character.
+      	Return value: input string with substitutions.
+      %END REM
+      Private Function ctrlSub(szIn$, ByVal szReplacement$) As String
+      	Dim i&, ch$
+      	For i = 1 To Len(Szin)
+      		ch = Mid$(szIn, i, 1)
+      		If Uni(ch) < 32 Then
+      			ctrlSub = ctrlSub & Szreplacement
+      		Else
+      			ctrlSub = ctrlSub & ch
+      		End If
+      	Next
+      End Function
+      
+      '++LotusScript Development Environment:2:1:fex:6:8
+      %REM
+      	Function fex
+      	Description: Convert a number to fexidecimal, a numbering system that treats every
+      		filename-safe character as a digit.
+      %END REM
+      Function fex(ByVal iVal&) As String
+      	Const DIGITS = |0123456789abcdefghijklmnopqrstuvwxyz~-_=+^(){}[]#$%|
+      	While iVal > 0
+      		Dim dth%
+      		dth = ival Mod Len(DIGITS)
+      		fex = Mid$(DIGITS, dth+1, 1) & fex
+      		ival = ival \ Len(DIGITS)
+      	Wend
+      End Function
+      
+      '++LotusScript Development Environment:2:1:FileSafeName:1:8
+      Function FileSafeName(x$) As String
+      	Dim fnam$, suffix$
+      	On Error GoTo ERRHANDLE
+      	fnam = FexEncode(x)
+      	If Len(fnam) > 70 Then
+      		suffix = StrRightBack(fnam, ".")
+      		If Len(suffix) > 0 And Len(suffix) < 10 Then
+      			fnam = StrLeftBack(fnam, ".")
+      			fnam = Left$(fnam, 20) & Fex(fletcher32(StrLeftBack(x, "."))) & "." & suffix
+      		Else
+      			fnam = Left$(fnam, 20) & Fex(fletcher32(x))
+      		End If
+      	End If
+      	fNam = ctrlSub(Replace(fnam, Split({\,/,",:,|,*,?,<,>}, ","), "_"), "_")
+      	If fNam = "" Then FileSafeName = "Untitled" Else FileSafeName = fNam
+      	Exit Function
+      ERRHANDLE:
+      	Error Err, Error & { //} & GetThreadInfo(1) & {:} & Erl & (Erl-GetThreadInfo(0))
+      End Function
+      
+      '++LotusScript Development Environment:2:1:FexEncode:7:8
+      %REM
+      	Function FexEncode
+      	Description: convert a name to file safe characters by Fex-encoding characters LotusScript file
+      		functions can't manage. Fex is like hex only with more digits.
+      	Arguments: string to encode
+      %END REM
+      Function FexEncode(ByVal szArc$) As String
+      	Dim i%, tmp$, ch$
+      	For i = 1 To Len(szArc)
+      		ch = Mid$(szArc, i, 1)
+      		If Uni(ch) > 256 Then
+      			tmp = tmp & Fex(Uni(ch))
+      		ElseIf Uni(ch) > 127 Then
+      			tmp = tmp & Hex(Uni(ch))
+      		Else
+      			tmp = tmp & ch
+      		End If
+      	Next
+      	FexEncode = tmp
+      End Function
+      
+      '++LotusScript Development Environment:2:1:FilenameFlags:11:8
+      
+      %REM
+      	Function FilenameFlags
+      	Description: Calculate the "flags" added to an export filename to indicate the language and whether it's for web only,
+      		notes only, or what. 
+      	Arguments:
+      		deType: e.g. "form"
+      		doc: the note whose flags to calculate.
+      	Return value: underline-delimited list of flag values, e.g. FR_w for a web-only French design element..
+      %END REM
+      Function FilenameFlags(detype$, doc As NotesDocument) As String
+      	If detype <> "doc" And detype <> "profile" And detype <> "icon" And detype <> "acl" Then
+      		Dim flags$, noteflags$, notfor$
+      		flags = {_} & doc.Getitemvalue({$Language})(0)
+      		noteflags = doc.Getitemvalue("$Flags")(0)
+      		If noteflags Like "*[1nw]*" Then
+      			If InStr(noteflags, "n") Then notFor = ",n"
+      			If InStr(noteflags, "w") Then notFor = notfor & ",w"
+      			If InStr(noteflags, "1") Then notFor = notfor & ",m"
+      			flags = flags & {_} & Replace("nwm", Split(Mid$(notfor, 2), ","), "")
+      		End If
+      		Filenameflags = Mid$(flags, 2)
+      	End If
+      End Function
+    signed: true
+    nonsummary: true
+  - name: $TITLE
+    type: text
+    data: DatabaseDiffs
+    signed: true
+remaining: []

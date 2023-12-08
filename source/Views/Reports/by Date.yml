@@ -1,0 +1,404 @@
+---
+class: 8
+flags: 0x0000
+unid: OF63DAE322C6AF93B4-ON0056AD6D8525872C
+items:
+  - name: $Collation
+    type_num: 2
+    type: opaque
+    opaque: |
+      PwAEAABEiWYAAAAEAIBmAAQACwCIZgAPAAoAAGYAGQAEACQxMjdBcHBsaWNhdGlvblJlcG9zaXRvcnkk
+      MTIx
+  - name: $Collation1
+    type_num: 2
+    type: opaque
+    opaque: EQABAABEiGYAAAAEACQxMjc=
+  - name: $Comment
+    type: text
+    data: ""
+    signed: true
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: Y
+  - name: $Fonts
+    type: text
+    data:
+      - "5"
+      - "38"
+      - Arial
+  - name: $FormFormula
+    type: formula
+    data: "@If(Categories = \"submission\" | @Begins(@LowerCase(Subject); \"nd-localized\":\"nd_localized\":\"pr#\":\"pr \":\"notes\":\"v1101\"); \"Submission\"; Form)"
+    opaque: |
+      xAAAAKoABQAKAENhdGVnb3JpZXMBAAoAc3VibWlzc2lvbgoCBQAHAFN1YmplY3QAYQEBAAwAbmQtbG9j
+      YWxpemVkAQAMAG5kX2xvY2FsaXplZB8CAQADAHByIwAfAgEAAwBwciAAHwIBAAUAbm90ZXMAHwIBAAUA
+      djExMDEAHwJGAh0CrwAkABQAAQAKAFN1Ym1pc3Npb26uABAABQAEAEZvcm2uAAQAtQMDAAcAGAASAAkz
+      UzRTNVM2UzEzUzI2UzI4Uw==
+    signed: true
+  - name: $FormatNote
+    type: noteref
+    data:
+      - OF4B1E9B6B8178B1C1-ON0062FE9F8525624F
+    signed: true
+  - name: $Formula
+    type: formula
+    data: " form = \"Submission\" | @AllDescendants"
+    opaque: |
+      zAYCACYABAAkMTI3bAAeAa8AFAAIAGkArgAMAAEAAACuAAQAtQMDAAIANgAEACQxMTZsAB4BrwAkABgA
+      AQAAAAEAAQAlAAEAAQAlAJUDrgAMAAEAAACuAAQAtQMDAAIADgAEACQxMjFpAAMAAgAoAAwAU2FtZXRp
+      bWVJbmZvAgAFAAAAAAAAAAUABABmcm9ttAIDAAEAKgATAFByaXZhdGVUeHQAZvN1AONvJQAAAQAJAFBS
+      SVZBVEU6IAADAAEAKgATAEV4cGlyZWRUeHQAZ/N1AONvJQAAAQAJAEVYUElSRUQ6IAADAAEAJgAQAEFu
+      b25UeHQAaPN1AONvJQABAAkAQW5vbnltb3VzAAMAAQBqAA8AQ05Gcm9tAGnzdQDjbyUADwUABABmb3Jt
+      YQEBAAkAYW5vbnltb3VzAEcCrwA2ABoABQAQAEFub25UeHQAaPN1AONvJQCuABwAAgAGAAAAAAAAAAUA
+      BABGcm9ttAKuAAQAtQMDAAEAMgASAENOQWx0RnJvbQBq83UA428lAAIABgAAAAAAAAAFAAcAQWx0RnJv
+      bQC0AgMAAQCCABYAQWx0ZXJuYXRlbmFtZQBr83UA428lAAUABwBBbHRGcm9tAAEAAAALAgUABwBBbHRG
+      cm9tAAUABABGcm9tCwIcAq8AOAAsAAEAAgAgWwUAEgBDTkFsdEZyb20AavN1AONvJQAiAgEAAQBdACIC
+      rgAMAAEAAACuAAQAtQMDAAIAFAEEACQxMTcFAAcAcmVhZGVycwABAAAACwKvAGAAHgAFABMAUHJpdmF0
+      ZVR4dABm83UA428lAGKuAEIABQAKAEV4cGlyZURhdGUBAAAACwKvACoAHgAFABMARXhwaXJlZFR4dABn
+      83UA428lAGKuAAwAAQAAAK4ABAC1BQUABwBTdWJqZWN0AAEAAAALAq8AJgAaAAUABwBTdWJqZWN0AAEA
+      AgAgICICrgAMAAEAAACuAAQAtQMiAgEAAQAoACICBQAPAENORnJvbQBp83UA428lAAIiAgUAFgBBbHRl
+      cm5hdGVOYW1lAGvzdQDjbyUAIgIBAAEAIAAiAmkAAQAEAEQwUzBWAiICAQABACkAIgIDAAEAKgATAFBy
+      aXZhdGVUeHQA+7xUAMeFJQAAAQAJAFBSSVZBVEU6IAADAAEAKgATAEV4cGlyZWRUeHQA/LxUAMeFJQAA
+      AQAJAEVYUElSRUQ6IAADAAEAfAAPAEF1dGhvcgD9vFQAx4UlAAAFAAQARm9ybQEACQBNYWluVG9waWMA
+      CgIFAAcAU3ViamVjdAABAAAACgIcAq8ANgAqAAEAAgAgKAIABQAAAAAAAAAFAAQARnJvbbQCIgIBAAEA
+      KQAiAq4ADAABAAAArgAEALUDAwABAJ4AEwB1c2VTdWJqZWN0AP68VADHhSUAAAUABABmb3JtAQASAFJl
+      c3BvbnNlVG9SZXNwb25zZQoCrwBgACAABQAWAEltbWVkaWF0ZVBhcmVudFN1YmplY3SuAEAABQAEAGZv
+      cm0BAAgAUmVzcG9uc2UKAq8AJgAaAAUADwBPcmlnaW5hbFN1YmplY3QArgAMAAEAAACuAAQAtQUDAAIA
+      iAEEACQxMjQFAAcAcmVhZGVycwABAAAACwKvAGAAHgAFABMAUHJpdmF0ZVR4dAD7vFQAx4UlAACuAEIA
+      BQAKAEV4cGlyZURhdGUBAAAACwKvACoAHgAFABMARXhwaXJlZFR4dAD8vFQAx4UlAACuAAwAAQAAAK4A
+      BAC1BQUABABGb3JtAQAKAFN1Ym1pc3Npb24KAq8AfABoAAUACgBSZXBvc2l0b3J5AQABACAAIgIFAAUA
+      Rml4SUQAIgIBAAIAOiAiAgUABwBTdWJqZWN0ACICAQACACAoIgIFAAsAYXBwbGljYXRpb24AAQACACwg
+      hQIiAgEAAQApACICrgAUAAUABwBTdWJqZWN0AK4ABAC1AyICBQATAHVzZVN1YmplY3QA/rxUAMeFJQAA
+      AQAAAAsCrwBOADIAAQAGACAoUkU6IAUAEwB1c2VTdWJqZWN0AP68VADHhSUAACICAQABACkAIgKuABwA
+      BQAPAEF1dGhvcgD9vFQAx4UlAACuAAQAtQMiAgMABQBeAFoACgAEAAsACgAEAAQADAAEAAQACQAEACQx
+      MjdBcHBsaWNhdGlvblJlcG9zaXRvcnkkMTE2JDEyMVNhbWV0aW1lSW5mbyQxMTckMTI0JENvbmZsaWN0
+      JFJFRgQABAAAACIABQAEAGZvcm0BAAoAU3VibWlzc2lvbgoCygAdAgMABwASAAwACUwxUzJTM1M0UzVT
+    signed: true
+    nonsummary: true
+  - name: $FormulaClass
+    type: text
+    data: "1"
+    signed: true
+  - name: $Index
+    type: text
+    data: ""
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-08-09T11:46:44.93-04:00"
+        dst: true
+      - data: "2021-08-09T11:48:06.54-04:00"
+        dst: true
+      - data: "2021-08-09T11:48:41.26-04:00"
+        dst: true
+      - data: "2021-08-09T16:29:17.23-04:00"
+        dst: true
+      - data: "2021-08-09T16:37:50.78-04:00"
+        dst: true
+      - data: "2021-08-10T13:56:58.36-04:00"
+        dst: true
+      - data: "2021-08-10T13:57:01.09-04:00"
+        dst: true
+      - data: "2021-08-10T13:58:41.63-04:00"
+        dst: true
+      - data: "2021-08-10T13:59:06.15-04:00"
+        dst: true
+      - data: "2021-08-10T14:44:50.67-04:00"
+        dst: true
+      - data: "2021-08-13T08:29:55.36-05:00"
+        dst: true
+      - data: "2021-08-17T13:55:06.35-05:00"
+        dst: true
+      - data: "2021-09-16T12:02:40.10-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:59.32-05:00"
+        dst: true
+      - data: "2021-09-27T22:33:26.33-05:00"
+        dst: true
+      - data: "2021-10-28T08:43:53.21-05:00"
+        dst: true
+      - data: "2021-11-02T19:04:15.78-05:00"
+        dst: true
+  - name: $TITLE
+    type: text
+    data: "Reports\\by Date|SubmissionsByDate"
+    signed: true
+  - name: $ViewFormat
+    type_num: 5
+    type: opaque
+    opaque: |
+      AQAJAIAAjEwAAFZDBQEEAAAANAAAAE0AAQAACQABAAAAAAAAAAACAAAAVkMBAAsABAAAAAAAoAAFAAAJ
+      AAAAAAAAAAAAAgIAAEBWQwEACgAEAAAAAACgAAEAAAkAAQAAAAAAAAACAgAAAFZDgAAEAAAARAAAABAA
+      AQAOCQAAAAAAAAAAAAICAAAAVkOJAAQAAAAQAAAACAABAA4JAAAAAAAAAAAAAgIAAABWQwgADAAMADQA
+      AAA5AAEAAAoAAAAACAAAAAACAgAAAFZDgAAEAAAAFAAHABAAAQAACQIAAAAAAAAAAAICAAAAVkMQBAQA
+      AAAWBAAADQABAA4JACACAAAAAAAAAAIAACBWQwAABAAFADwEAAAWAQEAAAkAIAIAAAAAAAAAAgAAICQx
+      Mjc0AAIAJgAEACQxMjdsAB4BrwAUAAgAaQCuAAwAAQAAAK4ABAC1AwMABwAMAAUACTBTMEUAQXBwbGlj
+      YXRpb25GaWxlUmVwb3NpdG9yeVJlcG8kMTE2RAACADYABAAkMTE2bAAeAa8AJAAYAAEAAAABAAEAJQAB
+      AAEAJQCVA64ADAABAAAArgAEALUDAwAHAAwABgAJOVMxMVMkMTIxEAACAA4ABAAkMTIxaQADAFNhbWV0
+      aW1lSW5mb1NhbWV0aW1lSW5mbzQAAgAoAAwAU2FtZXRpbWVJbmZvAgAFAAAAAAAAAAUABABmcm9ttAID
+      AAcACgADAAk0UwAkMTIyFAACABIABAAkMTIyAQABACAAAwABBQEAAQAgJDExNxYEBwAcABYAVmFyaWFi
+      bGVzIHRvIHRyYW5zbGF0ZQcACgADAAkxUwABACoAEwBQcml2YXRlVHh0AGbzdQDjbyUAAAEACQBQUklW
+      QVRFOiAAAwAHAA4ABwAJMFIxUzJTAAEAKgATAEV4cGlyZWRUeHQAZ/N1AONvJQAAAQAJAEVYUElSRUQ6
+      IAADAAcADgAHAAkwUjFTMlMAAQAmABAAQW5vblR4dABo83UA428lAAEACQBBbm9ueW1vdXMAAwAHAA4A
+      BwAJMFIxUzJTAAcAIAAaAEVuZCB2YXJpYWJsZXMgdG8gdHJhbnNsYXRlBwAMAAUACTBSMVMABwAyACsA
+      dGhlIGZvbGxvd2luZyBpcyBmb3IgYWx0ZXJuYXRlIG5hbWUgc3VwcG9ydAAHAAwABQAJMFIxUwABAGoA
+      DwBDTkZyb20AafN1AONvJQAPBQAEAGZvcm1hAQEACQBhbm9ueW1vdXMARwKvADYAGgAFABAAQW5vblR4
+      dABo83UA428lAK4AHAACAAYAAAAAAAAABQAEAEZyb220Aq4ABAC1AwMABwAWABAACTBSMVMyUzExUzE0
+      UzIwUwEAMgASAENOQWx0RnJvbQBq83UA428lAAIABgAAAAAAAAAFAAcAQWx0RnJvbQC0AgMABwAQAAkA
+      CTBSMVMyUzZTAAEAggAWAEFsdGVybmF0ZW5hbWUAa/N1AONvJQAFAAcAQWx0RnJvbQABAAAACwIFAAcA
+      QWx0RnJvbQAFAAQARnJvbQsCHAKvADgALAABAAIAIFsFABIAQ05BbHRGcm9tAGrzdQDjbyUAIgIBAAEA
+      XQAiAq4ADAABAAAArgAEALUDAwAHACwAJgAJMFIxUzJTNVM2UzdTOFM5UzEwUzEyUzEzUzE0UzE1UzE2
+      UzE4UwIAFAEEACQxMTcFAAcAcmVhZGVycwABAAAACwKvAGAAHgAFABMAUHJpdmF0ZVR4dABm83UA428l
+      AGKuAEIABQAKAEV4cGlyZURhdGUBAAAACwKvACoAHgAFABMARXhwaXJlZFR4dABn83UA428lAGKuAAwA
+      AQAAAK4ABAC1BQUABwBTdWJqZWN0AAEAAAALAq8AJgAaAAUABwBTdWJqZWN0AAEAAgAgICICrgAMAAEA
+      AACuAAQAtQMiAgEAAQAoACICBQAPAENORnJvbQBp83UA428lAAIiAgUAFgBBbHRlcm5hdGVOYW1lAGvz
+      dQDjbyUAIgIBAAEAIAAiAmkAAQAEAEQwUzBWAiICAQABACkAIgIDAAcAXABWAAkwUlIzUzRTNlM4UzlT
+      MTBTMTJTMTRTMTZTMTdTMjBTMjFTMjNTMjRTMjVTMjdTMjlTMzBTMzFTMzJTMzNTMzRTMzVTMzZTMzdT
+      MzhTNDJTNDRTNDVTJDEyNFRvcGljPAQHABwAFgBWYXJpYWJsZXMgdG8gdHJhbnNsYXRlBwAKAAMACTFT
+      AAEAKgATAFByaXZhdGVUeHQA+7xUAMeFJQAAAQAJAFBSSVZBVEU6IAADAAcADgAHAAkwUjFTMlMAAQAq
+      ABMARXhwaXJlZFR4dAD8vFQAx4UlAAABAAkARVhQSVJFRDogAAMABwAOAAcACTBSMVMyUwAHACAAGgBF
+      bmQgdmFyaWFibGVzIHRvIHRyYW5zbGF0ZQcADAAFAAkwUjFTAAEAfAAPAEF1dGhvcgD9vFQAx4UlAAAF
+      AAQARm9ybQEACQBNYWluVG9waWMACgIFAAcAU3ViamVjdAABAAAACgIcAq8ANgAqAAEAAgAgKAIABQAA
+      AAAAAAAFAAQARnJvbbQCIgIBAAEAKQAiAq4ADAABAAAArgAEALUDAwAHADAAKQAJMFIxUzJTNVM2UzdT
+      OFM5UzEwUzEyUzEzUzE0UzE4UzIwUzIxUzIzUwABAJ4AEwB1c2VTdWJqZWN0AP68VADHhSUAAAUABABm
+      b3JtAQASAFJlc3BvbnNlVG9SZXNwb25zZQoCrwBgACAABQAWAEltbWVkaWF0ZVBhcmVudFN1YmplY3Su
+      AEAABQAEAGZvcm0BAAgAUmVzcG9uc2UKAq8AJgAaAAUADwBPcmlnaW5hbFN1YmplY3QArgAMAAEAAACu
+      AAQAtQUDAAcAIgAcAAkwUjFTMlI1UzZTOFMxMFMxMVMxMlMxNFMxNlMCAIgBBAAkMTI0BQAHAHJlYWRl
+      cnMAAQAAAAsCrwBgAB4ABQATAFByaXZhdGVUeHQA+7xUAMeFJQAArgBCAAUACgBFeHBpcmVEYXRlAQAA
+      AAsCrwAqAB4ABQATAEV4cGlyZWRUeHQA/LxUAMeFJQAArgAMAAEAAACuAAQAtQUFAAQARm9ybQEACgBT
+      dWJtaXNzaW9uCgKvAHwAaAAFAAoAUmVwb3NpdG9yeQEAAQAgACICBQAFAEZpeElEACICAQACADogIgIF
+      AAcAU3ViamVjdAAiAgEAAgAgKCICBQALAGFwcGxpY2F0aW9uAAEAAgAsIIUCIgIBAAEAKQAiAq4AFAAF
+      AAcAU3ViamVjdACuAAQAtQMiAgUAEwB1c2VTdWJqZWN0AP68VADHhSUAAAEAAAALAq8ATgAyAAEABgAg
+      KFJFOiAFABMAdXNlU3ViamVjdAD+vFQAx4UlAAAiAgEAAQApACICrgAcAAUADwBBdXRob3IA/bxUAMeF
+      JQAArgAEALUDIgIDAAcAhAB9AAkwUlIzUzRTNlM4UzlTMTBTMTJTMTRTMTZSUzE3UzIwUzIxUzIzUlQy
+      NFMyNVMyNlMyN1MyOFMyOVMzMFMzMVMzMlMzM1MzNFMzNVMzOVM0MVM0MlM0NFJUNDVSUzNFNDZSNDdT
+      NTBTNTFTNTNTNTRTNTVTNTZTNTdTNTlTACYAAQAAAAEBAAkBAAgKAQEECgAALwCtKwcBAQABAQAAAAAA
+      AAAAV0MBAQAJAAAAAAAAAAAAAAAAAAAAAAAAxAAAAAAA//8AAAAAAAAAAAAAAAAAAFdDAQAACQAAAAAA
+      AAAAAAAAAAAAAAAAAAQAAAAAAP//AAAAAAAAAAAAAAAAAABXQwEAAAkAAAAAAAAAAAAAAAAAAAAAAAAE
+      AAAAAAD//wAAAAAAAAAAAAAAAAAAV0MBAAAJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//8AAAAAAAAA
+      AAAAAAAAAFdDAQAACQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP//AAAAAAAAAAAAAAAAAABXQwEAAAkA
+      AAAAAAAAAAAAAAAAAAAAAADECAAAAAD//wAAAAAAAAAAAAAAAAAAV0MBAAAJAAAAAAAAAAAAAAAAAAAA
+      AAAABAgAAAAA//8AAAAAAAAAAAAAAAAAAFdDAQAACQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP//AAAA
+      AAAAAAAAAAAAAABXQwEAAAkAAAAAAAAAAAAAAAAAAAAAAAAAoAAAAAD//wAAAAAAAAAAAAAAAAAAQgAA
+      AAAAAQD///8AAQD39/cAAQAAAAAAAAAAAAAAAQABAP///wABAO/v7wAAAAEAgAAAAAEAAAD/AAEAAAAA
+      AAAACAAAAAAAAQBYQwAIgAIAAAAAAAECAgIBAQEBBwQDAAAAAAAAAAAgLy86WEMADIACAAAAAAABAgIC
+      AQEBAQcEAwAAAAAAAAAAIC8vOllDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      AAAAAAAAAAAAAABZQwAACAAAAAEAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAA
+      AAAALiwkYEMcAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGBDKAACAAAADAAAAAAAAAAAAAAAAAAAAAAA
+      AABTYW1ldGltZUluZm8MAFRvcGljR2VuZXJhbGFDVAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+    signed: true
+    nonsummary: true
+  - name: $WebFlags
+    type: text
+    data: S
+    signed: true
+  - name: $V5ACTIONS
+    type: composite
+    signed: true
+    nonsummary: true
+    data:
+      - type: 0x00bd
+        BackColor: 207
+        BorderStyle: 1
+        BorderWidth: 0
+        BtnHeight: 26
+        FontID: 0x09010001
+        HeightSpc: 5
+        LineColor: 0
+        LineStyle: 1
+        ShareID: 0x00000000
+        dwFlags: 0x00000331
+      - type: 0xff79
+        BackColor:
+          Flags: 0x0001
+          rgb: 0x47535d
+        BtnBorderDisplay: 3
+        BtnTextJustify: 1
+        BtnWidthStyle: 0
+        ButtonColor:
+          Flags: 0x0001
+          rgb: 0x47535d
+        FontColor:
+          Flags: 0x0001
+          rgb: 0xffffff
+        LineColor:
+          Flags: 0x0001
+          rgb: 0x000000
+        Spare:
+          - 0x00000000
+          - 0x00000000
+          - 0x00000000
+          - 0x00000000
+          - 0x00000000
+          - 0x00000000
+          - 0x00000000
+          - 0x00000000
+          - 0x00000000
+          - 0x00000000
+          - 0x00000000
+        barFontID: 0x09000002
+        barHeight:
+          Flags: 0x0000
+          Length:
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+          Reserved: 0
+          Units: 0
+        dwFlags: 0x00000003
+        wAppletHeight: 30
+        wBarBackgroundRepeat: 4
+        wBtnInternalMargin: 0
+        wBtnWidthAbsolute: 0
+        wSpare: 0x0000
+        wThemeSetting: 0
+      - type: 0xfff6
+        opaque: 9v8rAAAAAAADABMACQAAAAAAAAAAAAAAAAAAAAAAAAAAAGhvdkFjdGlvbg==
+      - type: 0xff71
+        opaque: cf8kAAAAAAADABMAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAGJn
+      - type: 0xfffc
+        BorderFlags: 0
+        BorderStyle: 0
+        BorderWidthBottom: 0
+        BorderWidthLeft: 0
+        BorderWidthRight: 0
+        BorderWidthTop: 0
+        Color:
+          Flags: 0x0001
+          rgb: 0x000000
+        DropShadowWidth: 0
+        Flags: 0x00000000
+        InnerWidthBottom: 0
+        InnerWidthLeft: 0
+        InnerWidthRight: 0
+        InnerWidthTop: 0
+        OuterWidthBottom: 0
+        OuterWidthLeft: 0
+        OuterWidthRight: 0
+        OuterWidthTop: 0
+        dwSpare: 0x00000000
+        wSpares:
+          - 0x0000
+          - 0x0000
+          - 0x0000
+          - 0x0000
+          - 0x0000
+      - type: 0xffbe
+        Flags: 0x0000419d
+        IconIndex: 0
+        ShareId: 0
+        Type: 5
+        opaque: AQBOfA==
+        title: Categori_ze
+      - type: 0xffbe
+        Flags: 0x0000419d
+        IconIndex: 0
+        ShareId: 0
+        Type: 5
+        opaque: AgA9fA==
+        title: _Move to Folder...
+      - type: 0xffbe
+        Flags: 0x0000419d
+        IconIndex: 0
+        ShareId: 0
+        Type: 5
+        opaque: AwA+fA==
+        title: _Remove from Folder...
+      - type: 0xffbe
+        Flags: 0x0000419d
+        IconIndex: 0
+        ShareId: 0
+        Type: 5
+        opaque: BAAECg==
+        title: _Forward
+      - type: 0xffbe
+        Flags: 0x0000419d
+        IconIndex: 0
+        ShareId: 0
+        Type: 5
+        opaque: BQACCg==
+        title: _Edit Document
+      - type: 0xffbe
+        Flags: 0x0000000a
+        IconIndex: 0
+        ShareId: 36
+        Type: 1
+        data: |
+          viewname := @Subset(@ViewTitle; -1);
+          @SetProfileField("tmpProfile"; "viewtitle"; viewname);
+          @PostedCommand([Compose];"Response")
+        data_opaque: |
+          lgABACAACAB2aWV3bmFtZZ0AAAAAAAAAAADwPxABawIDAAcADgAHAAkxUzJTNlMACAAwAAEACgB0bXBQ
+          cm9maWxlAQAJAHZpZXd0aXRsZQAFAAgAdmlld25hbWX4AwMABwAOAAcACTBSNFM2UwAAAB4AAgDoAwAA
+          AAAAAAEACABSZXNwb25zZbECAwAHAAoAAwAJMFIA
+        hidewhen: |
+          REM {hide from web if it's in a view};
+          @ClientType != "Notes" & !@IsAvailable(form)
+        hidewhen_opaque: |
+          bAAKAAQABwAmAB8AaGlkZSBmcm9tIHdlYiBpZiBpdCdzIGluIGEgdmlldwAHAAoAAwAJMVMAAAAkAPsA
+          BQEBAAUATm90ZXMACwIFAAQAZm9ybWgBHgEcAgMABwASAAsACTBSMVMyUzNTNFMA
+        title: New Response
+      - type: 0xffbe
+        Flags: 0x0000219e
+        IconIndex: 0
+        ShareId: 31
+        Type: 1
+        data: "@Command([MoveToTrash])"
+        data_opaque: IAAAABIAAgBMHQAAAAAAAO0BAwAHAAwABQAJMFMwRQA=
+        title: Move to Trash
+      - type: 0xffbe
+        Flags: 0x0000219e
+        IconIndex: 0
+        ShareId: 32
+        Type: 1
+        data: "@Command([EmptyTrash])"
+        data_opaque: IAAAABIAAgD9BwAAAAAAAO0BAwAHAAwABQAJMFMwRQA=
+        title: EmptyTrash
+      - type: 0xffbe
+        Flags: 0x0000219e
+        IconIndex: 0
+        ShareId: 17
+        Type: 1
+        data: |
+          REM {Web only; in views};
+          @Command([ViewShowSearchBar])
+        data_opaque: |
+          QAAHABgAEgBXZWIgb25seTsgaW4gdmlld3MHAAoAAwAJMVMAAAASAAIAkBcAAAAAAADtAQMABwAKAAMA
+          CTBSAA==
+        title: Search
+      - type: 0xffbe
+        Flags: 0x0000400b
+        IconIndex: 0
+        ShareId: 38
+        Type: 1
+        data: |
+          _title  := "Chat with Author";
+          _msg    := "This is an Anonymous posting. Unable to initiate a chat with an Anonymous author.";
+          
+          @If(  @Contains(@LowerCase(form); "anonymous");
+            @Return(@Prompt([Ok]; _title; _msg)); ""
+          );
+          
+          @Command([SendInstantMessage]; From)
+        data_opaque: |
+          OAEBACIABgBfdGl0bGUBABAAQ2hhdCB3aXRoIEF1dGhvcgMABwAMAAUACTFUMlMAAQBiAAQAX21zZwEA
+          UQBUaGlzIGlzIGFuIEFub255bW91cyBwb3N0aW5nLiBVbmFibGUgdG8gaW5pdGlhdGUgYSBjaGF0IHdp
+          dGggYW4gQW5vbnltb3VzIGF1dGhvci4AAwAHAA4ACAAJMFIxVFQyUwgAVAAFAAQAZm9ybWEBAQAJAGFu
+          b255bW91cwBHAq8AMgAmAAIADQAAAAAAAAAFAAYAX3RpdGxlBQAEAF9tc2ewA8IBrgAMAAEAAACuAAQA
+          tQMDAAcAHgAYAAkwUlIyVDlTMTJSVDE4UzIwUzI0UzI1UgAAGgACACUnAAAAAAAABQAEAEZyb23tAgMA
+          BwAMAAYACTBSUjRT
+        hidewhen: "@Version < @Text(250)"
+        hidewhen_opaque: JAAAABYAvwAAAAAAAAAAQG9AVgEOAgMABwAMAAUACTFTMlMA
+        title: Chat with Author
+remaining: []

@@ -1,0 +1,224 @@
+---
+class: 512
+flags: 0x2000
+unid: OF260C4B4ADAC0AE62-ON006BAB68862586FC
+items:
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: s34Q
+  - name: $PublicAccess
+    type: text
+    data: "1"
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-06-30T19:58:21.35-05:00"
+        dst: true
+      - data: "2021-06-30T19:58:21.42-05:00"
+        dst: true
+      - data: "2021-06-30T19:59:53.48-05:00"
+        dst: true
+      - data: "2021-06-30T19:59:53.53-05:00"
+        dst: true
+      - data: "2021-06-30T20:34:42.71-05:00"
+        dst: true
+      - data: "2021-06-30T20:34:42.72-05:00"
+        dst: true
+      - data: "2021-06-30T21:40:28.39-05:00"
+        dst: true
+      - data: "2021-06-30T21:40:28.40-05:00"
+        dst: true
+      - data: "2021-06-30T21:57:33.08-05:00"
+        dst: true
+      - data: "2021-07-09T08:59:44.16-04:00"
+        dst: true
+      - data: "2021-07-09T09:01:58.30-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:04.77-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:46.81-04:00"
+        dst: true
+      - data: "2021-07-09T09:21:11.93-04:00"
+        dst: true
+      - data: "2021-08-17T13:55:03.11-05:00"
+        dst: true
+      - data: "2021-09-16T12:02:36.88-05:00"
+        dst: true
+      - data: "2021-09-22T22:23:56.68-05:00"
+        dst: true
+      - data: "2021-09-22T22:23:56.73-05:00"
+        dst: true
+      - data: "2021-09-23T12:41:10.32-05:00"
+        dst: true
+      - data: "2021-09-27T12:30:17.35-05:00"
+        dst: true
+      - data: "2021-09-27T12:30:17.38-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:56.45-05:00"
+        dst: true
+      - data: "2021-09-27T22:33:23.12-05:00"
+        dst: true
+      - data: "2021-11-18T10:14:57.03-06:00"
+      - data: "2021-11-18T10:14:57.09-06:00"
+      - data: "2021-11-29T13:38:38.74-05:00"
+  - name: $ScriptLib
+    type: text
+    data: |
+      '++LotusScript Development Environment:2:5:(Options):0:74
+      %REM
+      	Library Subform_exportOptions
+      	by Andre Guirard
+      	Description: Functions associated with the exportOptions subform.
+      	
+      	© Copyright HCL Company, 2021
+      %END REM
+      Option Declare
+      Use "CommonUtil"
+      Use "Resources"
+      Use "Doc_Comparison"
+      
+      '++LotusScript Development Environment:2:5:(Forward):0:1
+      Declare Public Class Subform_ExportOptions
+      
+      '++LotusScript Development Environment:2:5:(Declarations):0:10
+      Private Const DLGTITLE_IMPORT_FORMS = "Import form aliases"
+      Private Const MSG_IMPORT_FORMS = "Get list of form aliases from what database?"
+      
+      'Begin DNT
+      Const FLD_EXPORTOPTIONS = {Options}
+      Const FLD_RUNLEVEL = {RunLevel}
+      Const FLD_KEYFIELDS = {FormKeyFields}
+      Const FLD_FALLBACK = {DocKeyFormula}
+      
+      Const FLD_COMPARETYPE = {CompareType}
+      Const FLD_HOWMANY = {HowMany}
+      
+      %REM
+      	Class Subform_ExportOptions
+      	Constructor: New Subform_ExportOptions
+      %END REM
+      Public Class Subform_ExportOptions
+      	z_uidoc As NotesUIDocument
+      	z_wksp As NotesUIWorkspace
+      
+      	Sub New(source As NotesUIDocument) 
+      		Set z_wksp = New NotesUIWorkspace
+      		Set z_uidoc = source
+      		Dim comparetype$, docCur As NotesDocument
+      		Set docCur = source.document
+      		comparetype = docCur.Getitemvalue(FLD_COMPARETYPE)(0)
+      	End Sub
+      	
+      	%REM
+      		Sub button_importForms
+      		Description: %TODO
+      		Arguments:
+      	%END REM
+      	Sub button_importForms
+      		Dim docCur As NotesDocument, bConfig As Boolean, dbSel As NotesDatabase, selection
+      		Dim server$, filepath$, aliases$, i%, docDes As NotesDocument, id$, tmp, pos
+      
+      		Set docCur = z_uidoc.Document
+      		' we need different behavior based on whether this is a compare configuration document or we're actually about to run an export.
+      		bConfig = docCur.Getitemvalue(FLD_COMPARETYPE)(0) = ""
+      		If Not bConfig Then
+      			' they might have specified a database they're about to export.
+      			server = docCur.Getitemvalue(FLD_LEFTSERVER)(0)
+      			If StrComp(server, SERVER_LOCAL, 1) = 0 Then server = ""
+      			filepath = docCur.Getitemvalue(FLD_LEFTPATH)(0)
+      			Set dbSel = New NotesDatabase(server, filepath)
+      			If Not dbSel.Isopen Then
+      				Delete dbSel
+      			End If
+      		End If
+      		If dbSel Is Nothing Then
+      			selection = z_wksp.Prompt(PROMPT_CHOOSEDATABASE, DLGTITLE_IMPORT_FORMS, MSG_IMPORT_FORMS)
+      			If IsEmpty(selection) Then Exit Sub
+      			Set dbSel = New NotesDatabase(selection(0), selection(1))
+      			If Not dbSel.Isopen Then Exit Sub
+      		End If
+      		Dim nnc As NotesNoteCollection
+      		Set nnc = dbSel.Createnotecollection(False)
+      		nnc.Selectforms = True
+      		nnc.Buildcollection
+      		id = nnc.Getfirstnoteid
+      		Do Until id = ""
+      			Set docDes = dbSel.Getdocumentbyid(id)
+      			tmp = docDes.Getitemvalue("$TITLE")
+      			aliases = aliases & NEWLINE & StrToken(tmp(UBound(tmp)), "|", -1)
+      			id = nnc.Getnextnoteid(id)
+      		Loop
+      		If aliases <> "" Then
+      			Dim addAliases, key$
+      			addAliases = Split(Mid$(aliases, 2), NEWLINE)
+      			tmp = docCur.Getitemvalue(FLD_KEYFIELDS)
+      			ForAll aLine In tmp
+      				key = Trim(StrToken(aLine, ":", 1))
+      				If Len(key) then
+      					pos = ArrayGetIndex(addAliases, key, 1)
+      					If Not IsNull(pos) Then
+      						addAliases(pos) = ""
+      					End If
+      				End If
+      			End ForAll
+      			addAliases = FullTrim(addAliases)
+      			If addAliases(0) <> "" Then
+      				Call docCur.Replaceitemvalue(FLD_KEYFIELDS, FullTrim(ArrayAppend(tmp, addAliases)))
+      			End If
+      		End If
+      	End Sub
+      	
+      	%REM
+      		Property Options   get
+      		Description: Retrieve the list of export-related options the user has selected. The value is an
+      			array of strings, each element naming a boolean option that's enabled.
+      	%END REM
+      	Public Property Get Options
+      		options = z_uidoc.Document.Getitemvalue(FLD_EXPORTOPTIONS)
+      	End Property
+      	
+      	%REM
+      		Property RunLevel   get, set
+      		Description: Get the verbosity level associated with merging run elements -- 0, 1, or 2
+      	%END REM
+      	Public Property get RunLevel As Integer
+      		RunLevel = CInt("0" & z_uidoc.Document.Getitemvalue(FLD_RUNLEVEL)(0))
+      	End Property
+      	
+      	%REM
+      		Property FormTitleFormula   get
+      		Description: Return a formula to calculate the hopefully unique title of a document.
+      	%END REM
+      	Public Property Get FormTitleFormula As String
+      		Dim doc As NotesDocument, formlines, fallback$, result$, form$
+      		Set doc = z_uidoc.Document
+      		formlines = FullTrim(doc.Getitemvalue(FLD_KEYFIELDS))
+      		fallback = Trim(doc.Getitemvalue(FLD_FALLBACK)(0))
+      		If formlines(0) <> "" Then
+      			result = {@If(}
+      			ForAll aLine In formlines
+      				result = result & {Form=} & macroquote(StrLeft(aLine, ":")) & {;Form+":"+@Text(} & StrRight(aLine, {:}) & ");"
+      			End ForAll
+      		End If
+      		
+      		If fallback = "" Then fallback = {Form + ":" + @Text(@DocumentUniqueID)}
+      		If Len(result) Then
+      			result = result & {@Do(} & fallback & {))} ' extra paren to end @If
+      		Else
+      			result = fallback
+      		End If
+      		FormTitleFormula = result
+      	End Property
+      End Class
+    signed: true
+    nonsummary: true
+  - name: $TITLE
+    type: text
+    data: Subform_exportOptions
+    signed: true
+remaining: []

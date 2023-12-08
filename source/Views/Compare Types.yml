@@ -1,0 +1,333 @@
+---
+class: 8
+flags: 0x0000
+unid: OFCFF7147EA99F0ADD-ON00721E99862586ED
+items:
+  - name: $Collation
+    type_num: 2
+    type: opaque
+    opaque: EQABAABEAGYAAAAEAE5hbWU=
+  - name: $Comment
+    type: text
+    data: ""
+    signed: true
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: Y
+  - name: $FormatNote
+    type: noteref
+    data:
+      - OF5DD4BD147384CCD5-ON007FBC4286258669
+    signed: true
+  - name: $Formula
+    type: formula
+    data: "REM {DNT Begin};  Form = \"CompareConfig\""
+    opaque: |
+      fgAFACwAKAAEAAQACwAJAAQATmFtZURlc2NyaXB0aW9uJENvbmZsaWN0JFJFRgQABAAHABAACQBETlQg
+      QmVnaW4ABwAKAAMACTFTAAAAIgAFAAQARm9ybQEADQBDb21wYXJlQ29uZmlnAAoCAwAHABAACgAJMFNM
+      MVMyUzNT
+    signed: true
+  - name: $FormulaClass
+    type: text
+    data: "1"
+    signed: true
+  - name: $Index
+    type: text
+    data: ""
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-06-30T12:34:00.04-04:00"
+        dst: true
+      - data: "2021-06-30T13:29:27.65-04:00"
+        dst: true
+      - data: "2021-06-30T13:31:59.76-04:00"
+        dst: true
+      - data: "2021-06-30T21:57:35.66-05:00"
+        dst: true
+      - data: "2021-07-01T11:32:12.05-04:00"
+        dst: true
+      - data: "2021-07-01T12:14:05.37-04:00"
+        dst: true
+      - data: "2021-07-01T12:49:53.72-04:00"
+        dst: true
+      - data: "2021-07-09T08:59:47.87-04:00"
+        dst: true
+      - data: "2021-07-09T09:02:01.99-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:08.41-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:50.51-04:00"
+        dst: true
+      - data: "2021-07-09T09:21:15.60-04:00"
+        dst: true
+      - data: "2021-07-12T08:56:48.25-04:00"
+        dst: true
+      - data: "2021-07-12T08:57:03.34-04:00"
+        dst: true
+      - data: "2021-08-13T08:29:55.33-05:00"
+        dst: true
+      - data: "2021-08-17T13:55:06.16-05:00"
+        dst: true
+      - data: "2021-09-16T12:02:39.90-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:59.15-05:00"
+        dst: true
+  - name: $TITLE
+    type: text
+    data: Compare Types|CompareConfigByName
+    signed: true
+  - name: $ViewFormat
+    type_num: 5
+    type: opaque
+    opaque: |
+      AQACAAIAiEwAAFZDAQAEAAQAAAAAAPAAAQAACQAAAAAAAAAAAAICAAAAVkMAAAsACwAAAAAAUAABAAAJ
+      AAAAAAAAAAAAAgIAAABOYW1lTmFtZURlc2NyaXB0aW9uRGVzY3JpcHRpb24mAAEAAAABAQAJAQAACgEB
+      DgoAAC8ArSsEAQEAAQAAAAAAAAAAAFdDAQAACQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP//AAAAAAAA
+      AAAAAAAAAABXQwEAAAkAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAD//wAAAAAAAAAAAAAAAAAAQgAQAAAA
+      AQD///8AAQD39/cAAQAAAAAAAAAAAAAAAAABAP///wABAO/v7wAAAAEAAAAAAAEAAAAAAAEAAAAAAAAA
+      CAAAAAAAAQA=
+    signed: true
+  - name: $V5ACTIONS
+    type: composite
+    signed: true
+    nonsummary: true
+    data:
+      - type: 0x00bd
+        BackColor: 207
+        BorderStyle: 1
+        BorderWidth: 0
+        BtnHeight: 26
+        FontID: 0x09010001
+        HeightSpc: 2
+        LineColor: 0
+        LineStyle: 1
+        ShareID: 0x00000000
+        dwFlags: 0x00000331
+      - type: 0xff79
+        BackColor:
+          Flags: 0x0001
+          rgb: 0x4f4f4f
+        BtnBorderDisplay: 3
+        BtnTextJustify: 1
+        BtnWidthStyle: 0
+        ButtonColor:
+          Flags: 0x0001
+          rgb: 0x4f4f4f
+        FontColor:
+          Flags: 0x0001
+          rgb: 0xffffff
+        LineColor:
+          Flags: 0x0001
+          rgb: 0x000000
+        Spare:
+          - 0x00000000
+          - 0x00000000
+          - 0x00000000
+          - 0x00000000
+          - 0x00000000
+          - 0x00000000
+          - 0x00000000
+          - 0x00000000
+          - 0x00000000
+          - 0x00000000
+          - 0x00000000
+        barFontID: 0x00000000
+        barHeight:
+          Flags: 0x0000
+          Length:
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+            - 0
+          Reserved: 0
+          Units: 0
+        dwFlags: 0x00000003
+        wAppletHeight: 30
+        wBarBackgroundRepeat: 4
+        wBtnInternalMargin: 0
+        wBtnWidthAbsolute: 0
+        wSpare: 0x0000
+        wThemeSetting: 0
+      - type: 0xfff6
+        opaque: 9v8rAAAAAAADABMACQAAAAAAAAAAAAAAAAAAAAAAAAAAAGhvdkFjdGlvbg==
+      - type: 0xff71
+        opaque: cf8kAAAAAAADABMAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAGJn
+      - type: 0xfffc
+        BorderFlags: 0
+        BorderStyle: 1
+        BorderWidthBottom: 0
+        BorderWidthLeft: 0
+        BorderWidthRight: 0
+        BorderWidthTop: 0
+        Color:
+          Flags: 0x0001
+          rgb: 0x000000
+        DropShadowWidth: 0
+        Flags: 0x00000000
+        InnerWidthBottom: 0
+        InnerWidthLeft: 0
+        InnerWidthRight: 0
+        InnerWidthTop: 0
+        OuterWidthBottom: 0
+        OuterWidthLeft: 0
+        OuterWidthRight: 0
+        OuterWidthTop: 0
+        dwSpare: 0x00000000
+        wSpares:
+          - 0x0000
+          - 0x0000
+          - 0x0000
+          - 0x0000
+          - 0x0000
+      - type: 0xffbe
+        Flags: 0x0000019d
+        IconIndex: 0
+        ShareId: 0
+        Type: 5
+        opaque: AQBOfA==
+        title: Categori_ze
+      - type: 0xffbe
+        Flags: 0x0000019f
+        IconIndex: 0
+        ShareId: 0
+        Type: 1
+        data: "@PostedCommand([Compose];\"CompareConfig\")"
+        data_opaque: MgAAACQAAgDoAwAAAAAAAAEADQBDb21wYXJlQ29uZmlnALECAwAHAAwABQAJMFMwRQA=
+        title: New Compare Configuration
+      - type: 0xffbe
+        Flags: 0x0000019d
+        IconIndex: 0
+        ShareId: 0
+        Type: 5
+        opaque: AwACCg==
+        title: _Edit Document
+      - type: 0xffbe
+        Flags: 0x0000019d
+        IconIndex: 0
+        ShareId: 0
+        Type: 5
+        opaque: BAADCg==
+        title: _Send Document
+      - type: 0xffbe
+        Flags: 0x0000019d
+        IconIndex: 0
+        ShareId: 0
+        Type: 5
+        opaque: BQAECg==
+        title: _Forward
+      - type: 0xffbe
+        Flags: 0x0000019d
+        IconIndex: 0
+        ShareId: 0
+        Type: 5
+        opaque: BgA9fA==
+        title: _Move To Folder...
+      - type: 0xffbe
+        Flags: 0x0000019d
+        IconIndex: 0
+        ShareId: 0
+        Type: 5
+        opaque: BwA+fA==
+        title: _Remove From Folder
+      - type: 0xffbe
+        Flags: 0x0000019d
+        IconIndex: 0
+        ShareId: 0
+        Type: 5
+        opaque: CABefA==
+        title: _Read
+      - type: 0xffbe
+        Flags: 0x0000019d
+        IconIndex: 0
+        ShareId: 0
+        Type: 5
+        opaque: CQBufA==
+        title: _Unread
+      - type: 0xffbe
+        Flags: 0x0000019d
+        IconIndex: 0
+        ShareId: 0
+        Type: 5
+        opaque: CgB+fA==
+        title: _Open in New Window
+      - type: 0xffbe
+        Flags: 0x0000019d
+        IconIndex: 0
+        ShareId: 0
+        Type: 5
+        opaque: CwCOfA==
+        title: _Print...
+      - type: 0xffbe
+        Flags: 0x0000019d
+        IconIndex: 0
+        ShareId: 0
+        Type: 5
+        opaque: DACefA==
+        title: _Delete
+      - type: 0xffbe
+        Flags: 0x0000019d
+        IconIndex: 0
+        ShareId: 0
+        Type: 5
+        opaque: DQCufA==
+        title: _Document Properties
+      - type: 0xffbe
+        Flags: 0x0000019d
+        IconIndex: 0
+        ShareId: 0
+        Type: 5
+        opaque: DgC+fA==
+        title: C_ut
+      - type: 0xffbe
+        Flags: 0x0000019d
+        IconIndex: 0
+        ShareId: 0
+        Type: 5
+        opaque: DwDOfA==
+        title: _Copy
+      - type: 0xffbe
+        Flags: 0x0000019d
+        IconIndex: 0
+        ShareId: 0
+        Type: 5
+        opaque: EADefA==
+        title: Copy as Document _Link
+      - type: 0xffbe
+        Flags: 0x0000019d
+        IconIndex: 0
+        ShareId: 0
+        Type: 5
+        opaque: EQDufA==
+        title: Copy as _Table
+      - type: 0xffbe
+        Flags: 0x0000019d
+        IconIndex: 0
+        ShareId: 0
+        Type: 5
+        opaque: EgD+fA==
+        title: P_aste
+      - type: 0xffbe
+        Flags: 0x0000019d
+        IconIndex: 0
+        ShareId: 0
+        Type: 5
+        opaque: EwAOfQ==
+        title: _Open
+      - type: 0xffbe
+        Flags: 0x0000019d
+        IconIndex: 0
+        ShareId: 0
+        Type: 5
+        opaque: FAAefQ==
+        title: Bookmark
+remaining: []

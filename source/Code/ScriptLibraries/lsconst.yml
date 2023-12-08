@@ -1,0 +1,100 @@
+---
+class: 512
+flags: 0x2000
+unid: OFFAE22897D68AA480-ON007ADDB2862586DB
+items:
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: s34Q
+  - name: $PublicAccess
+    type: text
+    data: "1"
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-05-20T17:22:04.50-05:00"
+        dst: true
+      - data: "2021-05-27T11:23:19.50-05:00"
+        dst: true
+      - data: "2021-06-17T14:22:36.34-05:00"
+        dst: true
+      - data: "2021-06-17T14:22:36.36-05:00"
+        dst: true
+      - data: "2021-06-30T21:57:31.72-05:00"
+        dst: true
+      - data: "2021-07-09T08:59:42.46-04:00"
+        dst: true
+      - data: "2021-07-09T09:01:56.58-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:03.08-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:45.11-04:00"
+        dst: true
+      - data: "2021-07-09T09:21:10.22-04:00"
+        dst: true
+      - data: "2021-08-16T16:53:20.22-05:00"
+        dst: true
+      - data: "2021-08-16T16:53:20.25-05:00"
+        dst: true
+      - data: "2021-08-17T13:55:01.75-05:00"
+        dst: true
+      - data: "2021-09-16T12:02:35.48-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:55.10-05:00"
+        dst: true
+      - data: "2021-09-27T22:33:21.70-05:00"
+        dst: true
+      - data: "2021-09-28T14:07:10.81-05:00"
+        dst: true
+  - name: $ScriptLib
+    type: text
+    data: |
+      '++LotusScript Development Environment:2:5:(Options):0:74
+      Option Public
+      Option Declare
+      %REM
+      	Library lsconst
+      	Created by Andre Guirard
+      	Description: Script library to include "lsconst.lss" and not cause an error if it's included multiple times. Use 'Use "lcconst"' instead of '%include "lsconst"' because
+      		script libraries are only loaded once no matter how many modules include them.
+      
+      		A few other useful constants are also included.
+      	© Copyright HCL Company, 2021
+      %END REM
+      
+      %Include "lsconst.lss"
+      
+      
+      '++LotusScript Development Environment:2:5:(Forward):0:1
+      Declare Function DECIMALCHAR As String
+      
+      '++LotusScript Development Environment:2:5:(Declarations):0:10
+      'Begin DNT
+      Const NEWLINE = {
+      }
+      Const TABB = {	}
+      Const DOTT = {■}
+      Const PROMPT_CHOOSEDATABASE = 13
+      
+      
+      '++LotusScript Development Environment:2:1:DECIMALCHAR:6:8
+      
+      %REM
+      	Function DECIMALCHAR
+      	Description: Return the character used as a decimal point on this system ("." or ",")
+      %END REM
+      Function DECIMALCHAR As String
+      	DECIMALCHAR = Mid$(CStr(1.5), 2, 1)
+      End Function
+    signed: true
+    nonsummary: true
+  - name: $TITLE
+    type: text
+    data: lsconst
+    signed: true
+remaining: []

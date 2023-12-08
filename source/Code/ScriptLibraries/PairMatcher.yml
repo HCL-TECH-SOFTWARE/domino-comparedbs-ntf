@@ -1,0 +1,380 @@
+---
+class: 512
+flags: 0x2000
+unid: OF330D263D29265673-ON0069BF028625875A
+items:
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: s34Q
+  - name: $PublicAccess
+    type: text
+    data: "1"
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-09-24T14:15:05.68-05:00"
+        dst: true
+      - data: "2021-09-24T14:36:22.74-05:00"
+        dst: true
+      - data: "2021-09-27T12:04:58.14-05:00"
+        dst: true
+      - data: "2021-09-27T12:04:58.17-05:00"
+        dst: true
+      - data: "2021-09-27T12:22:27.54-05:00"
+        dst: true
+      - data: "2021-09-27T12:22:27.59-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:56.21-05:00"
+        dst: true
+  - name: $ScriptLib
+    type: text
+    data: |
+      '++LotusScript Development Environment:2:5:(Options):0:74
+      %REM
+      	Library PairMatcher
+      	Created Aug 19, 2021 by Andre Guirard/USA/PNPHCL
+      	Description: Class for matching lists of elements by their IDs, lists of names and aliases, flag values, and size.
+        		Designed for "note" entries in Notes databases but can be applied to other situations in theory.
+      %END REM
+      Option Public
+      Option Declare
+      Use "ObjectListLite"
+      Use "SortedContainer"
+      Use "lsconst"
+      Use "CommonUtil"
+      
+      '++LotusScript Development Environment:2:5:(Forward):0:1
+      Declare Class PairMatcher
+      Declare Private Class ItemToMatch
+      Declare Class PairMatcherList
+      Declare Private Class matchCandidate
+      
+      '++LotusScript Development Environment:2:5:(Declarations):0:10
+      %REM
+      	Class PairMatcher
+      	Description: Takes two sets of items that could be described in various ways, and comes up with the most likely
+      		one to one matchings of those items basd on which have matching descriptions.
+      		Add all the source items first, then the target items to match against them.
+      	Constructor: New PairMatcher
+      %END REM
+      Class PairMatcher
+      	SourceByID List As ItemToMatch
+      	sourceCount As Long
+      	targetByID List As Integer
+      	targetCount As Long
+      	SourceByNames List As ObjectListLite ' each value is a list of ItemToMatch
+      	matchCandidates As ObjectSortedContainer
+      	MatchIdList List As String ' match results key = source technical ID, value = target technical ID
+      	resultCount As Long
+      	'how many items matched based on their ID (top matches)
+      	idMatchCount As Long
+      	'how many matched based on their names
+      	nameMatchCount As Long
+      	z_sourceListBuilt As Boolean
+      	
+      	%REM
+      		Sub AddSource
+      		Description: Add a record from the source side.
+      		Arguments:
+      			matchID: the id for finding the item again (e.g. the UNID for a document), which is also the ideal
+      				value to match against. If source and terget are the same matchID they are automatically matched.
+      			names: a list of names delimited by DOTT, with the most detailed/best match first.
+      	%END REM
+      	Sub AddSource(ByVal matchId$, ByVal names$, ByVal flags$, ByVal dSize As Double)
+      		If z_sourceListBuilt Then Error 27000, "Too late to add more source records."
+      		Set SourceByID(matchID) = New ItemToMatch(matchID, names, flags, dSize)
+      		sourceCount = sourceCount + 1
+      	End Sub
+      	
+      	%REM
+      		Sub AddTarget
+      		Description: Add a record from the target side.
+      		Arguments:
+      			matchID: the id for finding the item again (e.g. the UNID for a document), which is also the ideal
+      				value to match against. If source and terget are the same matchID they are automatically matched.
+      			names: a list of names delimited by DOTT, with the most detailed/best match first.
+      	%END REM
+      	Sub AddTarget(ByVal matchID$, ByVal names$, ByVal flags$, ByVal dSize As Double)
+      		Dim mc As matchCandidate
+      		targetCount = targetCount + 1
+      		If IsElement(SourceByID(matchId)) Then
+      			' we already have a perfect match
+      			Erase SourceByID(matchId)
+      			matchIDList(matchID) = matchID
+      			idMatchCount = idMatchCount + 1
+      		Else
+      			Dim key$, aliases
+      			Dim objlist As ObjectListLite, titem As New ItemToMatch(matchID, names, flags, dSize)
+      			' they've started adding target records -- time to build the list of source names.
+      			If Not z_sourceListBuilt Then
+      				z_sourceListBuilt = True
+      				Set matchCandidates = New ObjectSortedContainer(mc)
+      				ForAll thing In SourceByID
+      					aliases = ArrayUnique(Split(LCase(thing.names), "|"))
+      					ForAll aName In aliases
+      						If IsElement(SourceByNames(aname)) Then
+      							Set objlist = SourceByNames(aname)
+      						Else
+      							Set objlist = New ObjectListLite
+      							Set SourceByNames(aname) = objlist
+      						End If
+      						Call objlist.Append(thing)
+      					End ForAll
+      				End ForAll
+      			End If
+      			' find the best match for this target element
+      			Dim namesArr, i%, tName$, alreadymatched List As Integer, score As double
+      			targetByID(matchID) = 0 ' remember we have this unmatched target
+      			namesArr = ArrayUnique(Split(LCase(names), "|"))
+      			for i = 0 To UBound(namesArr)
+      				key = namesArr(i)
+      				If IsElement(SourceByNames(key)) Then
+      					Set objlist = SourceByNames(key)
+      					Dim sItem As ItemToMatch
+      					Set sItem = objlist.First
+      					Do Until sItem Is nothing
+      					If Not IsElement(alreadymatched(sItem.technicalID)) Then
+      						alreadymatched(sItem.technicalID) = 1
+      						score = sItem.test(tItem)
+      						If score > 0 Then
+      							Set mc = New matchCandidate(sitem.technicalID, matchId, score)
+      							Call matchCandidates.add(mc)
+      						End If
+      					End If
+      					Set sItem = objlist.Next
+      					Loop
+      				End If
+      			Next
+      		End If
+      	End Sub
+      	
+      	%REM
+      		Property First get
+      		Description: Return the first matching pair out of the sets that have been fed in.
+      		Return value: two technical IDs delimited by DOTT. If there was no match for an ID one of the values is blank.
+      			If there are no elements left to retrieve the return value is "".
+      	%END REM
+      	Public Property Get First As String
+      		' we've looked at every possible pairing of elements in source and target lists that have at least one name in common.
+      		' we have a sorted list of those candidates. Run down it and pair off remaining source and target elements.
+      		Erase sourceByNames
+      		Dim mc As matchCandidate, mcLast As matchCandidate, maxMatches As Long
+      		maxMatches = min(sourceCount, targetCount) - idMatchCount
+      		If Not matchCandidates Is Nothing Then
+      			If matchCandidates.Count Then
+      				Set mcLast = matchCandidates.getLast ' remember last element so we can tell when se're done
+      				Set mc = matchCandidates.getFirst
+      				Do
+      					' are the ids in the current node still unmatched?
+      					If IsElement(SourceByID(mc.sourceId)) Then
+      						If IsElement(targetByID(mc.targetId)) Then
+      							matchIDList(mc.sourceId) = mc.targetId
+      							Erase SourceByID(mc.sourceId)
+      							Erase targetByID(mc.targetId)
+      							nameMatchCount = nameMatchCount + 1
+      						End If
+      					End If
+      					If mc Is mcLast Then Exit Do
+      					Set mc = matchCandidates.getNext(mc)
+      				Loop Until nameMatchCount = maxMatches
+      			End If
+      			Delete matchCandidates
+      		End If
+      		' any remaining entries in source list have no matches. Record that.
+      		ForAll mcTmp In sourceById
+      			matchIDList(mcTmp.technicalID) = ""
+      		End ForAll
+      		Erase SourceByID
+      		First = me.Next
+      	End Property
+      
+      	%REM
+      		Property Next get
+      		Description: Return the next matching pair out of the sets that have been fed in.
+      		Return value: two technical IDs delimited by DOTT. If there was no match for an ID one of the values is blank.
+      			If there are no elements left to retrieve the return value is "".
+      	%END REM
+      	Public Property Get Next As String
+      		Dim sourceId$
+      		' give the first entry in the list of confirmed matches (or a source ID with no match)
+      		ForAll targetID In matchIDList
+      			sourceId = ListTag(Targetid)
+      			me.Next = sourceId & DOTT & targetID
+      			Erase matchIdList(sourceId)
+      			Exit Property
+      		End ForAll
+      		' if we get here we've returned all the matching elements and unmatched sources.
+      		' Return the next unmatched target element.
+      		ForAll pc In targetByID
+      			me.next = DOTT & ListTag(pc)
+      			Erase targetByID(ListTag(pc))
+      			Exit Property
+      		End ForAll
+      		' all lists now empty, return empty string signaling we are done.
+      	End Property
+      	
+      End Class
+      %REM
+      	Class ItemToMatch
+      	Description: Information about a source item that is to be matched with potential targets.
+      	Constructor: New ItemToMatch(techID$, szNames$, flags$, dSize As Double)
+      		techID is a unique identifier which we treat as an automatic match with any targets that have the same ID.
+      		szName is a list of the names and aliases of the item, delimited with "|"
+      		flags is a comma delimited list of flag values which are used to disambiguate potential matches that have
+      			all the same names.
+      		dSize is a numeric value, typically the size of the associated data, to match things by
+      			size when identical in names and flags. 
+      %END REM
+      Private Class ItemToMatch
+      	Public names As String
+      	Public flags As Variant
+      	Public technicalID As String
+      	Public size As Double
+      	
+      	Sub New(ByVal techID$, ByVal szNames$, ByVal flags$, dSize As Double)
+      		technicalID = techId
+      		me.flags = FullTrim(Split(flags, ","))
+      		names = Join(fullTrim(Split(szNames, "|")), "|")
+      		size = dSize
+      	End Sub
+      	
+      	%REM
+      		Function nameMatch
+      		Description: Compare this object's name with another object and score how closely they match.
+      	%END REM
+      	Private Function nameMatch(x As ItemToMatch) As Double
+      		If me.names = x.Names Then
+      			nameMatch = 10000
+      		ElseIf StrComp(me.names, x.names, 1) = 0 Then
+      			nameMatch = 9000
+      		Else ' names aren't exactly the same but do they have some parts in common?
+      			Dim myParts, xParts
+      			myParts = Split(me.names, "|")
+      			xparts = Split(x.names, "|")
+      			If myparts(UBound(myParts)) = xparts(UBound(xParts)) Then
+      				nameMatch = 4000
+      			ElseIf StrComp(myparts(UBound(myParts)), xparts(UBound(xParts)), 1) = 0 Then
+      				nameMatch = 3000
+      			End If
+      			If myparts(0) = xparts(0) Then
+      				nameMatch = nameMatch + 3000
+      			ElseIf StrComp(myparts(0), xparts(0), 1) = 0 Then
+      				nameMatch = nameMatch + 2000
+      			End If
+      			Dim i%, pos, bCase As Boolean, casePenalty%
+      			For i = 0 To UBound(xparts)
+      				pos = ArrayGetIndex(myparts, xparts(i), 0)
+      				If Not IsNull(pos) Then
+      					casePenalty = 0
+      				Else
+      					pos = ArrayGetIndex(myparts, xparts(i), 1)
+      					casePenalty = 10
+      				End If
+      				If Not IsNull(pos) Then
+      					nameMatch = nameMatch + 100 - Abs(pos-i)*5 - casePenalty
+      				End If
+      			Next
+      		End If
+      	End Function
+      	
+      	%REM
+      		Function flagMatch
+      		Description: Detemine how closely the flags in this object match those in another.
+      		Return value: in the range 0 to 1.0, the latter meaning an exact match.
+      	%END REM
+      	Function flagMatch(x As ItemToMatch) As Double
+      		Dim matches%, bp As Double
+      		If UBound(flags) = 0 And UBound(x.flags) = 0 Then
+      			If flags(0) = x.flags(0) Then flagMatch = 1.0
+      			Exit Function
+      		End If
+      		ForAll aFlag In flags
+      			If Not IsNull(ArrayGetIndex(x.flags, aFlag, 0)) Then
+      				matches = matches + 1
+      			End If
+      		End ForAll
+      		If matches Then
+      			bp = UBound(x.flags)
+      			If UBound(flags) > bp Then bp = UBound(flags)
+      			flagMatch = matches / (bp + 1.0)
+      		End If
+      	End Function
+      	
+      	%REM
+      		Function test
+      		Description: Calculate the match score of a target item compared to this source item.
+      		Arguments: other ItemToMatch to test against.
+      	%END REM
+      	Function test(x As ItemToMatch) As Double
+      		Dim score As double, sbest As double, i%, pos, casePenalty%, sizeTotal As Double, sizePenalty As Double
+      		score = nameMatch(x) 
+      		If score > 0 Then
+      			sizeTotal = size + x.Size
+      			If sizeTotal >= 1 Then
+      				sizePenalty = 10. * Abs(size-x.size) / sizeTotal
+      			End If
+      			test = score - sizePenalty + 50 * flagMatch(x)
+      		End If
+      	End Function
+      End Class
+      %REM
+      	Class PairMatcherList
+      	Description: When you have objects of several categories (like a bunch of design elements)
+      		and you want to pair-match them but only within their categories.
+      	Constructor: 
+      %END REM
+      Class PairMatcherList
+      	Public PMByType List As PairMatcher
+      	z_lastRead As PairMatcher
+      	
+      	Public Property Get pm(itemtype$) As PairMatcher
+      		If IsElement(PMByType(itemtype)) Then
+      			Set pm = PMByType(itemType)
+      		Else
+      			Set pm = New PairMatcher
+      			Set PMByType(itemType) = pm
+      		End If
+      	End Property
+      End Class
+      %REM
+      	Class matchCandidate
+      	Description: Represents a pair of potentially matching elements, including intelligence
+      		for comparing scores with another pair for sorting purposes (see ObjectSortedContainer class)
+      	Constructor: New MatchCandidate(sourceID$, targetID$, score as Double)
+      %END REM
+      Private Class matchCandidate
+      	Public sourceId As String
+      	Public targetId As String
+      	Public score As Double
+      
+      	Sub New(ByVal srcId$, ByVal trgId$, score As double)
+      		sourceId = srcId
+      		targetId = trgId
+      		me.score = score
+      	End Sub
+      	
+      	%REM
+      		Function Compare
+      		Description: Required by ObjectSortedCollection, compares itself to an object of the same type
+      		Arguments: x the other object
+      		Return value: 0 if the scores are the same, -1 if this object should sort before (descending by score), 1 if after.
+      	%END REM
+      	Function Compare(x As Variant) As Integer
+      		me.Compare = Sgn(x.score - me.score)
+      		If me.Compare = 0 Then ' don't return 0 because the sorted list class doesn't like dups.
+      			me.compare = Sgn(StrCompare(sourceID & targetId, x.sourceID & x.targetId)) ' this will be unique
+      		End If
+      	End Function
+      End Class
+    signed: true
+    nonsummary: true
+  - name: $TITLE
+    type: text
+    data: PairMatcher
+    signed: true
+remaining: []

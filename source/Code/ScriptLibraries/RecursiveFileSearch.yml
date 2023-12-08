@@ -1,0 +1,798 @@
+---
+class: 512
+flags: 0x2000
+unid: OF53135D53BC80AE6C-ON006B2EF0852586DA
+items:
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: 34Qs
+  - name: $POID
+    type: time
+    data: "2021-04-19T14:50:35.92-05:00"
+    dst: true
+  - name: $PublicAccess
+    type: text
+    data: "1"
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-05-19T15:30:46.64-04:00"
+        dst: true
+      - data: "2021-05-27T11:23:20.62-05:00"
+        dst: true
+      - data: "2021-06-30T21:57:32.70-05:00"
+        dst: true
+      - data: "2021-07-09T08:59:43.69-04:00"
+        dst: true
+      - data: "2021-07-09T09:01:57.83-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:04.29-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:46.32-04:00"
+        dst: true
+      - data: "2021-07-09T09:21:11.44-04:00"
+        dst: true
+      - data: "2021-08-17T13:55:02.82-05:00"
+        dst: true
+      - data: "2021-09-16T12:02:36.57-05:00"
+        dst: true
+      - data: "2021-09-27T12:24:41.24-05:00"
+        dst: true
+      - data: "2021-09-27T12:24:41.29-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:56.03-05:00"
+        dst: true
+      - data: "2021-09-27T22:33:22.67-05:00"
+        dst: true
+      - data: "2021-11-18T10:08:30.89-06:00"
+      - data: "2021-11-18T10:08:30.95-06:00"
+      - data: "2021-11-18T10:08:35.56-06:00"
+      - data: "2021-11-18T10:08:35.61-06:00"
+      - data: "2021-11-29T13:37:24.56-05:00"
+  - name: $ScriptLib
+    type: text
+    data: |
+      '++LotusScript Development Environment:2:5:(Options):0:74
+      %REM
+      	Library RecursiveFileSearch
+      	Created by Andre Guirard
+      	Description: Scan one or more folders for a list of filenames. OS neutral.
+      	© Copyright HCL Company, 2021
+      %END REM
+      Option Public
+      Option Declare
+      
+      
+      '++LotusScript Development Environment:2:5:(Forward):0:1
+      Declare Class RecursiveFileSearch
+      Declare Class QueueOfString
+      Declare Private Class StringQueueNode
+      Declare Class MassiveArray
+      Declare Private Class MassiveArrayNode
+      Declare Class RecursiveFolderScan
+      Declare Sub Initialize
+      Declare Function RFS_isRelativePath(ByVal filepath$) As Boolean
+      Declare Function IsFolderEmpty(ByVal folderpath$) As Boolean
+      Declare Function RFS_filenameFromPath(ByVal path$) As String
+      Declare Function GetFolders(path$)
+      Declare Function RFS_fullPath(path$, basePath$) As String
+      Declare Function terminatePath(ByVal folderpath$) As String
+      Declare Function fixDelims(ByVal path$) As String
+      
+      '++LotusScript Development Environment:2:5:(Declarations):0:10
+      'Begin DNT
+      Private Const NEWLINE = {
+      }
+      Private Const MA_BLOCK = 200 ' number of elements per "MassiveArray" block
+      Dim PATHDELIM$
+      
+      
+      %REM
+      	Class RecursiveFileSearch
+      	Description: Scan for files whose filepath matches given criteria.
+      %END REM
+      Class RecursiveFileSearch
+      	z_pathparts As Variant
+      	z_filename As String
+      	z_queue As QueueOfString
+      	z_basefolders As String
+      	z_baseFolderArr As Variant
+      	
+      	z_matches As MassiveArray
+      	z_matchpos As Long
+      	
+      	Public limit As Long ' how many matches to return
+      	
+      	Sub New
+      		On Error GoTo ERRHANDLE
+      	 	limit = 100000
+      	 	Set z_queue = New QueueOfString
+      	 	Set z_matches = New MassiveArray
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub Push
+      		Description: Add a path to the list to be searched
+      	%END REM
+      	Private Sub push(ByVal x$)
+      		On Error GoTo ERRHANDLE
+      		z_queue.put x
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Function Pop
+      		Description: Retrieve the next path to be searched.
+      	%END REM
+      	Private Function pop As String
+      		On Error GoTo ERRHANDLE
+      		Pop = z_queue.Get
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Function addMatch
+      		Description: Remember a filepath we found that matches the search criteria.
+      	%END REM
+      	Private Sub addMatch(x$)
+      		z_matches.value(z_matches.count) = x
+      	End Sub
+      	
+      	%REM
+      		Function firstMatch
+      		Description: Return the first matching filename
+      	%END REM
+      	Function firstMatch As String
+      		On Error GoTo ERRHANDLE
+      		z_matchpos = 1
+      		If z_matches.Count Then
+      			firstMatch = z_matches.value(0)
+      		End If
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Function relativePath
+      		Description: Return the path of the last returned match, relative to its base folder. 
+      	%END REM
+      	Function relativePath As String
+      		If z_matchpos > 0 Then
+      			Dim tmp$
+      			tmp = z_matches.value(z_matchpos - 1)
+      			ForAll aBase In z_baseFolderArr
+      				If StrComp(Left$(tmp, Len(aBase)), aBase, 1) = 0 Then
+      					relativePath = Mid$(tmp, Len(aBase)+1)
+      					Exit Function
+      				End If
+      			End ForAll
+      		End If
+      	End Function
+      	
+      	%REM
+      		Function nextMatch
+      		Description: Return next matching filename after the last one we fetched.
+      	%END REM
+      	Function nextMatch As String
+      		On Error GoTo ERRHANDLE
+      		If z_matchpos < z_matches.count Then
+      			nextMatch = z_matches.value(z_matchpos)
+      			z_matchpos = z_matchpos + 1
+      		End If
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Function count
+      		Description: How many matches we found
+      	%END REM
+      	Function count As Long
+      		On Error GoTo ERRHANDLE
+      		count = z_matches.count
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Sub AddFolder
+      		Description: Add a folder to the list to be searched.
+      	%END REM
+      	Sub AddFolder(ByVal folderPath$)
+      		On Error GoTo ERRHANDLE
+      		If folderpath = "" Then Exit Sub
+      		folderpath = fixDelims(FolderPath)
+      		If Right$(folderpath, 1) <> PATHDELIM Then folderpath = folderpath & PATHDELIM
+      		Push folderpath
+      		z_basefolders = z_basefolders & NEWLINE & folderpath
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub AddFilename
+      		Description: Add a filename pattern to search for.
+      	%END REM
+      	Sub AddFilename(ByVal filename$)
+      		On Error GoTo ERRHANDLE
+      		If Len(z_filename) Then
+      			z_filename = z_filename & NEWLINE & filename
+      		Else
+      			z_filename = filename
+      		End If
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Function search
+      		Description: Perform the search, returning the number of matching results.
+      	%END REM
+      	Function search As Long
+      		On Error GoTo oops
+      		If z_queue.count = 0 Then Error 9022, "No search paths have been specified. Use AddFolder first."
+      		If Len(z_filename) = 0 Then Error 9023, "No filenames have been specified. Use AddFile first."
+      		
+      		Dim filenames, curPath$, anEntry$, postWildcard$
+      		filenames = Split(z_filename, NEWLINE)
+      		z_baseFolderArr = Split(Mid$(z_basefolders, 2), NEWLINE)
+      		z_basefolders = ""
+      		Do Until z_queue.count = 0 Or z_matches.count >= limit
+      			curPath = Pop
+      			' if it's a wildcard path, find all matching dirs for the first occurrence of a wildcard.
+      			If curPath Like {*[*?]*} Then
+      				Dim qpos&, spos&, dpos&, suffix$, matchName$
+      				qpos = InStr(curpath, "?")
+      				spos = InStr(curpath, "*")
+      				If qpos < spos And qpos > 0 Then spos = qpos
+      				dpos = InStr(spos+1, curpath, PATHDELIM, 0)
+      				If dpos Then
+      					' there's more to the path after the wildcard.
+      					suffix = Mid$(curPath, dpos)
+      					curPath = Left$(curPath, dpos-1)
+      				Else
+      					suffix = PATHDELIM
+      				End If
+      				If curPath Like {*[/\]*} Then
+      					matchName = StrRightBack(curPath, PATHDELIM)
+      					curPath = StrLeftBack(curPath, PATHDELIM) & PATHDELIM
+      				Else
+      					curPath = ""
+      					matchName = curPath
+      				End If
+      				PushSubdirsMatching curPath, matchName, suffix
+      			ElseIf isEligible(curpath) Then ' not a wildcard path -- queue subfolder names for a recursive file search.
+      				PushSubdirsMatching curPath, "*", PATHDELIM
+      				' and search for the files we want in this folder.
+      				Dim fullpath$
+      				ForAll aFilename In filenames
+      					anEntry = Dir$(curpath & aFilename, 14)
+      					Do While Len(anEntry)
+      						fullpath = curpath & anEntry
+      						If isMatch(fullPath) Then
+      							AddMatch fullPath
+      						End If
+      						anEntry = Dir$
+      					Loop
+      				End ForAll
+      			End If
+      		Loop
+      		search = z_matches.count
+      		Exit Function
+      oops:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Function existsFolder
+      		Description: !TODO
+      	%END REM
+      	Function existsFolder(foldername$) As Boolean
+      		On Error GoTo nope
+      		existsFolder = (GetFileAttr(foldername) And 16) <> 0
+      nope:
+      		Exit Function
+      	End Function
+      	
+      	%REM
+      		Sub PushSubdirsMatching
+      		Description: Remember to process all the subdirectories of a given directory.
+      	%END REM
+      	Sub PushSubdirsMatching(ByVal filepath$, ByVal matchName$, ByVal afters$)
+      		On Error GoTo oops
+      		Dim errdat$, folders
+      		folders = GetFolders(filepath & matchName)
+      		If folders(0) = "" Then Exit Sub
+      			ForAll aDir In folders
+      				Push filepath & aDir & afters
+      			End ForAll
+      		Exit Sub
+      oops:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0)) & errdat
+      	End Sub
+      	
+      	%REM
+      		Function isMatch
+      		Description: Override this function to further filter files. The filepath it is passed, matches the folder/filename values
+      			supplied earlier.
+      		Returns: True if the file should be included in the results.
+      	%END REM
+      	Function isMatch(filepath$) As Boolean
+      		On Error GoTo ERRHANDLE
+      		isMatch = True
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Function isEligible
+      		Description: Return True if a folder is worth searching.
+      	%END REM
+      	Function isEligible(foldername$) As Boolean
+      		On Error GoTo ERRHANDLE
+      		isEligible = existsfolder(foldername)
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      
+      End Class
+      
+      %REM
+      	Class QueueOfString
+      	Description: A queue of strings
+      %END REM
+      Class QueueOfString
+      	z_count As Long
+      	z_first As StringQueueNode
+      	z_last As StringQueueNode
+      	
+      	Sub Put(value$)
+      		On Error GoTo ERRHANDLE
+      		Dim node As New StringQueueNode
+      		node.value = value
+      		If z_count Then
+      			Set z_last.Next = node
+      		Else
+      			Set z_first = node
+      		End If
+      		Set z_last = node
+      		z_count = z_count + 1&
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	Function Get As String
+      		On Error GoTo ERRHANDLE
+      		If z_count Then
+      			Dim node As StringQueueNode
+      			z_count = z_count - 1&
+      			Me.Get = z_first.value
+      			Set node = z_first
+      			Set z_first = z_first.Next
+      			Delete node
+      		End If
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Function Peek
+      		Description: Return the first string in the queue without "popping" it.
+      		Returns: first string in queue, or "" if queue is empty.
+      	%END REM
+      	Function Peek As String
+      		If z_count Then
+      			Peek = z_first.value
+      		End If
+      	End Function
+      	
+      	%REM
+      		Property Get count
+      		Description: Number of strings in the queue.
+      	%END REM
+      	Public Property Get count As Long
+      		On Error GoTo ERRHANDLE
+      		count = z_count
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	Sub Delete
+      		Dim node As StringQueueNode
+      		On Error GoTo ERRHANDLE
+      		Do Until z_first Is Nothing
+      			Set node = z_first.Next
+      			Delete z_first
+      			Set z_first = node
+      		Loop
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      End Class
+      
+      
+      %REM
+      	Class StringQueueNode
+      	Description: 
+      %END REM
+      Private Class StringQueueNode
+      	Public value As String
+      	Public Next As StringQueueNode
+      End Class
+      %REM
+      	Class MassiveArray
+      	Description: Like a standard zero-based array, but with ability to hold up to 2^31 elements.
+      %END REM
+      Class MassiveArray
+      	first As MassiveArrayNode
+      	last As MassiveArrayNode
+      	cur As MassiveArrayNode
+      	' current position in array (0-based)
+      	pos As Long
+      	' number of elements in array - indexes are zero-based.
+      	Public count As Long
+      	
+      	Sub Delete
+      		On Error Resume Next
+      		Set cur = first
+      		Do Until cur Is Nothing
+      			Set first = cur.next
+      			Delete cur
+      			Set cur = first
+      		Loop
+      	End Sub
+      	
+      	%REM
+      		Sub setPosition
+      		Description: Reposition the "current" node to the one that contains a specified index value (zero-based).
+      		Arguments:
+      	%END REM
+      	Private Sub setPosition(ByVal ind As Long)
+      		Dim target As Long
+      		target = ind \ MA_BLOCK ' which node position we want, since each node contains MA_BLOCK entries.
+      		If ind >= count Then ' adding to the end of the array
+      			If first Is Nothing Then
+      				Set first = New MassiveArrayNode
+      				Set last = first
+      				Set cur = first
+      			End If
+      			Set cur = last
+      			pos = (count-1)\ MA_BLOCK
+      			While pos < target
+      				Set last = New MassiveArrayNode
+      				Set last.Prev = cur
+      				Set cur.Next = last
+      				Set cur = last
+      				pos = pos + 1
+      			Wend
+      		Else
+      			Dim dEnd&, dMid&, start&, ePos&
+      			ePos = (count-1)\ MA_BLOCK
+      			dEnd = ePos - target
+      			dMid = Abs(pos-target)
+      			' we have three reference points - the end, beginning, and current position. Which is nearest to our destination?
+      			If target < dMid Then
+      				pos = 0 ' quickest to go from the top
+      				Set cur = first
+      			ElseIf dEnd < dMid Then
+      				pos = ePos ' quickest to back up from the end
+      				Set cur = last
+      			End If
+      			If pos > target Then
+      				Do Until pos = target
+      					pos = pos - 1
+      					Set cur = cur.Prev
+      				Loop
+      			Else
+      				Do Until pos = target
+      					pos = pos + 1
+      					Set cur = cur.Next
+      				Loop
+      			End If
+      		End If
+      	End Sub
+      	
+      	%REM
+      		Property value   get, set
+      		Description: Assign or read an element of the array
+      		Arguments:
+      			ind: zero-based index of element being referenced. Need not be contiguous with existing elements.
+      	%END REM
+      	Public Property Set value(ByVal ind As Long) As Variant
+      		setPosition ind
+      		cur.val(ind Mod MA_BLOCK) = value
+      		If ind >= count Then count = ind + 1
+      	End Property
+      	
+      	Public Property Get value(ByVal ind As Long) As Variant
+      		If ind <= count Then
+      			setPosition ind
+      			value = cur.val(ind Mod MA_BLOCK)
+      		End If
+      		
+      	End Property
+      
+      End Class
+      Private Class MassiveArrayNode
+      	vals(MA_BLOCK-1) As Variant
+      	Public Next As MassiveArrayNode
+      	Public Prev As MassiveArrayNode
+      	
+      	Public Property Get Val(ind%) As Variant
+      		me.val = vals(ind)
+      	End Property
+      	
+      	Public Property Set Val(ind%) As Variant
+      		vals(ind) = me.Val
+      	End Property
+      End Class
+      %REM
+      	Class RecursiveFolderScan
+      	Description: Iterate recursively through all the folders in a directory tree, returning siblings consecutively.
+      %END REM
+      Class RecursiveFolderScan
+      	z_pathparts As Variant
+      	z_filename As String
+      	z_queue As QueueOfString
+      	z_basefolder As String
+      	z_matches As Variant
+      	z_matchpos As Long
+      	z_lastmatch As String
+      	z_delim As String
+      	
+      	Sub New
+      		z_delim = PATHDELIM
+      	End Sub
+      	
+      	%REM
+      		Function FirstFolder
+      		Description: Return the first subfolder of the root folder.
+      		Arguments:
+      		Return value:
+      	%END REM
+      	Function FirstFolder(ByVal rootFolder$) As String
+      		z_basefolder = terminatePath(rootFolder)
+      		Set z_queue = New QueueOfString
+      		z_queue.Put z_basefolder
+      		z_matches = split("", ",")
+      		z_matchpos = 0
+      		FirstFolder = NextFolder
+      	End Function
+      	
+      	%REM
+      		Function NextFolder
+      		Description: Return the next folder in the recursive scan.
+      		Arguments:
+      		Return value:
+      	%END REM
+      	Function NextFolder As String
+      		Dim fpath$
+      		Do Until z_matchpos < UBound(z_matches)
+      			' load more folder names
+      			If z_queue.count = 0 Then
+      				Exit Function  ' returning "" -- nothing more to return.
+      			End If
+      			fpath = z_queue.Get
+      			z_matches = GetFolders(fpath & "*")
+      			If z_matches(0) = "" Then
+      				z_matchpos = 0
+      			Else
+      				z_matchpos = -1
+      				ForAll aFolder In z_matches
+      					aFolder = fpath & aFolder
+      					z_queue.Put(aFolder & z_delim)
+      				End ForAll	
+      			End If
+      		Loop
+      		' if we reach this point, we have some folder names in memory we haven't returned yet.
+      		z_matchpos = z_matchpos + 1
+      		z_lastmatch = z_matches(z_matchpos)
+      		NextFolder = z_lastmatch
+      	End Function
+      	
+      	%REM
+      		Property relativePath   get
+      		Description: The last folder name we returned, return the path of that folder relative to the base folder.
+      	%END REM
+      	Public Property Get relativePath
+      		relativePath = Mid$(z_lastmatch, Len(z_basefolder) + 1)
+      	End Property
+      	
+      	%REM
+      		Property files   get
+      		Description: Return the list of files at the last-returned path.
+      		Returns: Array of file names, or EMPTY if no files found.
+      	%END REM
+      	Public Property Get files
+      		Dim ffiles$, aFile$
+      		fFiles = Dir$(z_lastmatch & z_delim & {*}, 14)
+      		If fFiles <> "" Then
+      			aFile = Dir$
+      			Do Until aFile = ""
+      				ffiles = ffiles & NEWLINE & aFile
+      				aFile = Dir$
+      			Loop
+      			files = Split(ffiles, NEWLINE)
+      		End If
+      	End Property
+      	
+      End Class
+      '++LotusScript Development Environment:2:2:Initialize:1:10
+      Sub Initialize
+      	Dim ses As New NotesSession
+      	If ses.Platform Like {Win*} Then PATHDELIM = "\" Else PATHDELIM = "/"
+      End Sub
+      
+      '++LotusScript Development Environment:2:1:RFS_isRelativePath:6:8
+      %REM
+      	Function RFS_isRelativePath
+      	Description: tell whether a filepath is relative or absolute.
+      	Return value: TRUE if path is relative.
+      %END REM
+      Function RFS_isRelativePath(ByVal filepath$) As Boolean
+      	filepath = LCase(filepath) 
+      	If filepath Like "[a-z]:*" Then Exit Function ' returning false
+      	If filepath Like "[\/]*" Then Exit Function ' returning false
+      	RFS_isRelativePath = True
+      End Function
+      
+      
+      '++LotusScript Development Environment:2:1:IsFolderEmpty:5:8
+      %REM
+      	Function IsFolderEmpty
+      	Return value: TRUE if the specified folder is completely empty.
+      %END REM
+      Function IsFolderEmpty(ByVal folderpath$) As Boolean
+      	On Error GoTo yup
+      	folderpath = terminatePath(Folderpath)
+      	Dim afile$
+      	afile = Dir$(folderpath & "*", 16)
+      	Do Until aFile = ""
+      		If afile <> "." And afile <> ".." Then
+      			Exit Function ' returning false
+      		End If
+      		afile = dir$
+      	Loop
+      yup:
+      	IsFolderEmpty = True
+      	Exit Function
+      End Function
+      
+      '++LotusScript Development Environment:2:1:RFS_filenameFromPath:5:8
+      %REM
+      	Function RFS_filenameFromPath
+      	Description: Given a filepath that ends with a filename, return just the filename.
+      %END REM
+      Function RFS_filenameFromPath(ByVal path$) As String
+      	If path Like {[\/]} Then Exit Function ' returning empty string
+      	RFS_filenameFromPath = StrRightBack(path, PATHDELIM)
+      	If RFS_filenameFromPath = "" Then
+      		RFS_filenameFromPath = StrRightBack(Replace(path, {/}, {\}), {\})
+      		If RFS_filenameFromPath = "" Then
+      			RFS_filenameFromPath = path
+      		End If
+      	End If
+      End Function
+      
+      
+      '++LotusScript Development Environment:2:1:GetFolders:9:8
+      %REM
+      	Function GetFolders
+      	Description: A quick way to get all the folder names matching a given wildcard path. It takes a lot
+      		longer to look at each file's attributes.
+      	Arguments:
+      		path: e.g. "C:\tmp\*" to get all subfolders of C:\tmp
+      	Return value: array of folder names, first element = "" if there are no subfolders.
+      %END REM
+      Function GetFolders(path$)
+      	Dim ffolders$, aName$, notFolders List As Integer
+      	On Error GoTo ERRHANDLE
+      	aName = Dir$(path, 14)
+      	Do While Len(aName)
+      		notFolders(aName) = 1
+      		aName = Dir$
+      	Loop
+      	aName = Dir$(path, 30)
+      	Do While Len(aName)
+      		If aName <> "." And aName <> ".." Then
+      			If Not IsElement(notFolders(aName)) Then
+      				ffolders = ffolders & PATHDELIM & aName
+      			End If
+      		End If
+      		aName = Dir$
+      	Loop
+      	getFolders = Split(Mid$(ffolders, 2), PATHDELIM)
+      	Exit Function
+      ERRHANDLE:
+      	Error Err, Error & { //} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      End Function
+      
+      '++LotusScript Development Environment:2:1:RFS_fullPath:9:8
+      %REM
+      	Function RFS_fullPath
+      	Description: Given a path which may be relative to a base folder, determine whether the
+      		path is indeed relative, and if so return the base folder name with the relative path
+      		appended. Otherwise return the path we were given.
+      	Arguments:
+      	Return value:
+      %END REM
+      Function RFS_fullPath(path$, basePath$) As String
+      	If RFS_isRelativePath(path) Then
+      		RFS_fullPath = terminatePath(basePath) & path
+      	Else
+      		RFS_fullPath = path
+      	End If
+      End Function
+      
+      '++LotusScript Development Environment:2:1:terminatePath:7:8
+      %REM
+      	Function terminatePath
+      	Description: Add a path terminator to the end of a folder path, if it lacks one. E.g. change "C:\tmp" to "C:\tmp\"
+      	Arguments:
+      	Return value:
+      %END REM
+      Function terminatePath(ByVal folderpath$) As String
+      	If Len(folderpath) Then
+      		If Right$(Folderpath, 1) <> PATHDELIM Then
+      			If Right$(folderpath, 1) Like {[\/]} Then
+      				terminatePath = Left$(folderpath, Len(folderpath)-1) & PATHDELIM
+      			Else
+      				terminatePath = folderpath & PATHDELIM
+      			End If
+      		Else
+      			terminatePath = folderpath
+      		End If
+      	End If
+      End Function
+      
+      
+      
+      
+      
+      
+      
+      '++LotusScript Development Environment:2:1:fixDelims:7:8
+      %REM
+      	Function fixDelims
+      	Description: Change the delimiters in a filepath to those used by this OS.
+      	Arguments:
+      	Return value:
+      %END REM
+      Function fixDelims(ByVal path$) As String
+      	If PATHDELIM = "/" Then
+      		fixDelims = Replace(path, "\", "/")
+      	Else
+      		fixDelims = Replace(path, "/", "\")
+      	End If
+      End Function
+    signed: true
+    nonsummary: true
+  - name: $TITLE
+    type: text
+    data: RecursiveFileSearch
+    signed: true
+remaining: []

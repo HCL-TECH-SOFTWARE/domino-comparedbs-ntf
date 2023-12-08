@@ -1,0 +1,59 @@
+---
+class: 1
+flags: 0x0100
+unid: OF2735EB6BFFB30CA0-ON0053335B85258720
+items:
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-07-28T11:08:58.30-04:00"
+        dst: true
+      - data: "2021-08-05T10:24:47.30-04:00"
+        dst: true
+      - data: "2021-09-27T12:29:34.15-05:00"
+        dst: true
+      - data: "2021-10-21T07:01:14.75-05:00"
+        dst: true
+  - name: Description
+    type: text
+    data: Compare two versions of a template.
+  - name: DocKeyFormula
+    type: text
+    data: "@Trim(Form + \"-\" + @If(Subject != \"\"; Subject; Title != \"\"; Title; Name != \"\"; Name; @Text(@DocumentUniqueID)))"
+  - name: Form
+    type: text
+    data: CompareConfig
+  - name: FormKeyFields
+    type: text
+    data: ""
+  - name: Howmany
+    type: text
+    data: "2"
+  - name: MaxLeftBlock
+    type: number
+    data: 10000
+  - name: Name
+    type: text
+    data: Code Review
+  - name: NewFiles
+    type: text
+    data: "1"
+  - name: Options
+    type: text
+    data:
+      - language
+      - signbit
+      - ".properties"
+      - docs
+      - time
+      - lscap
+  - name: RunLevel
+    type: text
+    data: "2"
+  - name: contextLines
+    type: text
+    data: "3"
+  - name: reportOptions
+    type: text
+    data: lineno
+remaining: []

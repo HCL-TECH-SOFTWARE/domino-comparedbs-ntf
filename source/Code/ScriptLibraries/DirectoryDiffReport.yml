@@ -1,0 +1,2138 @@
+---
+class: 512
+flags: 0x2000
+unid: OF935306C842F8E229-ON007ADDB0862586DB
+items:
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: 34Qs
+  - name: $PublicAccess
+    type: text
+    data: "1"
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-09-09T06:08:51.31-04:00"
+        dst: true
+      - data: "2021-09-09T06:09:13.95-04:00"
+        dst: true
+      - data: "2021-09-09T06:09:14.05-04:00"
+        dst: true
+      - data: "2021-09-16T12:02:37.24-05:00"
+        dst: true
+      - data: "2021-09-27T12:13:36.31-05:00"
+        dst: true
+      - data: "2021-09-27T12:13:36.37-05:00"
+        dst: true
+      - data: "2021-09-27T12:16:46.68-05:00"
+        dst: true
+      - data: "2021-09-27T12:16:46.75-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:56.76-05:00"
+        dst: true
+      - data: "2021-09-27T21:35:44.94-05:00"
+        dst: true
+      - data: "2021-09-27T21:35:44.96-05:00"
+        dst: true
+      - data: "2021-09-27T22:31:50.59-05:00"
+        dst: true
+      - data: "2021-09-27T22:31:50.61-05:00"
+        dst: true
+      - data: "2021-09-27T22:33:23.48-05:00"
+        dst: true
+      - data: "2021-09-27T23:22:25.97-05:00"
+        dst: true
+      - data: "2021-09-27T23:22:25.99-05:00"
+        dst: true
+      - data: "2021-09-27T23:42:34.78-05:00"
+        dst: true
+      - data: "2021-09-27T23:42:34.80-05:00"
+        dst: true
+      - data: "2021-09-27T23:46:03.18-05:00"
+        dst: true
+      - data: "2021-09-27T23:46:03.22-05:00"
+        dst: true
+      - data: "2021-09-28T15:42:55.41-05:00"
+        dst: true
+      - data: "2021-09-28T15:42:55.47-05:00"
+        dst: true
+      - data: "2021-10-21T08:14:16.76-05:00"
+        dst: true
+      - data: "2021-10-21T08:14:16.79-05:00"
+        dst: true
+      - data: "2021-10-22T13:03:02.71-05:00"
+        dst: true
+      - data: "2021-10-22T13:03:02.76-05:00"
+        dst: true
+      - data: "2021-10-22T13:23:49.33-05:00"
+        dst: true
+      - data: "2021-10-22T13:23:49.41-05:00"
+        dst: true
+      - data: "2021-10-25T09:13:44.24-05:00"
+        dst: true
+      - data: "2021-10-25T09:13:44.29-05:00"
+        dst: true
+      - data: "2021-10-28T10:26:45.13-05:00"
+        dst: true
+      - data: "2021-10-28T10:26:45.19-05:00"
+        dst: true
+      - data: "2021-11-01T11:53:03.64-05:00"
+        dst: true
+      - data: "2021-11-01T11:53:03.66-05:00"
+        dst: true
+      - data: "2021-11-02T16:05:33.26-05:00"
+        dst: true
+      - data: "2021-11-02T16:05:33.30-05:00"
+        dst: true
+      - data: "2021-11-02T17:17:23.80-05:00"
+        dst: true
+      - data: "2021-11-02T17:17:23.86-05:00"
+        dst: true
+      - data: "2021-11-02T17:20:36.21-05:00"
+        dst: true
+      - data: "2021-11-02T17:20:36.27-05:00"
+        dst: true
+      - data: "2021-11-02T18:43:59.23-05:00"
+        dst: true
+      - data: "2021-11-02T18:43:59.26-05:00"
+        dst: true
+      - data: "2021-11-18T08:32:40.05-06:00"
+      - data: "2021-11-18T08:32:40.12-06:00"
+      - data: "2021-11-29T13:22:42.67-05:00"
+  - name: $ScriptLib
+    type: text
+    data: |
+      '++LotusScript Development Environment:2:5:(Options):0:74
+      %REM
+      	Library DirectoryDiffReport
+      	Created by Andre Guirard
+      	Description: Given the paths of two folders, produce a rich-text report showing the differences between
+      		the files. This is not quite a general-purpose library since it makes certain assumptions
+      		based on filenames, specifically that in .properties files we don't care about context. 
+      	© Copyright HCL Company, 2021
+      %END REM
+      Option Public
+      Option Declare
+      Use "DXLRichTextWriter"
+      Use "FileDiff"
+      Use "ProgressBar"
+      Use "DBUtils"
+      Use "RecursiveFileSearch"
+      Use "Resources"
+      
+      '++LotusScript Development Environment:2:5:(Forward):0:1
+      Declare Class DirectoryDiffReport
+      Declare Class OSFile
+      
+      '++LotusScript Development Environment:2:5:(Declarations):0:10
+      Private Const MSG_CANTATTACH = "Can't attach file to report: {0:filename}"
+      Private Const MSG_CANTATTACHERR =  "Can't attach file '{0:filename}' to report." '"Can't attach file '" & fname & "' to report
+      Private Const MSG_NOREPORTFORM = "The file {0:filename} doesn't contain a Report form."
+      Private Const MSG_NODIFFS =  "No file differences."
+      Private Const MSG_ADDDELELEMS = "Added and deleted design elements:"
+      Private Const MSG_DIFF_BIN = "Binary files are not identical."
+      
+      'Begin DNT
+      Const HILITE_TEXT = "red"
+      Const DIFF_BGCOLOR = "#ffffd0"
+      Const DEL_BGCOLOR = "#ffc0b6"
+      Const ADD_BGCOLOR = "#e0ffbf"
+      Const TABLEHDR_COLOR = "silver"
+      Const CODE_ALTCOLOR = "#001fe2"
+      
+      Const DDR_RTYPE_MAIL = {MAIL}
+      Const DDR_RTYPE_SCREEN = {SCREEN}
+      Const DDR_RTYPE_DB = {DB}
+      Const DDR_RTYPE_FILE = {FILE}
+      Const DDR_RTYPE_DXLFILE = {DXLFILE}
+      
+      Const NEWFILE_REPORT = 0
+      Const NEWFILE_ATTACH = 1
+      Const NEWFILE_EMBED = 2
+      
+      Private Const BINARY_SUFFIXES = {.exe.zip.dll.bin.obj.com.rar.7z.tar.iso.mp3.mp4.nsf.ntf.
+      .wav.acc.flac.ppt.doc.docx.xls.mdb.tiff.so.class.jar.ppt.odt.mov.wma.bmp.}
+      
+      %REM
+      	Class DirectoryDiffReport
+      	Description: Generates a report of differences between databases.
+      %END REM
+      
+      Class DirectoryDiffReport
+      	Public IgnoreCase As Boolean
+      	Public ContextLines As Integer
+      	Public MaxLeftBlock As Long
+      	Public LineNumbers As Boolean
+      	Public ReportType As String ' MAIL, DB, or SCREEN
+      	'to override the default form
+      	Public ReportForm As String
+      	Public ReportDBPath As String ' server!!filepath
+      	Public ReportDB As NotesDatabase
+      	Public ReportOutputFile As String ' output filename for FILE output style.
+      	Public ReportAttributes As Variant
+      	Public Filenames As String
+      	Public Title As String ' title line of report or subject line of memo
+      	Public skipFilesLike As String ' Like match string of files to ignore
+      	Public NewFileOpt As Integer ' what to do about added files: 0=report filename, 1=attach to report, 2=embed contents
+      	Public FileMode As Boolean ' true to list all individual files in the report that exist on one side and not the other, even if entire folder's missing.
+      	Public Silent As Boolean ' being invoked from back end -- no progress bar.
+      	Public reportDoc As NotesDocument
+      	Public flagging As Boolean
+      	
+      	Private z_dbReport As NotesDatabase
+      	Private z_ses As NotesSession
+      	
+      	Private z_styTitle As DXLStyle
+      	Private z_stySubtitle As DXLStyle
+      	' six elements for styling text when writing file contents, as follows: "same", alternate "same", different, then the same three but for a flagged section.
+      	Private z_styCode(5) As DXLStyle
+      	Private z_styLineNo As DXLStyle
+      	Private z_styLeader As DXLStyle
+      	Private z_stySection As DXLStyle
+      	Private z_styTableHdr As DXLStyle
+      	Private z_styBold As DXLStyle
+      	Private z_styNormal As DXLStyle
+      	
+      	Private z_pstyCenter As DXLParStyle
+      	Private z_pstyRight As DXLParStyle
+      	Private z_pstyLeader As DXLParStyle
+      	Private z_pstySection As DXLParStyle
+      	Private z_pstyCode As DXLParStyle
+      	Private z_pstyBody As DXLParStyle
+      	
+      	Private z_table As DXLTable
+      	Private z_body As DXLBody
+      	Private z_bMultipleDBs As Boolean
+      	Private z_sectionTitles List As String ' key=folder name, value = title.
+      	Private z_section As DXLSection
+      	Private z_topLevelFolder As String ' folder name corresponding to section
+      	Private z_reporter As DXLReporter
+      	
+      	Private z_leftPath As String
+      	Private z_leftName As String
+      	Private z_rightPath As String
+      	Private z_rightName As String
+      	Private z_basePath As String
+      	
+      	Private z_uniqueFilesLeft As String
+      	Private z_uniqueFilesRight As String
+      	Private z_uniqueFoldersLeft As String
+      	Private z_uniqueFoldersRight As String
+      	Private z_bDiffsFound As Boolean
+      	Private z_nDeleted As Long
+      	Private z_filesToProcess List As Integer
+      	Private z_nFiles As Long
+      	Private z_foldersToCheckIfEmpty List As Integer
+      	
+      	' key is relative filepaths to always show in the report if they are present.
+      	Private z_alwaysShow List As Integer
+      	
+      	Private z_leftLineNo As Long
+      	Private z_rightLineNo As Long
+      	Private z_flagging As Integer
+      	
+      	Private z_api As CAPI
+      	Private z_tto As Variant
+      	Private z_ffrom As Variant
+      	Private z_fn As OSFile ' output file number
+      	Private z_bFile As Boolean
+      	Private z_xmlcharset As String
+      	
+      	%REM
+      		Sub New
+      		Description: Create a report generator of the specified type.
+      		Arguments:
+      			DDR_RTYPE_v: specifies type of output -- use similarly named constants.
+      			XMLCharset: character set to use with XML files, defaults to "UTF-8" if blank.
+      	%END REM
+      	Sub New(ByVal DDR_RTYPE_x$, XMLCharset$)
+      		On Error GoTo ERRHANDLE
+      		Set z_ses = New NotesSession
+      		ContextLines = 1
+      		LineNumbers = True
+      		MaxLeftBlock = 10000
+      		ReportType = DDR_RTYPE_x
+      		Set z_api = getcapi
+      		z_ffrom = Split({&quot;,&apos;,&lt;,&gt;,&amp;}, {,})
+      		z_tto = Split({",',<,>,&}, {,})
+      		z_xmlcharset = UCase(XMLCharset)
+      		If z_xmlcharset = "" Then z_xmlcharset = "UTF-8"
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	Sub Delete
+      		If Not z_fn Is Nothing Then Delete z_fn
+      		If Not (z_dbReport Is Nothing) Then Delete z_dbReport
+      	End Sub
+      	
+      	%REM
+      		Sub InitStyles
+      		Description: Once we have a report started, initialize the styles we'll need.
+      	%END REM
+      	Private Sub InitStyles
+      		On Error GoTo ERRHANDLE
+      		Set z_pstyCenter = z_body.PStyleCenter
+      		
+      		Set z_pstyRight = z_body.PStyleDef.Clone("right")
+      		z_pstyRight.Align = ALIGN_RIGHT
+      		
+      		Set z_pstyLeader = z_body.CreatePStyle("leader")
+      		z_pstyLeader.SpaceBefore = SPACING_DOUBLE
+      		z_pstyLeader.SpaceAfter = SPACING_SINGLE
+      		
+      		Set z_pstyCode = z_body.CreatePStyle("code")
+      		Dim i%
+      		For i = 1 To 15
+      			z_pstyCode.AddTabStop TAB_LEFT, RULER_ONE_INCH * (1.0 + i*0.2)
+      		Next
+      		
+      		Set z_pstyBody = z_body.PStyleDef
+      		z_pstyBody.SpaceAfter = SPACING_ONE_POINT_50
+      		
+      		Set z_pStySection = z_body.CreatePStyle("sectiontitle")
+      		
+      		Set z_styTitle = z_body.CreateStyle("title")
+      		With z_styTitle
+      			.Font = Font_helv
+      			.Size = 12
+      			.bold = True
+      			.NotesColor = Color_black
+      		End With
+      		
+      		Set z_stySubtitle = z_styTitle.Clone(z_body, "subtitle")
+      		z_stySubtitle.Size = 15
+      		
+      		' set up three font styles to represent normal file text, alternate-normal which is used to
+      		' show where there's a break because something was removed on the other side, and the
+      		' highlight style used to show added/changed text.
+      		Set z_styCode(0) = z_body.CreateStyle("code1")
+      		z_styCode(0).Font = FONT_COURIER
+      		z_styCode(0).Size = 8
+      		Set z_styCode(1) = z_styCode(0).Clone(z_body, "code2")
+      		z_styCode(1).Color = CODE_ALTCOLOR
+      		Set z_styCode(2) = z_styCode(0).Clone(z_body, "codeEm")
+      		z_styCode(2).Hilite = HILITE_YELLOW
+      		z_styCode(2).Color = HILITE_TEXT
+      		' now set up the corresponding three styles for flagged text
+      		Set z_styCode(3) = z_styCode(0).Clone(z_body, "code1flag")
+      		z_styCode(3).Hilite = HILITE_BLUE
+      		Set z_styCode(4) = z_styCode(1).Clone(z_body, "code2flag")
+      		z_styCode(4).Hilite = HILITE_BLUE
+      		Set z_styCode(5) = z_styCode(2).Clone(z_body, "codeEmflag")
+      		z_styCode(4).Hilite = HILITE_BLUE
+      		
+      '		Set z_styCodeEm = z_styCode(0).Clone(z_body, "codeEm")@@
+      '		z_styCodeEm.Hilite = HILITE_YELLOW
+      '		z_styCodeEm.Color = HILITE_TEXT
+      		
+      		Set z_styLineNo = z_body.CreateStyle("lineno")
+      		z_styLineNo.Font = FONT_ROMAN
+      		z_styLineNo.Size = 8
+      		
+      		Set z_styLeader = z_body.CreateStyle("leader")
+      		With z_styLeader
+      			.Size = 14
+      			.NotesColor = COLOR_DARK_MAGENTA
+      			.Font = FONT_ROMAN
+      		End With
+      		
+      		Set z_stySection = z_body.CreateStyle("sectiontitle")
+      		With z_stySection
+      			.Size = 16
+      			.Bold = True
+      		End With
+      		
+      		Set z_styTableHdr = z_body.CreateStyle("tblhdr")
+      		
+      		Set z_styBold = z_body.createStyle("bold")
+      		z_styBold.Bold = True
+      		
+      		Set z_styNormal = z_body.createStyle("normal")
+      		With z_styNormal
+      			.Bold = False
+      			.Italic = False
+      			.Font = FONT_HELV
+      			.size = 10
+      			.NotesColor = COLOR_BLACK
+      		End With
+      		
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub alwaysShow
+      		Description: always show a particular file in the report even if it's unchanged.
+      	%END REM
+      	Public Sub alwaysShow(relativepath$)
+      		z_alwaysShow(relativepath) = 1
+      	End Sub
+      	
+      	%REM
+      		Function pathsBase
+      		Description: return the parts of two paths which are identical.
+      	%END REM
+      	Private Function pathsBase(ByVal path1$, ByVal path2$) As String
+      		Dim pos%, lim%
+      		On Error GoTo ERRHANDLE
+      		lim = Len(path1)
+      		If Len(path2) < lim Then lim = Len(path2)
+      		For pos = 1 To lim
+      			If Mid$(path1, pos, 1) <> Mid$(path2, pos, 1) Then
+      				Exit For
+      			End If
+      		Next
+      		If pos > lim Then
+      			Error 24400, "Two paths are equal or one is contained in the other."
+      		End If
+      		For pos = pos-1 To 1 Step -1
+      			If Mid$(path1, pos, 1) Like "[\/]" Then
+      				Exit For
+      			End If
+      		Next
+      		pathsBase = Left$(path1, pos)
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Function Process
+      		Description: Compare files in two folders recursively, display report of differences.
+      	%END REM
+      	Function Process(ByVal folder1$, ByVal folder2$) As NotesDocument
+      		Dim fileSuffix$, isImage As Boolean
+      		Dim par As DXLPar
+      		Dim db As NotesDatabase
+      		Dim lines, bEdit As Boolean
+      		On Error GoTo oops
+      		bEdit = True
+      
+      		z_leftPath = z_API.TerminatePath(folder1)
+      		z_bMultipleDBs = Not gcu.existsFile(z_leftPath & "1-database.xml")
+      		z_rightPath = z_API.TerminatePath(folder2)
+      		z_basePath = pathsBase(z_leftPath, z_rightPath)
+      		z_leftName = Mid$(z_leftPath, Len(z_basePath)+1, Len(z_leftPath)-Len(z_basePath)-1)
+      		z_rightName = Mid$(z_rightPath, Len(z_basePath)+1, Len(z_rightPath)-Len(z_basePath)-1)
+      
+      		If ReportType = "MAIL" Then
+      			Set db = getMailFile
+      			If db Is Nothing Then
+      				ReportType = "SCREEN"
+      			End If
+      		End If
+      		If ReportType = "DB" Then
+      			Set db = getReportDB
+      			If db Is Nothing Then
+      				reportType = "SCREEN"
+      			End If
+      		End If
+      		
+      		' build a list of the files to be compared.
+      		compareFolders ""
+      		
+      		If ReportType = DDR_RTYPE_FILE Then
+      			Set z_fn = New OSFile
+      			Open ReportOutputFile For Output As z_fn.fn charset="UTF-8"
+      			Print #z_fn.fn, {<?xml version="1.0" encoding="UTF-8"?><strings>}
+      			z_bFile = True
+      		Else
+      			If db Is Nothing Then
+      				Set db = z_ses.Currentdatabase
+      				bEdit = False ' not in edit mode.
+      			End If
+      			Set z_reporter = New DXLReporter(db)
+      			Set z_body = z_reporter.body
+      			InitStyles
+      			Set par = z_body.AddStyledPar(z_pstyBody)
+      			par.AddStyledText title, z_styTitle
+      		End If
+      
+      		' now compare them, with progress bar.
+      		CompareQueuedFiles
+      		
+      		If z_bFile Then
+      			OutputFileLevelDiffs
+      			Print #z_fn.fn, {</strings>}
+      			Exit Function
+      		ElseIf Not z_bDiffsFound Then
+      			z_body.AddPar
+      			z_body.AddText "No differences found."
+      		Else
+      			Call AddDeleteReport
+      		End If
+      		
+      		Dim doc As NotesDocument
+      		If reporttype = DDR_RTYPE_DXLFILE Then
+      			z_reporter.AddItem "Form", "Report"
+      			z_reporter.AddItem "Filenames", Split(Filenames, NEWLINE)
+      			If Not IsEmpty(reportAttributes) Then
+      				ForAll thing In reportAttributes
+      					z_reporter.AddItem StrLeft(thing, {=}), StrRight(thing, {=})
+      				End ForAll
+      			End If
+      			z_reporter.SaveToFile reportoutputfile
+      			Exit Function ' retuning Nothing
+      		End If
+      		
+      		If Not (db Is Nothing) Then Set doc = db.createdocument
+      		Select Case reporttype
+      			Case "MAIL"
+      				doc.Form = "Memo"
+      			Case "SCREEN"
+      				doc.form = "ReportSimple"				
+      			Case Else
+      				doc.form = "Report"
+      				If Not IsEmpty(reportAttributes) Then
+      					ForAll thing In reportAttributes
+      						doc.Replaceitemvalue StrLeft(thing, {=}), StrRight(thing, {=})
+      					End ForAll
+      				End If
+      				doc.Replaceitemvalue "Application", Split(Filenames, NEWLINE)
+      		End Select
+      		If ReportForm <> "" Then
+      			doc.Form = ReportForm
+      		End If
+      		z_reporter.Render Doc, "Body"
+      		If NewFileOpt <> 0 And Len(z_uniqueFilesRight) > 0 Then
+      			' add attachments at the end
+      			Stop
+      			Dim body As NotesRichTextItem, fname$
+      			Set body = doc.Getfirstitem("Body")
+      			lines = FullTrim(Split(z_uniqueFilesRight, NEWLINE))
+      			On Error GoTo attacherr
+      			ForAll thing In lines
+      				fileSuffix = LCase(StrRightBack(thing, "."))
+      				isImage = InStr(".gif.bmp.jpg.jpeg.png.", "." & fileSuffix & ".") > 0
+      				If isImage Or NewFileOpt = NEWFILE_ATTACH Then
+      					fname = z_rightPath & thing
+      					Call body.Embedobject(EMBED_ATTACHMENT, "", fname, "")
+      				End If
+      			End ForAll
+      			On Error GoTo oops
+      		End If
+      		If Not silent Then
+      			Dim wksp As New NotesUIWorkspace, uidoc As NotesUIDocument
+      			Set uidoc = wksp.Editdocument(bEdit, doc, Not bEdit)
+      			If reporttype = "DB" Or reporttype = "MAIL" Then
+      				uidoc.fieldsettext "Subject", " " ' make this UI change so that the user will be prompted to send/save if they close the window.
+      			End If
+      		Else
+      			doc.Replaceitemvalue "Subject", title
+      			Set reportDoc = doc
+      			Set z_dbReport = doc.Parentdatabase
+      		End If
+      		If Not (z_fn Is Nothing) Then Delete z_fn
+      		Exit Function
+      oops:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      attacherr:
+      		If silent Then
+      			Error Err, Replace(MSG_CANTATTACHERR,"{0:filename}",fname) & " //" & Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      		Else
+      			MsgBox Replace(MSG_CANTATTACH, "{0:filename}", fname)
+      			Resume Next
+      		End If
+      	End Function
+      	
+      	%REM
+      		Sub addFlaggedText
+      		Description: Add to a paragraph or table cell, text which may contain flagging characters to start or stop highlighting.
+      		Arguments:
+      			ent: the entity to add to.
+      			sztext: the text to add
+      			styleindex: which highlighting style to use
+      			side: 1 if in a left-side cell, 2 for right.
+      	%END REM
+      	Function addFlaggedText(ent As DXLTextContainer, szText$, ByVal styleIndex%, ByVal side%) As DXLPar
+      		Dim sind%, i%, bChanges As Boolean
+      		On Error GoTo ERRHANDLE
+      		If Not flagging Then
+      			Set addFlaggedText = ent.AddStyledText(Sztext, z_styCode(Styleindex))
+      			Exit Function
+      		End If
+      		If z_flagging And side Then sind = styleIndex+3 Else sind = styleIndex
+      		bChanges = InStr(szText, QFLAGSTART) > 0
+      		If Not bChanges Then bChanges = InStr(szText, QFLAGEND) > 0
+      		If bChanges Then
+      			Stop
+      			Dim parts
+      			Dim flagged$, notFlagged$, pos As Long
+      			parts = Split(szText, QFLAGSTART)
+      			For i = 0 To UBound(parts)
+      				pos = InStr(parts(i), QFLAGEND)
+      				If pos Then
+      					flagged = Left$(parts(i), pos-1)
+      					notFlagged = Replace(Mid$(parts(i), pos+Len(QFLAGEND)), QFLAGEND, "")
+      					If Len(flagged) Then
+      						Set addFlaggedText = ent.AddStyledText(flagged, z_styCode(sind))
+      					End If
+      					If Len(notFlagged) Then
+      						Set addFlaggedText = ent.AddStyledText(notFlagged, z_styCode(styleIndex))
+      					End If
+      					z_flagging = z_flagging And (3 - side)
+      				Else
+      					z_flagging = z_flagging Or side
+      					Set addFlaggedText = ent.AddStyledText(parts(i), z_styCode(sind))
+      				End If
+      				sind = styleIndex + 3
+      			Next
+      		Else ' there's no start or end flagging sequence so keep using the style we have been on this side.
+      			Set addFlaggedText = ent.AddStyledText(szText, z_styCode(sind))
+      		End If
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Sub OutputFileLevelDiffs
+      		Description: Output a final list of file level differences.
+      		Arguments:
+      	%END REM
+      	Sub OutputFileLevelDiffs
+      		If Not z_bDiffsFound Then ' no line differences were found.
+      			Print #z_fn.fn, MSG_NODIFFS
+      		Else
+      			If Len(z_uniqueFilesLeft) Or Len(z_uniqueFoldersLeft) Or Len(z_uniqueFilesRight) Or Len(z_uniqueFoldersRight) Then
+      				Print #z_fn.fn, MSG_ADDDELELEMS
+      				Dim folders, files, aFile$, rsf As recursivefilesearch
+      				If Len(z_uniqueFoldersLeft) Then
+      					Set rsf = New recursivefilesearch
+      					folders = Split(z_uniqueFoldersLeft, NEWLINE)
+      					ForAll afolder In folders
+      						If Len(aFolder) Then rsf.AddFolder z_leftPath & aFolder
+      					End ForAll
+      					rsf.AddFilename({*})
+      					rsf.search
+      					aFile = rsf.firstMatch
+      					Do Until aFile = ""
+      						Print #z_fn.fn, "< " & Mid$(aFile, Len(z_leftPath)+1)
+      						aFile = rsf.nextMatch()
+      					Loop
+      				End If
+      				If Len(z_uniqueFilesLeft) Then
+      					files = Split(z_uniqueFilesLeft, NEWLINE)
+      					ForAll fname In files
+      						If Len(fname) Then Print #z_fn.fn, "< " & fname
+      					End ForAll
+      				End If
+      				
+      				If Len(z_uniqueFoldersRight) Then
+      					Set rsf = New recursivefilesearch
+      					folders = Split(z_uniqueFoldersRight, NEWLINE)
+      					ForAll afolder In folders
+      						If Len(aFolder) Then rsf.AddFolder z_rightPath & aFolder
+      					End ForAll
+      					rsf.AddFilename({*})
+      					rsf.search
+      					aFile = rsf.firstMatch
+      					Do Until aFile = ""
+      						Print #z_fn.fn, "> " & Mid$(aFile, Len(z_rightPath)+1)
+      						aFile = rsf.nextMatch()
+      					Loop
+      				End If
+      				If Len(z_uniqueFilesRight) Then
+      					files = Split(z_uniqueFilesRight, NEWLINE)
+      					ForAll fname In files
+      						If Len(fname) Then Print #z_fn.fn, "> " & fname
+      					End ForAll
+      				End If
+      			End If
+      			
+      			' for files that exist on both sides (which we hope is most of them!) list their differences.
+      		End If
+      	End Sub
+      	
+      	%REM
+      		Sub CompareFolders
+      		Description: Recursively compare the folders and files at the left path
+      			+ relative path, and the right path + relative path. Report any files
+      			that are different.
+      	%END REM
+      	Sub CompareFolders(ByVal RelativePath$)
+      		Dim lcon, rcon, fName$, othing%
+      		On Error GoTo ERRHANDLE
+      		lcon = GetContents(z_leftPath & Relativepath)
+      		rcon = GetContents(z_rightPath & Relativepath)
+      		ForAll thing In lcon
+      			If thing = 0 Then ' a file
+      				If Len(skipFilesLike) = 0 Or Not thing Like skipFilesLike Then
+      					fname = ListTag(thing)
+      					If Not IsElement(rcon(fname)) Then
+      						z_uniqueFilesLeft = z_uniqueFilesLeft & NEWLINE & relativePath & fname
+      					Else
+      						If rcon(fName) <> 0 Then
+      							' one is a file, one is a folder
+      							z_uniqueFilesLeft = z_uniqueFilesLeft & NEWLINE & relativePath & fname
+      							z_uniqueFoldersRight = z_uniqueFoldersRight & NEWLINE & relativePath & fname
+      						Else
+      							' two files
+      							z_filesToProcess(relativePath & fname) = 1
+      							z_nFiles = z_nFiles + 1
+      							'If 1 = (z_nFiles And 15) Then Print "Scanning files, "  z_nFiles " found"
+      						End If
+      						Erase rcon(fname)
+      					End If
+      				End If
+      			End If
+      		End ForAll
+      		
+      		' we've processed all the files that exist on both sides.
+      		' now process all folders that are on both sides.
+      		Dim rfiles$
+      		ForAll thing In lcon
+      			If thing = 1 Then ' a folder
+      				fname = ListTag(thing)
+      				If Not IsElement(rcon(fname)) Then ' there's a left folder with no corresponding right folder.
+      					If FileMode Then ' we need the names of each non-matching file -- not just the containing folder.
+      						rfiles = AllFilesRecursive(z_leftPath, Relativepath & fname)
+      						If Len(rfiles) Then ' there were some files in the unmatched folder
+      							z_uniqueFilesLeft = z_uniqueFilesLeft & NEWLINE & rfiles
+      						End If
+      					Else
+      						z_uniqueFoldersLeft = z_uniqueFoldersLeft & NEWLINE & relativePath & fname
+      					End If
+      				Else ' 
+      					If rcon(fName) = 0 Then
+      						' one is a file, one is a folder
+      						If filemode Then ' we need the names of each non-matching file -- not just the containing folder.
+      							rfiles = AllFilesRecursive(z_leftPath, Relativepath & fname)
+      							If Len(rfiles) Then
+      								z_uniqueFilesLeft = z_uniqueFilesLeft & NEWLINE & rfiles
+      							End If
+      						Else
+      							z_uniqueFoldersLeft = z_uniqueFoldersLeft & NEWLINE & relativePath & fname
+      						End If
+      						z_uniqueFilesRight = z_uniqueFilesRight & NEWLINE & relativePath & fname
+      					Else
+      						' two folders
+      						CompareFolders z_API.TerminatePath(relativePath & fname)
+      					End If
+      					Erase rcon(fname)
+      				End If
+      			End If
+      		End ForAll
+      		
+      		' everything still remaining on the right side had no match on the left
+      		ForAll thing In rcon
+      			fname = ListTag(thing)
+      			If thing = 0 Then
+      				z_uniqueFilesRight = z_uniqueFilesRight & NEWLINE & relativePath & fname
+      			ElseIf FileMode Then
+      				rfiles = AllFilesRecursive(z_rightPath, Relativepath & fname)
+      				If Len(rfiles) Then
+      					z_uniqueFilesRight = z_uniqueFilesRight & NEWLINE & rfiles
+      				End If
+      			Else
+      				z_uniqueFoldersRight = z_uniqueFoldersRight & NEWLINE & relativePath & fname
+      			End If
+      		End ForAll
+      		z_bDiffsFound = z_bDiffsFound Or (Len(z_uniqueFoldersRight) > 0 Or Len(z_uniqueFoldersLeft) > 0 Or Len(z_uniqueFilesRight) > 0 Or Len(z_uniqueFilesLeft) > 0)
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Function AllFilesRecursive
+      		Description: Return a newline-delimited list of all the files in a given folder, recursively. Empty folders are not mentioned.
+      		Arguments: folderpath: which folder do you want to list contents of.
+      		Return value: "" if folder is empty (or contains only empty folders), else *relative* filepaths one per line		
+      	%END REM
+      	Function AllFilesRecursive(ByVal basepath$, ByVal relpath$) As String
+      		Dim ret$, folderpath$
+      		Dim rs As New RecursiveFileSearch, match$
+      		folderpath = terminatePath(terminatePath(basepath) & relpath)
+      		Call rs.AddFolder(Folderpath)
+      		Call rs.AddFilename({*})
+      		rs.search
+      		match = rs.firstMatch
+      		Do While Len(match)
+      			ret = ret & newline & Mid$(match, Len(basepath)+1)
+      			match = rs.nextMatch
+      		Loop
+      		AllFilesRecursive = Mid$(ret, 2)
+      	End Function
+      	
+      	%REM
+      		Sub restoreCase
+      		Description: If we did a character-level compare of a line-difference node
+      			with ignorecase true, the characters in the difference list are all
+      			lowercase. Restore the original case by copying chars from the line-level
+      			diff node.
+      	%END REM
+      	Sub restoreCase(diffs As DiffResult, master As DiffResultNode)
+      		Dim lpos&, rpos&, tLen&, dnC As DiffResultNode
+      		On Error GoTo ERRHANDLE
+      		Set dnC = diffs.First
+      		lpos = 1
+      		rpos = 1
+      		Do Until dnC Is Nothing
+      			If dnC.isSame Then
+      				tLen = Len(dnC.val1)
+      				dnC.val1 = Mid$(master.val1, lpos, tLen)
+      				dnC.val2 = Mid$(master.val2, rpos, tLen)
+      				lPos = lpos + tLen
+      				rPos = rpos + tLen
+      			Else
+      				dnC.val1 = Mid$(master.val1, lpos, Len(dnC.val1))
+      				dnC.val2 = Mid$(master.val2, rpos, Len(dnC.val2))
+      				lPos = lpos + Len(dnC.val1)
+      				rPos = rpos + Len(dnC.val2)
+      			End If
+      			Set dnC = dnC.Next
+      		Loop
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub duplicateSameNodes
+      		Description: take a list of diff results and in the Same nodes,
+      			make val2 = val1; normally val2 would be blank. This is done
+      			because various flags might result in them being marked as
+      			identical when there are differences in spacing or case, and
+      			we want to show the actual contents as we go.
+      	%END REM
+      	Sub duplicateSameNodes(dr As DiffResult)
+      		Dim adif As DiffResultNode
+      		On Error GoTo ERRHANDLE
+      		Set adif = dr.First
+      		Do Until adif Is Nothing
+      			If adif.isSame Then
+      				adif.val2 = adif.val1
+      			End If
+      			Set adif = adif.Next
+      		Loop
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      
+      	%REM
+      		Function isIndentDiff
+      		Description: reviews a difference node to see whether it represents
+      			a difference other than just indentation.
+      	%END REM
+      	Private Function isIndentDiff(dn As DiffResultNode) As Boolean
+      		On Error GoTo ERRHANDLE
+      		If dn.val1 Like "*[! 	]*" Or dn.val2 Like "*[! 	]*" Then Exit Function
+      		If dn.next Is Nothing Or dn.prev Is Nothing Then
+      			isIndentDiff = True
+      			Exit Function
+      		End If
+      		' there are nodes before and after. Is this diff part of the whitespace
+      		' at the start of a line?
+      		If Not (StrToken(dn.prev.val1, NEWLINE, -1) Like "*[! 	]*") Then
+      			isIndentDiff = True
+      		Else
+      			' is this part of the whitespace at the end of a line?
+      			isIndentDiff = Not (StrToken(dn.Next.val1, NEWLINE, 1) Like "*[! 	]*")
+      		End If
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Sub removeIndentationDiffs
+      		Description: Scan a diff result for differences that are
+      			only whitespace and that are at the beginning of a line,
+      			and delete them (rather, merge them with adjacent nodes).
+      			Note this sub assumes the SAME nodes have duplicate data
+      			in val1 and val2, which isn't how they come out of the
+      			compare engines.
+      	%END REM
+      	Sub removeIndentationDiffs(dr As DiffResult)
+      		Dim adif As DiffResultNode, bDel As Boolean
+      		On Error GoTo ERRHANDLE
+      		Set adif = dr.First
+      		Do Until adif Is Nothing
+      			bDel = False
+      			If Not adif.isSame Then
+      				If isIndentDiff(adif) Then
+      					' merge this node with the one before, if any.
+      					If Not (adif.prev Is Nothing) Then
+      						adif.prev.val1 = adif.prev.val1 + adif.val1
+      						adif.prev.val2 = adif.prev.val2 + adif.val2
+      					Else
+      						adif.isSame = True
+      					End If
+      					bDel = True
+      				End If
+      			Else ' same node
+      				If Not (adif.prev Is Nothing) Then
+      					If adif.prev.isSame Then
+      						bDel = True
+      						adif.prev.val1 = adif.prev.val1 + adif.val1
+      					End If
+      				End If
+      			End If
+      			
+      			If bDel Then
+      				Set adif = dr.remove(adif)
+      			Else
+      				Set adif = adif.Next
+      			End If
+      		Loop
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Function stripFinalNL
+      		Description: if string ends in newline return string less final newline
+      			else return same string.
+      	%END REM
+      	Function stripFinalNL(szTex$) As String
+      		On Error GoTo ERRHANDLE
+      		If Right$(szTex, 1) = NEWLINE Then
+      			stripFinalNL = Left$(szTex, Len(szTex)-1)
+      		Else
+      			stripFinalNL = szTex
+      		End If
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Sub ReportDiffRow
+      		Description: Add a line to the report showing the exact differences between
+      			two blocks of lines that differ. 
+      	%END REM
+      	Sub ReportDiffRow(drnLine As DiffResultNode, ByVal isXML As Boolean)
+      		Dim lres As DiffResult, szAddL$, szAddR$
+      		On Error GoTo ERRHANDLE
+      		Dim sdSubLine As New StringDiffer, minRtInd%
+      		sdSubLine.mode = DIFFMODE_WORD
+      		
+      		If drnLine.Next Is Nothing Then
+      			' for final node, specially flag if the difference is a final newline
+      			While Right$(drnLine.val1, 1) = NEWLINE And Right$(drnLine.val2, 1) = NEWLINE
+      				drnLine.val1 = Left$(drnLine.val1, Len(drnline.val1)-1)
+      				drnLine.val2 = Left$(drnLine.val2, Len(drnline.val2)-1)
+      			Wend
+      			If Right$(drnLine.val1, 1) = NEWLINE Or Right$(drnLine.val2, 1) = NEWLINE Then
+      				If Right$(drnLine.val2, 1) = NEWLINE Then
+      					szAddR = "[LF]"
+      					szAddL = "[no LF]"
+      					drnLine.val2 = Left$(drnLine.val2, Len(drnline.val2)-1)
+      				Else
+      					szAddL = "[LF]"
+      					szAddR = "[no LF]"
+      					drnLine.val1 = Left$(drnLine.val1, Len(drnline.val1)-1)
+      				End If
+      			End If
+      		End If
+      		
+      		' To avoid overlong reports of stuff that's been deleted, take out a chunk from the middle of long blocks on the left. 
+      		If Len(drnLine.val1) > MaxLeftBlock Then
+      			Dim haflen&, omitted&
+      			Const ZFLAG = {[[[ ###### CHARS OMITTED ]]]}
+      			haflen = min(.3 * MaxLeftBlock, Len(drnLine.val1)\2 - Len(ZFLAG))
+      			If haflen > 40 Then
+      				omitted = Len(drnLine.val1) - (haflen + haflen)
+      			End If
+      			drnline.val1 = Left$(drnline.val1, haflen) & Replace(ZFLAG, "######", CStr(omitted)) & Right$(drnline.val1, haflen)
+      		End If
+      		If Len(drnLine.val1) > 0 And Len(drnLine.val2) > 0 Then
+      			If IgnoreCase Then
+      				Set lres = sdSubLine.FindDifferences(LCase(drnLine.val1), LCase(drnLine.val2))
+      				restoreCase lres, drnLine ' restore things to the original case.
+      			Else
+      				Set lres = sdSubLine.FindDifferences(drnLine.val1, drnLine.val2)
+      				duplicateSameNodes lres
+      			End If
+      			removeIndentationDiffs lres
+      		End If
+      		
+      		Dim cellLeft As DXLCell, cellRight As DXLCell
+      		If LineNumbers Then z_table.FillCell (z_leftLineNo)
+      		Set cellLeft = z_table.CreateCell
+      		If lineNumbers Then z_table.FillCell (z_rightLineNo)
+      		Set cellRight = z_table.CreateCell
+      		
+      		If Len(drnLine.val1) = 0 Then ' text was added, show only on right
+      			cellLeft.bgcolor = DEL_BGCOLOR
+      			cellRight.bgcolor = ADD_BGCOLOR
+      			drnline.val2 = minimalIndent(drnline.val2)
+      			Call addFlaggedText(cellRight, stripFinalNL(drnLine.val2), 0, 3)
+      		ElseIf Len(drnLine.val2) = 0 Then ' text was deleted, show on left.
+      			cellLeft.bgcolor = ADD_BGCOLOR
+      			cellRight.bgcolor = DEL_BGCOLOR
+      			Call addFlaggedText(cellLeft, stripFinalNL(drnLine.val1), 0, 3)
+      		Else ' text is changed, show left and right with changes highlighted.
+      			cellLeft.bgcolor = DIFF_BGCOLOR
+      			cellRight.bgcolor = DIFF_BGCOLOR
+      			
+      			If SimilarityScore(lres) > .3 Then
+      				' if the texts are pretty similar, use highlighting.
+      				Dim difSub As DiffResultNode
+      				If Isxml Then ' And IgnoreIndentation 
+      					minimalIndentDiffs lres
+      				End If
+      				Set difSub = lres.First
+      				Dim nSty As Integer
+      				nsty = 0
+      				Do Until difSub Is Nothing
+      					If difSub.isSame Then
+      						If difSub.Next Is Nothing Then
+      							Call addFlaggedText(cellLeft, stripfinalNL(difSub.val1), nSty, 1)
+      							Call addFlaggedText(cellRight, stripfinalNL(difSub.val2), nSty, 2)
+      						Else
+      							Call addFlaggedText(cellLeft, difSub.val1, nSty, 1)
+      							Call addFlaggedText(cellRight, difSub.val2, nSty, 2)
+      						End If
+      						nSty = 1 - nSty ' alternate styles
+      					ElseIf difsub.Next Is Nothing Then
+      						Call addFlaggedText(cellLeft, stripFinalNL(difSub.val1), 2, 1)
+      						Call addFlaggedText(cellRight, stripfinalNL(difSub.val2), 2, 2)
+      					Else
+      						Call addFlaggedText(cellLeft, difSub.val1, 2, 1)
+      						Call addFlaggedText(cellRight, difSub.val2, 2, 2)
+      					End If
+      					Set difSub = difSub.Next
+      				Loop
+      			Else ' texts very different.
+      				Call addFlaggedText(cellLeft, stripFinalNL(drnLine.val1), 0, 1)
+      				drnline.val2 = minimalIndent(drnline.val2)
+      				Call addFlaggedText(cellRight, stripfinalNL(drnLine.val2), 0, 2)
+      			End If
+      			If Len(szAddL) Then ' add a note about final NL (flagging not needed because it's our note, not part of a string)
+      				cellLeft.AddStyledText szAddL, z_styCode(2)
+      				cellRight.AddStyledText szAddR, z_styCode(2)
+      			End If
+      		End If
+      		If LineNumbers Then
+      			z_leftLineNo = z_leftLineNo + lineCount(drnLine.val1)
+      			z_rightLineNo = z_rightLineNo + lineCount(drnLine.val2)
+      		End If
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Function leadingTabsToSpace
+      		Description: Given a line with whitespace at the beginning, change tabs to a specified number of spaces.
+      		Arguments:
+      			aLine: the line to process.
+      			tabstop: there's a tabstop every this many spaces.
+      		Return value: updated line.
+      	%END REM
+      	Function leadingTabsToSpace(ByVal aLine As String, ByVal tabstop%) As String
+      		Dim pos&, limit&, dof%, adj%, lede$
+      		limit = Len(aLine) - Len(LTrim(Replace(aline, TABB, " "))) ' how many whitespace chars are at the beginning
+      		If limit = 0 Then
+      			leadingTabsToSpace = aLine
+      		Else
+      			lede = Left$(aline, limit)
+      			If InStr(lede, TABB) = 0 Then
+      				leadingTabsToSpace = aLine
+      			ElseIf tabstop = 1 Then
+      				leadingTabsToSpace = Replace(lede, TABB, " ") & Mid$(aLine, limit+1)
+      			Else	' there are some tabs to fix and we can't just change them to spaces
+      				adj = tabstop-2
+      				pos = InStr(lede, TABB)
+      				Do Until pos = 0
+      					dof = 1 + ((pos+adj) Mod tabstop)
+      					lede = Left$(lede, pos-1) & String$(dof, " ") & Mid$(lede, pos+1)
+      					pos = InStr(pos, lede, TABB)
+      				Loop
+      				leadingTabsToSpace = lede & Mid$(aLine, limit+1)
+      			End If
+      		End If
+      	End Function
+      	
+      	%REM
+      		Function minimalIndent
+      		Description: Given some lines of XML which are indented, determine the maximum number of tabs we can remove from each line to reduce
+      			the indentation while leaving them the same relative to each other.
+      		Arguments:
+      			xml: the string to process.
+      		Return value:
+      	%END REM
+      	Function minimalIndent(xml$) As String
+      		Dim mintabs%, minang%, lines, ch$, i%, tmp$, csp%
+      		lines = Split(xml, NEWLINE)
+      		mintabs = 999
+      		minang = 999
+      		ForAll aLine In lines
+      			If aLine <> "" Then
+      				' see whether line has indentation
+      				If aline Like {[ 	]*} Then aline = leadingTabsToSpace(Aline, 3)
+      				tmp = LTrim(aline)
+      				csp = Len(aLine) - Len(tmp)
+      				If Left$(tmp, 1) = "<" Then
+      					If csp < minang Then minang = csp
+      				Else
+      					If csp < mintabs Then mintabs = csp
+      				End If
+      			End If
+      		End ForAll
+      		If (minang = 999) Then minang = mintabs
+      		If minang <> 999 And minang <> 0 Then ' already indentation starts at zero, don't change anything
+      			ForAll Aline In lines
+      				If aLine <> "" Then
+      					' see whether the line has indentation we care about.
+      					If Not (Left$(aLine, minang) Like {*[! ]*}) Then
+      						aLine = Mid$(aLine, minang + 1)
+      					End If
+      				End If
+      			End ForAll
+      		End If 
+      		minimalIndent = Join(lines, NEWLINE)
+      	End Function
+      	
+      	%REM
+      		Sub minimalIndentDiffs
+      		Description: unindent block of text on the right to make the least indented line be indented zero. 
+      		Arguments:
+      	%END REM
+      	Sub minimalIndentDiffs(drn As DiffResult)
+      		On Error GoTo oops
+      		Dim ch$, rtstr$, cur As DiffResultNode, pos As Long, seglen&, parts, i%
+      		ch = UChr(&h2800)
+      		Set cur = drn.First
+      		Do Until cur Is Nothing
+      			rtstr = rtstr & ch & cur.val2
+      			Set cur = cur.Next
+      		Loop
+      		rtstr = minimalIndent(Mid$(rtstr, 2))
+      		parts = Split(rtstr, ch)
+      		Set cur = drn.First
+      		Do Until cur Is Nothing
+      			cur.val2 = parts(i)
+      			i = i + 1
+      			Set cur = cur.Next
+      		Loop
+      		Exit Sub
+      oops:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-GetThreadInfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub ReportSameRow
+      		Description: Add a row to the report showing a section that's
+      			the same in two files, with part elided based on ContextLines setting
+      	%END REM
+      	Sub ReportSameRow(drnLine As DiffResultNode)
+      		Dim lcTmp&, prepos&, sufpos&, szTmp$
+      		Dim cell As DXLCell
+      		On Error GoTo ERRHANDLE
+      		If ContextLines > 0 Then
+      			If LineNumbers Then
+      				If Not (drnLine.Next Is Nothing) Then
+      					lcTmp = lineCount(drnLine.val1)
+      					z_leftLineNo = z_leftLineNo + lcTmp
+      					z_rightLineNo = z_rightLineNo + lcTmp
+      				End If
+      				z_table.FillCell "" ' no line number since not the same on both sides
+      				Set cell = z_table.CreateSpannedCell(3)
+      			Else
+      				Set cell = z_table.CreateSpannedCell(2)
+      			End If
+      			If drnLine.prev Is Nothing Then
+      				prepos = 0
+      			Else
+      				prepos = firstNLines(ContextLines, drnLine.val1)
+      			End If
+      			If drnLine.Next Is Nothing Then
+      				sufpos = Len(drnLine.val1) + 1
+      			Else
+      				sufpos = lastNLines(ContextLines, drnLine.val1)
+      			End If
+      			If sufPos <= prepos + 1 Then 
+      				' the snippet is too short to put an ellipsis
+      				szTmp = drnLine.val1
+      			Else
+      				szTmp = Left$(drnLine.val1, prepos)
+      				If prepos < Len(drnLine.val1) Then
+      					szTmp = szTmp & "..."
+      					If sufpos < Len(drnLine.val1) Then
+      						szTmp = szTmp & NEWLINE & Mid$(drnLine.val1, sufpos)
+      					End If
+      				End If
+      			End If
+      			If Right$(szTmp, 1) = NEWLINE Then
+      				cell.AddText Left$(szTmp, Len(szTmp)-1)
+      			Else
+      				cell.AddText szTmp
+      			End If
+      		End If
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Function filenameLeader
+      		Description: @@TODO
+      		Arguments:
+      		Return value:
+      	%END REM
+      	Function filenameLeader(ByVal relativepath$) As String
+      		Dim tmp$
+      		tmp = Replace(relativepath, "/", "\")
+      		If z_bMultipleDBs And InStr(tmp, "\") > 0 Then
+      			tmp = StrRight(tmp, "\")
+      		End If 
+      		filenameLeader = Replace(tmp, "\", " ")
+      	End Function
+      	
+      	%REM
+      		Sub ReportImageDiffs
+      		Description: add a report line showing an image that's different before and after.
+      	%END REM
+      	Sub ReportImageDiffs(ByVal relativePath$, stream1 As NotesStream, stream2 As NotesStream)
+      		Dim cell As DXLCell, par As DXLPar, container As DXLRichContainer
+      		Dim lcLeft&, lcRight&, lcTmp&
+      		
+      		On Error GoTo ERRHANDLE
+      		z_bDiffsFound = True
+      		Set container = getDiffContainer(Relativepath)
+      		Set par = container.AddStyledPar(z_pstyLeader)
+      		par.AddStyledText filenameLeader(Relativepath), z_styLeader
+      		Set z_table = container.AddTable("50%,50%")
+      		z_table.colorstyle = TABLESTYLE_TOP
+      		z_table.bgcolor = TABLEHDR_COLOR
+      		z_table.altbgcolor = "white"
+      		z_table.cellbordercolor = TABLEHDR_COLOR
+      
+      		' write header row
+      		z_table.SetPStyle z_pstyCenter
+      		z_table.SetStyle z_styTableHdr
+      		z_table.FillCell z_leftName
+      		z_table.FillCell z_rightName
+      		
+      		Set cell = z_table.CreateCell
+      		Set par = cell.AddPar
+      		par.AddText("Size: " & stream1.Bytes)
+      		'	par.AddImage StrRightBack(relativepath, "."), Stream1
+      		
+      		Set cell = z_table.CreateCell
+      		Set par = cell.AddPar
+      		'	par.AddImage StrRightBack(relativepath, "."), Stream2
+      		par.AddText("Size: " & stream2.Bytes)
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Function getDiffContainer
+      		Description: If the report is being done in sections, return the section corresponding to the filepath we are passed,
+      			creating it if necessary. If not in section mode, return the report body (top level entity). 
+      		Arguments:
+      		Return value:
+      	%END REM
+      	Private Function getDiffContainer(ByVal relativepath)
+      		Dim toplevel$, title$
+      		'If z_bMultipleDBs Then
+      			toplevel = StrLeft(Replace(relativepath, "/", "\"), "\")
+      			If toplevel = "" Then
+      				Set getDiffContainer = z_body
+      			Else
+      				If toplevel <> z_topLevelFolder Then
+      					If z_bMultipleDBs And IsElement(z_sectionTitles(toplevel)) Then
+      						title = z_sectionTitles(toplevel)
+      					Else
+      						title = toplevel
+      					End If
+      					' if a section doesn't end with a paragraph Notes gets confused and puts the next
+      					' section inside it instead of after.
+      					If Not z_section Is Nothing Then z_section.addpar
+      					Set z_section = z_body.addsection(title, z_pstySection, z_stySection)
+      					z_section.borderstyle = "shadow"
+      					z_section.onedit = "collapse"
+      					z_section.onread = "collapse"
+      				End If
+      				Set getDiffContainer = z_section
+      			End If
+      			z_topLevelFolder = toplevel
+      '		Else
+      '			Set getDiffContainer = z_body
+      '		End If
+      	End Function
+      	
+      	%REM
+      		Sub ReportFileDiffs
+      		Description: We've established that two files are different; add a table
+      			of the diffs to the report.
+      	%END REM
+      	Private Sub ReportFileDiffs(ByVal relativePath$, drDiffs As DiffResult, ByVal title$)
+      		Dim par As DXLPar
+      		On Error GoTo ERRHANDLE
+      		Dim container As DXLRichContainer
+      		Set container = getDiffContainer(Relativepath)
+      		z_leftLineNo = 1
+      		z_rightLineNo = 1
+      		z_flagging = 0 ' in case we ended the previous file in the middle of a string.
+      		z_bDiffsFound = True
+      		Set par = container.AddStyledPar(z_pstyLeader)
+      		If title = "" Then title = filenameLeader(Relativepath)
+      		par.AddStyledText title, z_styLeader
+      		Dim lcLeft&, lcRight&, lcTmp&
+      		Dim bHiLeft As Boolean, bHiRight As Boolean
+      
+      		If drDiffs.Same Then
+      			' if the left and right are the same, include the complete text, in a box.
+      			Set z_table = container.addTable("100%")
+      			z_table.SetPStyle z_pstyCode
+      			z_table.SetStyle z_styCode(0)
+      			z_table.FillCell(drDiffs.first.val1)
+      			Exit Sub
+      		End If
+      		If SimilarityScore(drDiffs) < 0.4 Then
+      			Set par = container.AddStyledPar(z_pstyCode)
+      			par.AddStyledText "These files are very different", z_styLineNo
+      		End If
+      		If LineNumbers Then
+      			Set z_table = container.AddTable("3%,47%,3%,47%")
+      		Else
+      			Set z_table = container.AddTable("50%,50%")
+      		End If
+      		z_table.colorstyle = TABLESTYLE_TOP
+      		z_table.bgcolor = TABLEHDR_COLOR
+      		z_table.altbgcolor = "white"
+      		z_table.cellbordercolor = TABLEHDR_COLOR
+      
+      		' write header row
+      		z_table.SetPStyle z_pstyCenter
+      		z_table.SetStyle z_styTableHdr
+      		If LineNumbers Then z_table.FillCell "line#"
+      		z_table.FillCell z_leftName
+      		If LineNumbers Then z_table.FillCell "line#"
+      		z_table.FillCell z_rightName
+      		
+      		z_table.SetPStyle z_pstyCode
+      		z_table.SetStyle z_styCode(0)
+      		If LineNumbers Then
+      			Set z_table.ColPStyle(1) = z_pstyRight
+      			Set z_table.ColStyle(1) = z_styLineNo
+      			Set z_table.ColPStyle(3) = z_pstyRight
+      			Set z_table.ColStyle(3) = z_styLineNo
+      			Set z_table.ColPStyle(4) = z_pstyCode
+      		End If
+      		
+      		Dim adif As DiffResultNode
+      		
+      		Set adif = drdiffs.First
+      		Do Until adif Is Nothing
+      			If adif.issame Then
+      				ReportSameRow adif
+      			Else ' a difference node
+      				ReportDiffRow adif, (Relativepath Like {*.xml})
+      			End If
+      			Set adif = adif.Next
+      		Loop
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub CompareQueuedFiles
+      		Description: All the file pairs we previously found, compare now with progress bar.
+      	%END REM
+      	Private Sub CompareQueuedFiles
+      		Dim bbar As ProgressBar, prevFile$
+      		On Error GoTo ERRHANDLE
+      		If Not silent Then Set bbar = New progressbar(z_nFiles, True)
+      		' the reason for this funny logic is that we want progress bar to display
+      		' name of file being processed, not file we just processed. But later I decided
+      		' we don't need to display the names at all -- just slows things down. 
+      		ForAll marker In z_filesToProcess
+      			If Len(prevFile) Then
+      				If z_bFile Then CompareFilesToFile prevfile Else CompareFiles prevFile
+      				prevFile = ListTag(marker)
+      				If Not silent Then bbar.Advance 1, False, ""
+      			Else
+      				prevFile = ListTag(marker)
+      				If Not silent Then bbar.Advance 0, False, ""
+      			End If
+      		End ForAll
+      		If Len(prevFile) Then
+      			If z_bFile Then CompareFilesToFile prevfile Else CompareFiles prevFile
+      		End If
+      		If Not silent Then bbar.Finish
+      		
+      		' if we deleted all the files in any folder, delete the folder
+      		Dim foldpath$
+      		ForAll marker In z_foldersToCheckIfEmpty
+      			On Error GoTo nonEmpty
+      			foldpath = ListTag(marker)
+      			While Len(foldpath) > 1
+      				If folderIsEmpty(z_leftPath & foldpath) Then
+      					If folderIsEmpty(z_rightPath & foldpath) Then
+      						RmDir z_leftPath & foldpath
+      						RmDir z_rightPath & foldpath
+      					End If
+      				End If
+      				foldpath = z_API.GetFolderPath(foldpath)
+      			Wend
+      nextFolder:
+      		End ForAll
+      		If Not silent Then bbar.Finish
+      		Exit Sub
+      		
+      nonEmpty:
+      		Resume nextFolder
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      
+      	%REM
+      		Function folderIsEmpty
+      		Description: return True if a folder exists and is empty.
+      	%END REM
+      	Function folderIsEmpty(fullPath$) As Boolean
+      		Dim fname$
+      		On Error GoTo oops
+      		fname = Dir$(fullPath & "*", 22)
+      		Do Until fname = ""
+      			If fname = "." Or fname = ".." Then
+      				Exit Function
+      			End If
+      			fname = Dir$
+      		Loop
+      		folderIsEmpty = True
+      oops:
+      		Exit Function
+      	End Function
+      
+      	Private Function escapeFileText(atex$) As String
+      		Dim ach$, c&, cod&
+      		For c = 1 To Len(atex)
+      			ach = Mid$(atex, c, 1)
+      			Select Case ach
+      			Case {\}
+      				escapeFileText = escapeFileText & {\\}
+      			Case {=}
+      				escapeFileText = escapeFileText & {\=}
+      			Case NEWLINE
+      				escapeFileText = escapeFileText & {\n}
+      			Case TABB
+      				escapeFileText = escapeFileText & {\t}
+      			Case Else
+      				cod = Uni(ach)
+      				If cod < 32 Then ' Or cod > 126 Then
+      					If cod <> &h0d Then escapeFileText = escapeFileText & {\u} & Right$("000" & Hex(cod), 4)
+      				Else
+      					escapeFileText = escapeFileText & ach
+      				End If
+      		End Select
+      		Next
+      	End Function
+      	
+      	%REM
+      		Sub CompareFilesToFile
+      		Description: %TODO
+      		Arguments:
+      	%END REM
+      	Private Sub CompareFilesToFile(ByVal relativePath$)
+      		' file output uses a different strategy which treats the whole file as a string instead of being line based.
+      		On Error GoTo ERRHANDLE
+      		Dim sdid As New StringDiffer, diffs As DiffResult
+      		sdid.Mode = diffmode_word
+      		sdid.TranslationMode = True
+      		Dim ses As New NotesSession
+      		Dim stream As NotesStream
+      		Dim leftDat$, rightDat$, fileSuffix$, fileName$
+      		fileName = StrToken(relativepath, PATHDELIM, -1)
+      		fileSuffix = LCase(StrRightBack(Relativepath, "."))
+      		If InStr(".gif.bmp.jpg.jpeg.png.", "." & fileSuffix & ".") Then
+      			Exit Sub
+      		End If
+      		
+      		Dim cset$
+      		If filesuffix = "xml" Or filesuffix = "dxl" Then cset = z_xmlcharset Else cset = "UTF-8" 
+      		Set stream = ses.Createstream
+      		stream.Open z_leftPath & Relativepath, cset
+      		leftDat = stream.Readtext
+      		Delete stream
+      		Set stream = ses.Createstream
+      		stream.Open z_rightPath & Relativepath, cset
+      		rightDat = stream.Readtext
+      		Delete stream
+      
+      		Dim dn As DiffResultNode, dnNext As DiffResultNode
+      		Set diffs = sdid.FindDifferences(leftDat, RightDat)
+      		Set dn = diffs.First
+      		Do Until dn Is Nothing
+      			Set dnNext = dn.Next
+      			If dn.isSame Then
+      				' see whether it's a word in the middle of other words that were translated, which suggests it's just the same word in both languages.
+      				If Len(dn.val1) < 100 And Not (dn.prev Is Nothing) Then
+      					If Not (dn.val1 Like {*["|_.%<}}
+      ]*}) Then
+      						' merge the same node with the diff nodes which surround it.
+      						Set dnNext = diffs.mergeWithNeighbors(dn).Next
+      					End If
+      				End If
+      			Else ' different node
+      				If Not (dn.val1 Like NONBLANK_MATCH) Then
+      					If Not (dn.val2 Like NONBLANK_MATCH) Then
+      						Set dnNext = diffs.mergeWithNeighbors(dn).Next
+      					End If
+      				End If
+      			End If
+      			Set dn = dnNext
+      		Loop
+      		If diffs.Same And Not IsElement(z_alwaysShow(filename)) Then Exit Sub
+      		Print #z_fn.fn, {<file name="} & relativePath & {">}
+      		Set dn = diffs.First
+      		Do Until dn Is Nothing
+      			If Not dn.isSame Then
+      				Print #z_fn.fn, escapeFileText(dn.val1) & {=} & escapeFileText(dn.val2)
+      			End If
+      			Set dn = dn.Next
+      		Loop
+      		Print #z_fn.fn, {</file>}
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Function isSameContents
+      		Description: Determine whether two binary streams contain equal data
+      		Arguments: two streams to test
+      		Return value: TRUE if the contents of the streams are identical
+      	%END REM
+      	Function isSameContents(stream1 As NotesStream, stream2 As NotesStream) As Boolean
+      		If stream1.bytes = stream2.bytes Then
+      			stream1.position = 0
+      			stream2.position = 0
+      			Dim by1 As Variant, by2 As Variant
+      			Do Until stream1.Iseos
+      				by1 = stream1.Read(4000)
+      				by2 = stream2.Read(4000)
+      				Dim i%
+      				For i = 0 To UBound(by1)
+      					If by1(i) <> by2(i) Then
+      						Exit Function ' returning False
+      					End If
+      				Next
+      			Loop
+      			isSameContents = True
+      		End If 
+      	End Function
+      	
+      	%REM
+      		Sub compareBinaryFiles
+      		Description: Compare files whose contents are binary data (other than images).
+      		Arguments:
+      	%END REM
+      	Sub compareBinaryFiles(ByVal relativepath$)
+      		On Error GoTo ERRHANDLE
+      		Dim ses As New NotesSession
+      		Dim stream1 As NotesStream, stream2 As NotesStream
+      		Dim leftDat$, rightDat$, fileSuffix$, bShowIfSame, tmpContext As Integer, filename$
+      		
+      		fileSuffix = LCase(StrRightBack(Relativepath, "."))
+      		fileName = StrToken(relativepath, PATHDELIM, -1)
+      		bShowIfSame = IsElement(z_alwaysShow(filename))
+      		Dim title$, leftpath$, rightpath$, leftlen&, rightlen&, leftFletch$, rightFletch$, leftDesc$, rightDesc$
+      		leftpath = z_leftPath & Relativepath
+      		rightpath = z_rightPath & Relativepath
+      		leftlen = FileLen(leftpath)
+      		rightlen = FileLen(rightpath)
+      		title = Replace(Replace(relativepath, "\", " "), "/", " ")
+      		If leftlen = rightlen Then
+      			Set stream1 = ses.Createstream
+      			Set stream2 = ses.Createstream
+      			stream1.Open leftPath, {binary}
+      			stream2.Open rightPath, {binary}
+      			If isSameContents(Stream1, Stream2) Then Exit Sub ' no changes to report
+      		End If
+      		Dim par As DXLPar, container As DXLRichContainer
+      		Set container = getDiffContainer(Relativepath)
+      		Set par = container.AddStyledPar(z_pstyLeader)
+      		par.AddStyledText title, z_styLeader
+      		Set par = container.AddStyledPar(z_pstyBody)
+      		par.AddText MSG_DIFF_BIN
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0)) & { (} & Relativepath & {)}
+      	End Sub
+      	
+      	%REM
+      		Sub CompareFiles
+      		Description: Compare two files
+      	%END REM
+      	Private Sub CompareFiles(ByVal RelativePath$)
+      		On Error GoTo ERRHANDLE
+      		Dim ses As New NotesSession
+      		Dim stream As NotesStream
+      		Dim leftDat$, rightDat$, fileSuffix$, bShowIfSame, tmpContext As Integer, filename$
+      		fileSuffix = LCase(StrRightBack(Relativepath, "."))
+      		fileName = StrToken(relativepath, PATHDELIM, -1)
+      		bShowIfSame = IsElement(z_alwaysShow(filename))
+      		tmpContext = ContextLines
+      		If InStr(".gif.bmp.jpg.jpeg.png.", "." & fileSuffix & ".") Then
+      			CompareImageFiles Relativepath
+      			Exit Sub
+      		ElseIf InStr(BINARY_SUFFIXES, "." & fileSuffix & ".") Then
+      			compareBinaryFiles Relativepath
+      			Exit Sub
+      		ElseIf bShowIfSame Then
+      			ContextLines = 10000
+      		ElseIf fileSuffix = "properties" Then
+      			ContextLines = 0 ' .properties files have independent lines -- context doesn't matter.
+      		End If
+      		
+      		Dim cset$, title$
+      		If filesuffix = "xml" Or filesuffix = "dxl" Then cset = z_xmlcharset Else cset = "UTF-8"
+      		Set stream = ses.Createstream
+      		title = Replace(Replace(relativepath, "\", " "), "/", " ")
+      		stream.Open z_leftPath & Relativepath, cset
+      		leftDat = stream.Readtext
+      		If InStr(leftdat, Chr$(0)) Then
+      			Delete stream ' opened it the wrong way, as text
+      			compareBinaryFiles Relativepath
+      			Exit Sub
+      		End If
+      		If leftdat Like "<!-- <TITLE>: *" Then
+      			title = StrLeftBack(Mid$(StrLeft(leftdat, NEWLINE), 15), " -->")
+      			leftdat = StrRight(leftdat, NEWLINE)
+      		End If
+      		Set stream = ses.Createstream
+      		stream.Open z_rightPath & Relativepath, cset
+      		rightDat = stream.Readtext
+      		If rightdat Like "<!-- <TITLE>: *" Then
+      			Rightdat = StrRight(rightdat, NEWLINE)
+      		End If
+      		Delete stream
+      		
+      		If InStr(".dxl.xsp.", "." & fileSuffix & ".") Then
+      			leftDat = xmlFixer(leftDat)
+      			rightDat = xmlFixer(rightDat)
+      		End If
+      		Dim fdid As New FileDiffer
+      		fdid.IgnoreCase = IgnoreCase
+      		fdid.IgnoreIndentation = True
+      		fdid.bGenerateIfSame = bShowIfSame
+      		If bShowIfSame Or Not fdid.Process(leftDat, rightDat) Then
+      			' the files are unequal or the file is one we display even if it is equal.
+      			ReportFileDiffs Relativepath, fdid.result, title
+      		End If
+      		If z_bMultipleDBs Then
+      			' when we find the file with the database title, if the section for it already exists, set the section title to
+      			' the DB title. Else save the title for later in case we do create that section.
+      			Dim parts
+      			parts = Split(Replace(relativepath, "/", "\"), "\")
+      			If parts(1) = "1-database.xml" Then
+      				Dim toplevel$
+      				toplevel = parts(0)
+      				z_sectionTitles(toplevel) = title
+      				If z_topLevelFolder = toplevel Then
+      					z_section.title = title
+      				End If
+      			End If
+      		End If
+      		Delete fdid
+      		ContextLines = tmpContext ' return to caller's setting for next file.
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0)) & { (} & Relativepath & {)}
+      	End Sub
+      	
+      	%REM
+      		Sub CompareImageFiles
+      		Description: See whether two image files are the same and if not,
+      			add a report row which displays the two images.
+      	%END REM
+      	Sub CompareImageFiles(ByVal RelativePath$)
+      		Dim fp1$, fp2$, ses As New NotesSession
+      		Dim stream1 As NotesStream, stream2 As NotesStream
+      		Dim iseq As Boolean, by1 As Variant, by2 As Variant
+      		
+      		On Error GoTo ERRHANDLE
+      		fp1 = z_leftPath & Relativepath
+      		fp2 = z_rightPath & Relativepath
+      		Set stream1 = ses.Createstream
+      		stream1.Open fp1, "binary"
+      		Set stream2 = ses.Createstream
+      		stream2.Open fp2, "binary"
+      		
+      		isEq = isSameContents(Stream1, Stream2)
+      		
+      		If Not iseq Then
+      			ReportImageDiffs Relativepath, Stream1, Stream2
+      		End If
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Function SimilarityScore
+      		Description: The similarity score of a diff result is the
+      			ratio of characters that are the same to characters that are
+      			different. If there are fewer than five nodes in the list,
+      			return a minimum of 0.8 regardless how different the
+      			different nodes are.
+      	%END REM
+      	Function SimilarityScore(dres As DiffResult) As Double
+      		Dim totalchars&, samechars&, adif As DiffResultNode
+      		On Error GoTo ERRHANDLE
+      		If dres.Count = 1 Then ' one node -- might be completely different=0 score, or exactly the same=1 score
+      			If dres.Same Then SimilarityScore = 1 Else SimilarityScore = 0
+      		Else
+      			Set adif = dres.First
+      			Do Until adif Is Nothing
+      				If adif.isSame Then
+      					totalchars = totalchars + Len(adif.val1)
+      					samechars = samechars + Len(adif.val1)
+      				Else
+      					If Len(adif.val1) > Len(adif.val2) Then
+      						totalchars = totalchars + Len(adif.val1)
+      					Else
+      						totalchars = totalchars + Len(adif.val2)
+      					End If
+      				End If
+      				Set adif = adif.Next
+      			Loop
+      			If totalchars Then 	SimilarityScore = CDbl(samechars) / CDbl(totalchars)
+      			If dres.Count < 5 Then SimilarityScore = max(0.8, SimilarityScore)
+      		End If
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Function getMailFile
+      		Description: Return the user's mail file, or Nothing if there is no mail file or it's
+      			not usable for our purposes.
+      	%END REM
+      	Function getMailFile As NotesDatabase
+      		On Error GoTo noMailFile
+      		Dim dbMail As New NotesDatabase("", "")
+      		dbMail.Openmail
+      		If dbMail.Isopen Then
+      			If dbMail.Currentaccesslevel => ACLLEVEL_EDITOR Then
+      				If Not (dbMail.Getform("Memo") Is Nothing) Then
+      					Set getMailFile = dbMail
+      				End If
+      			End If
+      		End If
+      noMailFile:
+      		Exit Function
+      	End Function
+      	
+      	%REM
+      		Function firstNLines
+      		Description: return the position of the Nth linefeed in a string.
+      	%END REM
+      	Function firstNLines(ByVal n%, szTex$) As Long
+      		Dim pos As Long, lastPos As Long
+      		On Error GoTo ERRHANDLE
+      		pos = 0
+      		lastPos = 1
+      		Do Until n = 0
+      			pos = InStr(lastPos, szTex, NEWLINE)
+      			If pos = 0 Then
+      				firstNLines = Len(szTex) + 1
+      				Exit Function
+      			End If
+      			' don't count lines with no non-whitespace chars
+      			If Mid$(szTex, lastpos, pos-lastPos) Like "*[! 	]*" Then n = n - 1
+      			lastpos = pos+1
+      		Loop
+      		firstNLines = pos
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Function lastNLines
+      		Description: Return the position of the first character in the nth-last line
+      			of a string. E.g. if n=1 you get the position of the last line.
+      	%END REM
+      	Function lastNLines(ByVal n%, szTex$) As Long
+      		Dim pos As Long, bNonWhite As Boolean, ch$
+      		On Error GoTo ERRHANDLE
+      		pos = Len(szTex)
+      		If Right$(szTex, 1) = NEWLINE Then pos = Len(szTex)-1
+      		Do While n > 0 And pos > 0
+      			ch = Mid$(szTex, pos, 1)
+      			If ch = NEWLINE Then
+      				If bNonWhite Then
+      					n = n - 1
+      					bNonWhite = False
+      					If n = 0 Then
+      						lastNLines = pos+1
+      						Exit Function
+      					End If
+      				End If
+      			ElseIf Not (ch Like "[ 	]") Then
+      				bNonWhite = True
+      			End If
+      			pos = pos - 1
+      		Loop
+      		lastNLines = 1
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Function lineCount
+      		Description: Count how many lines are in a piece of text.
+      			This may seem like a bad implementation compared with looping using Instr,
+      			but the performance of Instr is extremely poor; this is tested and is far
+      			faster for large strings.
+      	%END REM
+      	Function lineCount(szTex$) As Long
+      		On Error GoTo ERRHANDLE
+      		lineCount = Len(sztex) - Len(Replace(szTex, NEWLINE, ""))
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Function GetContents
+      		Description: Return a list of all the files and directories in a folder, non-recursive, where key is filename, and value is
+      			0 if the item is a file, 1 if folder.
+      	%END REM
+      	Function GetContents(folderpath) As Variant
+      		Dim tmp List As Integer ' 0 for file, 1 for folder.
+      		Dim curname$
+      		On Error GoTo ERRHANDLE
+      		curname = Dir$(folderpath & "*", 16)
+      		Do Until curname = ""
+      			If curName <> "." And curname <> ".." Then
+      				tmp(curname) = 1
+      			End If
+      			curname = Dir$
+      		Loop
+      		curname = Dir$(folderpath & "*")
+      		Do Until curname = ""
+      			tmp(curname) = 0
+      			curname = Dir$
+      		Loop
+      		GetContents = tmp
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Function getReportDB
+      		Description: Return a handle to the database in which we are to write our reports.
+      	%END REM
+      	Function getReportDB As NotesDatabase
+      		On Error GoTo oops
+      		Dim reportServ$, reportPath$, db As NotesDatabase, dbtitle$
+      		Dim ses As New NotesSession, dbThis As NotesDatabase, nnc As NotesNoteCollection
+      		Dim strId$, docElem As NotesDocument
+      		Dim dut As DBUtil
+      		If Not (ReportDB Is Nothing) Then
+      			Set getReportDB = ReportDB
+      			Exit Function 
+      		End If
+      		reportServ = StrLeft(reportDBPath, "!!")
+      		If Len(reportServ) Then reportPath = StrRight(reportdbpath, "!!") Else reportPath = reportDBPath
+      		Set db = New NotesDatabase(reportserv, reportpath)
+      		If Not db.Isopen Then
+      			dbtitle = InputBox$({Can't open report DB. Will attempt to create it. Enter title:}, {Create Reports DB}, "Difference Reports")
+      			If dbtitle = "" Then Exit Function ' returning Nothing
+      			If Trim(dbtitle) = "" Then dbtitle = "Difference Reports"
+      			db.Create reportserv, reportpath, True
+      			db.Title = dbtitle
+      			
+      			Set dbThis = ses.Currentdatabase
+      			Set nnc = dbThis.Createnotecollection(False)
+      			nnc.Selectforms = True
+      			nnc.Selectviews = True
+      			nnc.Selectionformula = {$TITLE*="Report":"reports"}
+      			nnc.Buildcollection
+      			strId = nnc.Getfirstnoteid
+      			Do Until strId = ""
+      				Set docElem = dbThis.Getdocumentbyid(strId)
+      				docElem.Copytodatabase db
+      				Delete docElem
+      				strId = nnc.Getnextnoteid(strId)
+      			Loop
+      			Dim views
+      			views = db.views
+      			If Not IsEmpty(views) Then
+      				ForAll aView In views
+      					If aView.name = "" Then
+      						aView.Remove
+      						Exit ForAll
+      					End If
+      				End ForAll
+      			End If
+      		Else ' database already exists - does it contain the right design?
+      			Dim form As NotesForm, bValid As Boolean
+      			Set form = db.getform("Report")
+      			bValid = True
+      			If form Is Nothing Then
+      				bValid = False
+      			End If
+      			If Not bvalid Then
+      				MsgBox Replace(MSG_NOREPORTFORM, "{0:filename}", reportpath)
+      				Exit Function
+      			End If
+      		End If
+      		Set getReportDB = db
+      		Exit Function
+      oops:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Function xmlFixer
+      		Description: Make XML data more readable by certain substitutions
+      	%END REM
+      	Function xmlFixer(x$) As String
+      		Dim cdpos&, eqpos&, cdend&, tmp$, subbed$, parts, i%
+      		On Error GoTo ERRHANDLE
+      		parts = Split(x, "<![CDATA[")
+      		parts(0) = Replace(parts(0), z_ffrom, z_tto)
+      		For i = 1 To UBound(parts)
+      			cdEnd = InStr(parts(i), "]]>")
+      			If cdEnd Then
+      				parts(i) = Left$(parts(i), cdEnd-1) & Replace(Mid$(parts(i), cdEnd+3), z_ffrom, z_tto)
+      				If Len(parts(i)) < 90 Then
+      					If InStr(parts(i), NEWLINE) = Len(parts(i)) Then
+      						parts(i) = Left$(parts(i), Len(parts(i))-1)
+      						If Right$(parts(i-1), 1) = NEWLINE Then
+      							parts(i-1) = Left$(parts(i-1), Len(parts(i-1))-1)
+      						End If
+      					End If
+      				End If
+      			End If
+      		Next
+      		xmlFixer = Join(parts, "")
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	
+      	%REM
+      		Sub setOptions
+      		Description: Given a list of options, set those properties of the object.
+      			The argument can be a string of one of these forms:
+      			optionName -- set option to TRUE
+      			-optionName -- set option to FALSE
+      			+optionName -- set option to TRUE
+      			optionName=value -- set option to VALUE
+      			
+      			where optionName is one of the following:
+      				nocase: (bool) to control case sensitivity
+      				lineno: (bool) to include line numbers in the report.
+      				context: (int) number of context lines to show around differences.
+      				fileMode: (boolean) whether to display each individual filename that's missing from one side even if the whole folder is missing.
+      				maxLeftBlock: (long) The maximum number of "deleted" lines to show in a single left-column item. If longer, it's abbreviated with an internal marker.
+      				title: (string) title of report, if you don't want the default "filename date"
+      				silent: (bool) if TRUE, don't report progress with a ProgressBar.
+      			
+      			A list of options can also be supplied to set all values at once. This can be expressed as a newline-delimited string,
+      			an array of option setings, or a list where the listtag is the option name and the value is the option setting.
+      		Arguments:
+      	%END REM
+      	Public Sub setOptions(opts)
+      		Dim tmp
+      		
+      		If IsList(opts) Then
+      			ForAll opt In opts
+      				Call SetOption(ListTag(opt), opt)
+      			End ForAll
+      		ElseIf IsArray(opts) Then
+      			ForAll opt In opts
+      				If InStr(opt, {=}) > 0 Then
+      					Call setOption(
+    signed: true
+    nonsummary: true
+  - name: $ScriptLib
+    type: text
+    data: |
+      StrLeft(opt, {=}), StrRight(opt, {=}))
+      				ElseIf opt Like {[-+]*} Then
+      					Call setOption(Mid$(opt, 2), (opt Like {+*}))
+      				Else
+      					Call setOption(opt, True)
+      				End If
+      			End ForAll
+      		ElseIf InStr(opts, NEWLINE) > 0 Then
+      			tmp = Split(opts, NEWLINE)
+      			Call SetOptions(tmp)
+      		End If
+      	End Sub
+      	
+      	%REM
+      		Sub setOption
+      		Description: Set a property of this object based on a string and value. The properties could all be assigned directly by the caller,
+      			but this facilitates command-line types of option specifications. The option name is one of these:
+      				nocase: (bool) to control case sensitivity
+      				del: (bool) to delete files that test as identical
+      				lineno: (bool) to include line numbers in the report.
+      				context: (int) number of context lines to show around differences.
+      				fileMode: (boolean) whether to display each individual filename that's missing from one side even if the whole folder is missing.
+      				outputDB: (String) path of database to write results into.
+      				newFiles: (int) whether to just report on new files on the right side (0), attach (1) or embed them (2).
+      				maxLeftBlock: (long) The maximum number of "deleted" lines to show in a single left-column item. If longer, it's abbreviated with an internal marker.
+      				title: (string) title of report
+      				silent: (bool) if TRUE, don't report progress with a ProgressBar.
+      			Unrecognized option names are ignored.
+      		Arguments:
+      			opt: the option name, e.g. "nocase"
+      			valu: option value, e.g. FALSE
+      	%END REM
+      	Sub setOption(ByVal opt$, ByVal valu)
+      		Select Case opt
+      			Case "nocase"
+      				IgnoreCase = CBool(valu)
+      			Case "lineno"
+      				LineNumbers = CBool(valu)
+      			Case "fileMode"
+      				FileMode = CBool(valu)
+      			Case "outputDB"
+      				reportDBPath = CStr(valu)
+      			Case "outputFile"
+      				ReportOutputFile = CStr(valu)	
+      			Case "silent"
+      				Silent = CBool(valu)
+      			Case "context"
+      				ContextLines = CInt(valu)
+      			Case "maxLeftBlock"
+      				MaxLeftBlock = CLng(valu)
+      			Case "title"
+      				Title = CStr(valu)
+      			Case "newFiles" ' values report or 0, attach or 1, or embed or 2
+      				If (valu = "report") Then
+      					NewFileOpt = NEWFILE_REPORT
+      				ElseIf valu = "attach" Then
+      					NewFileOpt = NEWFILE_ATTACH
+      				ElseIf valu = "embed" Then
+      					NewFileOpt = NEWFILE_EMBED
+      				Else ' better be a number
+      					NewFileOpt = CInt(valu)
+      				End If
+      			End Select
+      			
+      	End Sub
+      	
+      	%REM
+      		Sub AddDeleteReport
+      		Description: Add a report of files added of deleted.
+      			@@TODO: if the report is in sections, add the files to the appropriate sections.
+      		Arguments:
+      	%END REM
+      	Sub AddDeleteReport
+      		Dim cell As DXLCell, lines, stream As NotesStream, isImage As Boolean
+      		Dim par As DXLPar, container As DXLRichContainer
+      		
+      		If Not z_section Is Nothing Then z_section.addpar ' prevents later stuff from being added to the section because DXL is confused
+      		If Len(z_uniqueFilesLeft) Or Len(z_uniqueFoldersLeft) Or Len(z_uniqueFilesRight) Or Len(z_uniqueFoldersRight) Then
+      			Set par = z_body.AddStyledPar(z_pstyLeader)
+      			par.AddStyledText MSG_ADDDELELEMS, z_styLeader
+      			Set z_table = z_body.AddTable("50%,50%")
+      			z_table.SetPStyle z_body.pstyleDef
+      			z_table.SetStyle Me.z_styTableHdr
+      			z_table.colorstyle = TABLESTYLE_TOP
+      			z_table.bgcolor = TABLEHDR_COLOR
+      			z_table.cellbordercolor = TABLEHDR_COLOR
+      			z_table.altbgcolor = "white"
+      			z_table.FillCell "Only in " & z_leftName
+      			z_table.FillCell "Only in " & z_rightName
+      			z_table.SetPStyle z_body.PStyleList
+      			z_table.SetStyle Nothing
+      
+      			Set cell = z_table.CreateCell
+      			lines = Split(z_uniqueFoldersLeft, NEWLINE)
+      			ForAll thing In lines
+      				If Len(thing) Then
+      					cell.AddPar
+      					cell.AddText "folder " & thing
+      				End If
+      			End ForAll
+      			lines = Split(z_uniqueFilesLeft, NEWLINE)
+      			ForAll thing In lines
+      				If Len(thing) Then
+      					cell.AddPar
+      					cell.AddText(thing)
+      				End If
+      			End ForAll
+      
+      			Set cell = z_table.CreateCell
+      			lines = Split(z_uniqueFoldersRight, NEWLINE)
+      			ForAll thing In lines
+      				If Len(thing) Then
+      					cell.AddPar
+      					cell.AddText "folder " & thing
+      				End If
+      			End ForAll
+      			lines = FullTrim(Split(z_uniqueFilesRight, NEWLINE))
+      			ForAll thing In lines
+      				If Len(thing) Then
+      					cell.AddPar
+      					cell.AddText(thing)
+      				End If
+      			End ForAll
+      			If NewFileOpt = NEWFILE_EMBED And Len(z_uniqueFilesRight) > 0 Then ' embed file contents
+      				z_body.AddPar
+      				Stop
+      				ForAll thing In lines
+      					Dim fileSuffix$
+      					fileSuffix = LCase(StrRightBack(thing, "."))
+      					isImage = InStr(".gif.bmp.jpg.jpeg.png.", "." & fileSuffix & ".") > 0
+      					If fileSuffix = {jpg} Then fileSuffix = {jpeg}
+      					Set stream = z_ses.Createstream()
+      					If Not isImage Then
+      						stream.open z_rightPath & thing, "UTF-8"
+      						Set par = z_body.AddStyledPar(z_pstyLeader)
+      						par.AddStyledText "New file " & thing, z_styLeader
+      						Set par = z_body.AddStyledPar(z_pstyCode)
+      						par.SetStyle z_styCode(0)
+      						fileSuffix = LCase(StrRightBack(thing, "."))
+      						Set par = addFlaggedText(par, Replace(stream.readtext, Chr$(13), "") , 0, 3)
+      					End If
+      				End ForAll
+      			End If
+      		End If
+      	End Sub
+      End Class
+      %REM
+      	Class OSFile
+      	Description: A wrapper for a file handle that guarantees the file is closed when the code ends.
+      %END REM
+      Class OSFile
+      	Public fn As Integer
+      
+      	Sub New
+      		fn = FreeFile
+      	End Sub
+      	
+      	Sub Delete
+      		On Error Resume Next
+      		Close fn
+      	End Sub
+      End Class
+    signed: true
+    nonsummary: true
+  - name: $TITLE
+    type: text
+    data: DirectoryDiffReport
+    signed: true
+remaining: []

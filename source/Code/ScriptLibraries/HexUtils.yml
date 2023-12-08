@@ -1,0 +1,397 @@
+---
+class: 512
+flags: 0x2000
+unid: OF3798DEC2667C8005-ON007B1335862586DB
+items:
+  - name: $Flags
+    type: text
+    data: 34Qs
+  - name: $PublicAccess
+    type: text
+    data: "1"
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-05-20T17:24:20.61-05:00"
+        dst: true
+      - data: "2021-05-27T11:23:19.75-05:00"
+        dst: true
+      - data: "2021-08-03T15:04:15.20-05:00"
+        dst: true
+      - data: "2021-08-03T15:04:15.25-05:00"
+        dst: true
+      - data: "2021-08-16T16:54:55.96-05:00"
+        dst: true
+      - data: "2021-08-16T16:54:56.00-05:00"
+        dst: true
+      - data: "2021-08-17T13:55:02.07-05:00"
+        dst: true
+      - data: "2021-09-16T12:02:35.79-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:55.31-05:00"
+        dst: true
+  - name: $ScriptLib
+    type: text
+    data: |
+      '++LotusScript Development Environment:2:5:(Options):0:74
+      %REM
+      	Library HexUtils
+      	Created by Andre Guirard
+      	Description: Utility functions for working with hexadecimal, base64, and binary data.
+      	© Copyright HCL Company, 2021
+      %END REM
+      Option Public
+      Option Declare
+      
+      Use "CommonUtil"
+      
+      '++LotusScript Development Environment:2:5:(Forward):0:1
+      Declare Function LSTrimCode(x$) As String
+      Declare Sub Base64ToText(strBase64$, chrset$, streamOut As NotesStream)
+      Declare Function LineWrap(szIn$, Byval linelen&)
+      Declare Sub EraseFormulaTimestamps(bytes As Variant, Byval startpos As Integer)
+      Declare Sub Base64ToBinary(strBase64$, streamOut As NotesStream)
+      Declare Function HexDump(x As Variant, Byval iWidth%, Byval addrs As Boolean, Byval limit As Long) As String
+      Declare Function GetTextFromNode(dome As NotesDOMElementNode) As String
+      Declare Function getChildNamed(Byval target$, dome As NotesDOMElementNode) As NotesDOMElementNode
+      Declare Function NormalizeScript(code$) As String
+      Declare Function GetLogExtract(Byval strLog$) As String
+      
+      '++LotusScript Development Environment:2:5:(Declarations):0:10
+      Const HEXDUMPLEN = 16
+      
+      
+      '++LotusScript Development Environment:2:1:LSTrimCode:5:8
+      %REM
+      	Function LSTrimCode
+      	Description: Remove extraneous spaces from LotusScript code
+      %END REM
+      Function LSTrimCode(x$) As String
+      	Static ffrom, tto
+      	On Error Goto ERRHANDLE
+      	If Isempty(ffrom) Then
+      		ffrom = Split({, ^ )^ (^( ^} & Chr$(9) & {^} & NEWLINE & { }, {^})
+      		tto = Split({,^)^(^(^ ^} & NEWLINE, {^})
+      	End If
+      	LSTrimCode = Join(Replace(Fulltrim(Split(x, NEWLINE)), ffrom, tto), NEWLINE)
+      	Exit Function
+      ERRHANDLE:
+      	Error Err, Error & { //} & Getthreadinfo(1) & {:} & Erl
+      End Function
+      
+      
+      
+      '++LotusScript Development Environment:2:2:Base64ToText:1:8
+      Sub Base64ToText(strBase64$, chrset$, streamOut As NotesStream)
+      	' Given a string of base64 encoded data, this routine decodes and writes the original binary data into a NotesStream
+      	Dim doc As NotesDocument
+      	Dim mime As NotesMIMEEntity
+      	Dim streamIn As NotesStream
+      	Dim db As NotesDatabase
+      	Dim session As New NotesSession
+      	
+      	On Error Goto ERRHANDLE
+      	Set db = session.CurrentDatabase
+      	Set doc = db.CreateDocument
+      	Set mime = doc.CreateMIMEEntity("Body")	' the mime classes already know how to do this conversion,
+      	Set streamIn = session.CreateStream  
+      	Call streamIn.WriteText(strBase64)
+      	streamIn.Position = 0
+      	Call mime.SetContentFromText(streamIn, "text/" & chrset, ENC_BASE64)
+      	Call mime.getcontentastext(streamOut, True)
+      	Exit Sub
+      ERRHANDLE:
+      	Error Err, Error & { //} & Getthreadinfo(1) & {:} & Erl
+      End Sub
+      
+      
+      '++LotusScript Development Environment:2:1:LineWrap:9:8
+      %REM
+      	Function LineWrap
+      	Description: Break a string into multiple lines by changing spaces at strategic positions
+      		to line breaks.
+      	Arguments:
+      		szIn: text to break up.
+      		linelen: the maximum length of a line (not including the final linefeed).
+      %END REM
+      Function LineWrap(szIn$, Byval linelen&)
+      	Dim res$
+      	Dim pos&, epos&, lpos&
+      	On Error Goto ERRHANDLE
+      	pos = 1
+      	lpos = 1
+      	epos = Instr(szIn, " ")
+      	Do
+      		Do Until epos = 0 Or epos-pos > linelen
+      			lpos = epos
+      			epos = Instr(epos+1, szIn, " ")
+      		Loop
+      		If pos = lpos Then ' no spaces found within the line limit; split inside a word.
+      			res = res & NEWLINE & Mid$(szIn, pos, linelen)
+      			pos = pos + linelen
+      		Else
+      			res = res & NEWLINE & Mid$(szIn, pos, lpos-pos)
+      			pos = lpos+1
+      		End If
+      	Loop While epos	
+      	LineWrap = Mid$(res, 2)
+      	Exit Function
+      ERRHANDLE:
+      	Error Err, Error & { //} & Getthreadinfo(1) & {:} & Erl
+      End Function
+      
+      '++LotusScript Development Environment:2:2:EraseFormulaTimestamps:9:8
+      
+      %REM
+      	Sub EraseFormulaTimestamps
+      	Description: Given a formula in a byte array, scan the array for the formula length
+      		and the "expression" blocks in it. temp variable assignments have a timestamp
+      		following the name; overwrite it with the character 40H (@) so that formulas can
+      		be compared before-and-after for identity.
+      %END REM
+      Sub EraseFormulaTimestamps(bytes As Variant, Byval startpos As Integer)
+      	' formula begins with a length
+      	Dim flen As Long, pos As Integer, limit As Integer
+      	
+      	On Error Goto ERRHANDLE
+      	flen = bytes(startpos) + 255& * bytes(startpos+1)
+      	If pos + flen > Ubound(bytes) Then
+      		flen = Ubound(bytes) - pos - 1
+      	End If
+      	limit = pos + flen - 4
+      	If limit > Ubound(bytes) Then limit = Ubound(bytes)
+      	
+      	pos = 2 + startpos
+      	Do Until pos >= limit
+      		Dim elen%, etype%, result$, ename$, tpos%, hexdump$
+      		etype = bytes(pos) + 255 * bytes(pos+1)
+      		elen = bytes(pos+2) + 255 * bytes(pos+3)
+      		On Error 9 Goto pastend
+      		If etype = 1 Or etype = 2 Then
+      			' scan the name for a timestamp
+      			Dim namelen%, i%, cbyt As Byte
+      			namelen = bytes(pos+4) + 256*bytes(pos+5)
+      			If namelen And 1 Then namelen = namelen + 1
+      			For i = pos+6 To pos+5+namelen
+      				If bytes(i) = 0 Then Exit For
+      			Next
+      			For i = i+1 To pos+6+namelen
+      				bytes(i) = &h40
+      			Next
+      		End If
+      		pos = pos + elen
+      	Loop
+      pastend:
+      	Exit Sub
+      oops:
+      	Error Err, Error & " //EraseTimestamps:" & Erl
+      	Exit Sub
+      ERRHANDLE:
+      	Error Err, Error & { //} & Getthreadinfo(1) & {:} & Erl
+      End Sub
+      
+      
+      
+      '++LotusScript Development Environment:2:2:Base64ToBinary:7:8
+      %REM
+      	Sub Base64ToBinary
+      	Description: Given a string of base64-encoded data, write into a binary stream we are passed.
+      		This is done rather than creating the stream here and returning it, so that you can
+      		stream directly into a file if you choose.
+      %END REM
+      Sub Base64ToBinary(strBase64$, streamOut As NotesStream)
+      	' Given a string of base64 encoded data, this routine decodes and writes the original binary data into a NotesStream
+      	Dim doc As NotesDocument
+      	Dim mime As NotesMIMEEntity
+      	Dim streamIn As NotesStream
+      	Dim db As NotesDatabase
+      	Dim session As New NotesSession
+      	
+      	On Error Goto ERRHANDLE
+      	Set db = session.CurrentDatabase
+      	Set doc = db.CreateDocument
+      	Set mime = doc.CreateMIMEEntity("Body")	' the mime classes already know how to do this conversion,
+      	Set streamIn = session.CreateStream  
+      	Call streamIn.WriteText(strBase64)
+      	streamIn.Position = 0
+      	Call mime.SetContentFromText(streamIn, "binary", ENC_BASE64)
+      	Call mime.GetContentAsBytes(streamOut, True) ' decode as you stream out the data.
+      	Exit Sub
+      ERRHANDLE:
+      	Error Err, Error & { //} & Getthreadinfo(1) & {:} & Erl
+      End Sub
+      
+      
+      '++LotusScript Development Environment:2:1:HexDump:6:8
+      
+      %REM
+      	Function HexDump
+      	Description: Convert an array of bytes into a hex dump.
+      %END REM
+      Function HexDump(x As Variant, Byval iWidth%, Byval addrs As Boolean, Byval limit As Long) As String
+      	Dim iLine%, iByte%, strLine$, strChars$, byt As Byte
+      	On Error Goto ERRHANDLE
+      	If iWidth < 1 Then iWidth = HEXDUMPLEN
+      '	On Error 9 GoTo finishLastLine
+      	If limit = 0 Or limit > Ubound(x) Then limit = Ubound(x)
+      	For iLine = 0 To limit Step iWidth
+      		strLine = ""
+      		strChars = ""
+      		For iByte = iLine To iLine+iWidth-1
+      			If iByte > limit Then Goto finishLastLine
+      			byt = x(iByte)
+      			strLine = strLine & Right("0" + Hex(byt), 2) + " "
+      			If byt >= 32 And byt < 255 Then
+      				strChars = strChars & Chr$(byt)
+      			Else
+      				strChars = strChars & "."
+      			End If
+      		Next
+      AddLine:
+      		strLine = strLine & " ;  " & strChars
+      		If addrs Then strLine = Right("000" + Hex(iLine), 4) & " | " + strLine
+      		If iLine Then
+      			HexDump = HexDump & {
+      } & strLine
+      		Else
+      			HexDump = strLine
+      		End If
+      	Next
+      	Exit Function
+      finishLastLine:
+      	strLine = strLine & String((iWidth+iLine-iByte)*3, " ")
+      	Goto AddLine
+      	Exit Function
+      ERRHANDLE:
+      	Error Err, Error & { //} & Getthreadinfo(1) & {:} & Erl
+      End Function
+      
+      
+      
+      '++LotusScript Development Environment:2:1:GetTextFromNode:1:8
+      Function GetTextFromNode(dome As NotesDOMElementNode) As String
+      	' Passed a DOM element node that has a text node as one of its children,
+      	' return the text from that node.
+      	Dim domn As NotesDOMNode
+      	On Error Goto ERRHANDLE
+      	Set domn = dome.FirstChild
+      	Do Until domn.IsNull
+      		If domn.NodeType = DOMNODETYPE_TEXT_NODE Then
+      			GetTextFromNode = domn.NodeValue
+      			Exit Function
+      		End If
+      		Set domn = domn.NextSibling
+      	Loop
+      	Exit Function
+      ERRHANDLE:
+      	Error Err, Error & { //} & Getthreadinfo(1) & {:} & Erl
+      End Function
+      
+      
+      
+      '++LotusScript Development Environment:2:1:getChildNamed:6:8
+      %REM
+      	Function getChildNamed
+      	Description: given a name and an element, find the first child of that element with the
+      		given tag name.
+      %END REM
+      Function getChildNamed(Byval target$, dome As NotesDOMElementNode) As NotesDOMElementNode
+      	Dim domn As NotesDOMNode
+      	On Error Goto ERRHANDLE
+      	Set domn = dome.Firstchild
+      	Do Until domn.Isnull
+      		If domn.Nodetype = DOMNODETYPE_ELEMENT_NODE Then
+      			If domn.Nodename = target Then
+      				Set getChildNamed = domn
+      				Exit Function
+      			End If
+      		End If
+      		Set domn = domn.Nextsibling
+      	Loop
+      	Exit Function
+      ERRHANDLE:
+      	Error Err, Error & { //} & Getthreadinfo(1) & {:} & Erl
+      End Function
+      
+      
+      
+      
+      '++LotusScript Development Environment:2:1:NormalizeScript:5:8
+      %REM
+      	Function NormalizeScript
+      	Description: Rearrange code so the BindEvents block is at the end
+      %END REM
+      Function NormalizeScript(code$) As String
+      	Dim blocks, words, module$, bindCode$, aLine$, result$, i%, delta%
+      	Const HDRTEXT = {'++LotusScript } & {Development Environment:}
+      	' line continues versionNo:sectionType:ModuleName:headerLineNo:flags
+      
+      	On Error Goto ERRHANDLE
+      	blocks = Split(code, HDRTEXT)
+      	For i = 1 To Ubound(blocks)
+      		aLine = blocks(i)
+      		module = Strtoken(aLine, ":", 3)
+      		If module = "BindEvents" Then
+      			bindCode = aLine
+      			delta = delta + 1
+      		Else
+      			' any other section might have ignorable flags in its section attributes
+      			Dim hdr$, attrs%, nuattrs%
+      			hdr = Strleft(aline, NEWLINE)
+      			attrs = Cint(Strrightback(hdr, ":"))
+      			nuattrs = attrs And &h7f77
+      			If nuattrs <> attrs Then
+      				aLine = Strleftback(hdr, ":") & ":" & nuattrs & Mid$(aline, Len(hdr)+1)
+      			End If
+      			While Right$(aLine, 2) = NEWLINE & NEWLINE
+      				aline = Left$(aLine, Len(aLine)-1)
+      			Wend
+      			blocks(i-delta) = aLine
+      		End If
+      	Next
+      	If delta Then
+      		' removed a bindevents section earlier.
+      		' the current last block has to end with NEWLINE
+      		If Right(blocks(Ubound(blocks)-1), 1) <> NEWLINE Then blocks(Ubound(blocks)-1) = blocks(Ubound(blocks)-1) & NEWLINE
+      		hdr = Strleft(bindCode, NEWLINE)
+      		words = Split(hdr, ":")
+      		words(3) = "1" ' code will begin on line 1 when we're done normalizing it.
+      		blocks(Ubound(blocks)) = Join(words, ":") & NEWLINE & Lcase(LSTrimCode(Strright(bindCode, NEWLINE)))
+      	End If
+      	NormalizeScript = Join(blocks, HDRTEXT)
+      	While Right$(NormalizeScript, 1) = NEWLINE
+      		NormalizeScript = Left$(NormalizeScript, Len(NormalizeScript)-1)
+      	Wend
+      	'	Exit Function
+      	'oops:
+      	'	MsgBox "Error " & Err & ": " & Error & " //NormalizeScript:" & Erl
+      	'	Exit Function
+      	Exit Function
+      ERRHANDLE:
+      	Error Err, Error & { //} & Getthreadinfo(1) & {:} & Erl
+      End Function
+      
+      '++LotusScript Development Environment:2:1:GetLogExtract:5:8
+      %REM
+      	Function GetLogExtract
+      	Description: Retrieve the message text from the Log property of an XML processor
+      %END REM
+      Function GetLogExtract(Byval strLog$) As String
+      	On Error Goto ERRHANDLE
+      	strLog = Strleftback(Strright(strLog, "Log>"), "</DXL")
+      	If Left$(strLog, 1) = NEWLINE Then strLog = Mid$(strLog, 2)
+      	If Right$(strLog, 1) = NEWLINE Then strLog = Mid$(strLog, 1, Len(strLog)-1)
+      	If Len(strLog) > 4000 Then strLog = Left$(strLog, 1998) & "..." & Right$(strLog, 1998)
+      	If Len(strLog) > 2 Then GetLogExtract = strLog
+      	Exit Function
+      ERRHANDLE:
+      	Error Err, Error & { //} & Getthreadinfo(1) & {:} & Erl
+      End Function
+    signed: true
+    nonsummary: true
+  - name: $TITLE
+    type: text
+    data: HexUtils
+    signed: true
+remaining: []

@@ -1,0 +1,338 @@
+---
+class: 512
+flags: 0x2000
+unid: OF5F23F1A3D96A6183-ON004C27C7862586E0
+items:
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: 34Qs
+  - name: $PublicAccess
+    type: text
+    data: "1"
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-05-25T08:51:51.05-05:00"
+        dst: true
+      - data: "2021-05-27T11:23:19.90-05:00"
+        dst: true
+      - data: "2021-06-30T21:57:32.11-05:00"
+        dst: true
+      - data: "2021-07-09T08:59:42.94-04:00"
+        dst: true
+      - data: "2021-07-09T09:01:57.08-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:03.55-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:45.59-04:00"
+        dst: true
+      - data: "2021-07-09T09:21:10.71-04:00"
+        dst: true
+      - data: "2021-08-16T16:58:12.74-05:00"
+        dst: true
+      - data: "2021-08-16T16:58:12.77-05:00"
+        dst: true
+      - data: "2021-08-17T13:55:02.21-05:00"
+        dst: true
+      - data: "2021-09-16T12:02:35.93-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:55.45-05:00"
+        dst: true
+      - data: "2021-09-27T22:33:22.06-05:00"
+        dst: true
+      - data: "2021-11-18T08:10:15.10-06:00"
+      - data: "2021-11-18T08:10:15.15-06:00"
+      - data: "2021-11-29T13:21:09.25-05:00"
+      - data: "2021-11-29T13:21:09.26-05:00"
+      - data: "2021-11-29T13:21:44.08-05:00"
+  - name: $ScriptLib
+    type: text
+    data: |
+      '++LotusScript Development Environment:2:5:(Options):0:74
+      %REM
+      	Library DBUtils
+      	Created by Andre Guirard (HCL)
+      	Description: Extra functions to work with Notes databases.
+      	© Copyright HCL Company, 2021
+      %END REM
+      Option Public
+      Option Declare
+      Use "CAPI"
+      Use "CommonUtil"
+      
+      '++LotusScript Development Environment:2:5:(Forward):0:1
+      Declare Class DBUtil
+      Declare Sub DBU_SetSelection(ncoll As NotesNoteCollection, Byval strDesignType As String)
+      
+      '++LotusScript Development Environment:2:5:(Declarations):0:10
+      %REM
+      	Class DBUtil
+      	Description: Class containing database helper functions for things that either aren't in the LotusScript API,
+      		or aren't straightforward.
+      %END REM
+      Class DBUtil
+      	z_api As CAPI
+      	z_db As NotesDatabase
+      	z_hdb As DBHandle
+      	
+      	Sub New(db As NotesDatabase)
+      		On Error Goto ERRHANDLE
+      		Set z_db = db
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	Public Property Get handle As DBHandle
+      		On Error Goto ERRHANDLE
+      		If z_hdb Is Nothing Then
+      			Set z_hdb = New DBHandle(z_db.server, z_db.Filepath)
+      		End If
+      		Set handle = z_hdb
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		Property Get DesignTemplateName
+      		Description: Same as NotesDatabase.DesignTemplateName except you can also write the value.
+      	%END REM
+      	Public Property Get DesignTemplateName As String
+      		On Error Goto ERRHANDLE
+      		DesignTemplateName = z_db.DesignTemplateName
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		Property Set DesignTemplateName
+      		Description: Same as NotesDatabase.DesignTemplateName except you can also write the value.
+      	%END REM
+      	Public Property Set DesignTemplateName As String
+      		Dim docIcon As NotesDocument
+      		On Error Goto ERRHANDLE
+      		Set docIcon = getIconNote
+      		If Not (docIcon Is Nothing) Then
+      			Dim title, i%
+      			title = Split(docIcon.getitemvalue("$TITLE"), NEWLINE)
+      			For i = 1 To Ubound(title)
+      				If Left$(title(i), 2) = "#2" Then
+      					If DesignTemplateName = Mid$(title(i), 3) Then Exit Property Else Exit For
+      				End If
+      			Next
+      			If i <= Ubound(title) Then
+      				' replace the existing value.
+      				title(i) = {#2} & Trim(DesignTemplateName)
+      				docIcon.replaceItemValue {$TITLE}, Join(title, NEWLINE)
+      			Else
+      				' add it to the end of the existing title
+      				docIcon.replaceItemValue {$TITLE}, Join(title, NEWLINE) & {#2} & Trim(DesignTemplateName)
+      			End If
+      			docIcon.save True, False, True
+      		End If
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		Property Get TemplateName
+      		Description: Same as NotesDatabase.TemplateName except you can also write the value.
+      	%END REM
+      	Public Property Get TemplateName As String
+      		On Error Goto ERRHANDLE
+      		TemplateName = z_db.Templatename
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		Property Set TemplateName
+      		Description: Same as NotesDatabase.TemplateName except you can also write the value.
+      	%END REM
+      	Public Property Set TemplateName As String
+      		Dim docIcon As NotesDocument
+      		On Error Goto ERRHANDLE
+      		Set docIcon = getIconNote
+      		If Not (docIcon Is Nothing) Then
+      			Dim title, i%
+      			title = Split(docIcon.getitemvalue("$TITLE")(0), NEWLINE)
+      			For i = 1 To Ubound(title)
+      				If Left$(title(i), 2) = "#1" Then
+      					If TemplateName = Mid$(title(i), 3) Then Exit Property Else Exit For
+      				End If
+      			Next
+      			If i <= Ubound(title) Then
+      				' replace the existing value.
+      				title(i) = {#1} & Trim(TemplateName)
+      				docIcon.replaceItemValue {$TITLE}, Join(title, NEWLINE)
+      			Elseif Ubound(title) > 0 Then
+      				' add it in the second position of the existing title
+      				Dim subents
+      				subents = Strright(Join(title, NEWLINE), NEWLINE)
+      				docIcon.replaceItemValue {$TITLE}, title(0) & NEWLINE & {#1} & Trim(TemplateName) & NEWLINE & subents
+      			Else ' just append it.
+      				docIcon.replaceItemValue {$TITLE}, title(0) & NEWLINE & {#1} & Trim(TemplateName)
+      			End If
+      			docIcon.save True, False, True
+      		End If
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	
+      	%REM
+      		Function getDesignNote
+      		Description: Retrieve the note of a design element.
+      		Arguments:
+      			desElemType: The type of design element, e.g. "Form". Not case sensitive.
+      			desElemName: The name or an alias of a design element. Not case sensitive.
+      		Returns: NotesDocument object of the design note, or Nothing is not found.
+      	%END REM
+      	Function getDesignNote(Byval desElemType$, Byval desElemName$) As NotesDocument
+      		Dim nnc As NotesNoteCollection
+      		On Error Goto ERRHANDLE
+      		Set nnc = z_db.Createnotecollection(False)
+      		DBU_SetSelection nnc, desElemType
+      		nnc.Selectionformula = {@Lowercase(@Explode($TITLE; "|")) = } & Lcase(MacroQuote(desElemName))
+      		nnc.Buildcollection
+      		If nnc.Count Then
+      			Set getDesignNote = z_db.Getdocumentbyid(nnc.Getfirstnoteid)
+      		End If
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Function getIconNote
+      		Description: @@TODO
+      	%END REM
+      	Function getIconNote As NotesDocument
+      		On Error Goto ERRHANDLE
+      		Set getIconNote = z_db.GetDocumentByID("FFFF0010")
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	Sub Delete
+      		On Error Goto ERRHANDLE
+      		Delete z_hdb
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      End Class
+      '++LotusScript Development Environment:2:2:DBU_SetSelection:1:8
+      Sub DBU_SetSelection(ncoll As NotesNoteCollection, Byval strDesignType As String)
+      	' Given the name of a design element type, e.g. "Form", and a note collection,
+      	' sets the note collection to select design elements of that type.
+      	' Note: detecting certain design elements requires testing $Flags. This means
+      	' it doesn't always work to call SetSelection twice with the same collection but different
+      	' design element names. For instance, if you say you want forms and file resources,
+      	' you will only find no forms because their $Flag items never contain the character 'g'.
+      	
+      	On Error Goto ERRHANDLE
+      	Select Case Lcase(strDesignType)
+      	Case {action}
+      		ncoll.SelectActions = True
+      	Case {agent}
+      		ncoll.SelectAgents = True
+      	Case {applet}
+      		ncoll.Selectallformatelements True
+      		ncoll.SelectionFormula = {@Contains($Flags; "@")}
+      	Case {databasescript}, {database script}
+      		ncoll.SelectDatabaseScript = True
+      	Case {column}
+      		ncoll.SelectMiscIndexElements = True
+      		ncoll.SelectionFormula = {@Contains($Flags; "^")}
+      	Case {data connection}
+      		ncoll.SelectDataConnections = True
+      	Case {file}, {file resource}
+      		ncoll.SelectMiscFormatElements = True
+      		ncoll.SelectionFormula = |@Contains($Flags; "g") & !@Matches($Flags; "*{~K[];`_}*")|
+      	Case {hidden file} ' extra file-resource type elements created when XPages are built.
+      		ncoll.SelectMiscFormatElements = True
+      		ncoll.SelectionFormula = |@Contains($Flags; "g") & @Contains($Flags; "~") & !@Matches($Flags; "*{~K[];`_}*")|
+      	Case {custom control}
+      		ncoll.SelectMiscFormatElements = True
+      		ncoll.SelectionFormula = {@Contains($Flags; "g") & @Contains($Flags; ";")}
+      	Case {theme}
+      		ncoll.SelectMiscFormatElements = True
+      		ncoll.SelectionFormula = {@Contains($Flags; "g") & @Contains($Flags; "`")}
+      	Case {xpage}
+      		ncoll.SelectMiscFormatElements = True
+      		ncoll.SelectionFormula = {@Contains($Flags; "g") & @Contains($Flags; "K")}
+      	Case {folder}
+      		ncoll.SelectFolders = True
+      	Case {form}
+      		ncoll.SelectForms = True
+      	Case {frameset}
+      		ncoll.SelectFrameSets = True
+      	Case {navigator}
+      		' ncoll.SelectNavigators = True ' BUG - doesn't work.
+      		ncoll.Selectallindexelements True
+      		ncoll.Selectionformula = |@Matches($Flags; "*G*")|
+      	Case {outline}
+      		ncoll.SelectOutlines = True
+      	Case {page}
+      		ncoll.SelectPages = True
+      	Case {profile}
+      		ncoll.SelectProfiles = True
+      	Case {script library}, {library} ' including web service consumers
+      		ncoll.SelectScriptLibraries = True
+      	Case {libraryonly} ' not including web service consumers
+      		ncoll.SelectScriptLibraries = True
+      		ncoll.SelectionFormula = {!@Contains($FlagsExt; "W")}
+      	Case {web service consumer}
+      		ncoll.SelectScriptLibraries = True
+      		ncoll.SelectionFormula = {@Contains($FlagsExt; "W")}
+      	Case {web service}, {web service provider}
+      		ncoll.SelectMiscCodeElements = True
+      		ncoll.SelectionFormula = |@Contains($Flags; "{")|
+      	Case {sharedfield}, {shared field}
+      		ncoll.SelectSharedFields = True
+      	Case {subform}
+      		ncoll.SelectSubforms = True
+      	Case {view}
+      		ncoll.SelectViews = True  ' NOTE: doesn't work before 8.5.2.
+      	Case {wiring}, {wiring properties}
+      		ncoll.SelectMiscFormatElements = True
+      		ncoll.SelectionFormula = {@Contains($Flags; ":")}
+      	Case {composite application}, {ca xml}
+      		ncoll.SelectMiscFormatElements = True
+      		ncoll.SelectionFormula = {@Contains($Flags; "|")}
+      	Case {image}
+      		ncoll.SelectImageResources = True
+      	Case {stylesheet}
+      		ncoll.SelectStyleSheetResources = True
+      	Case {db2 access view}
+      		ncoll.SelectMiscFormatElements = True
+      		ncoll.SelectionFormula = {@Contains($Flags; "z")}
+      	Case {icon}
+      		ncoll.SelectIcon = True
+      	Case {component}
+      		ncoll.SelectMiscFormatElements = True
+      		ncoll.SelectionFormula = {@Contains($Flags; "_")}
+      	End Select
+      	Exit Sub
+      ERRHANDLE:
+      	Error Err, Error & { //} & Getthreadinfo(1) & {:} & Erl
+      End Sub
+    signed: true
+    nonsummary: true
+  - name: $TITLE
+    type: text
+    data: DBUtils
+    signed: true
+remaining: []

@@ -1,0 +1,378 @@
+---
+class: 512
+flags: 0x2000
+unid: OF3DAD4D3FEF26EB66-ON007ADDB4862586DB
+items:
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.2
+    signed: true
+  - name: $Flags
+    type: text
+    data: s34Q
+  - name: $PublicAccess
+    type: text
+    data: "1"
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-05-20T17:22:04.64-05:00"
+        dst: true
+      - data: "2021-05-27T11:23:20.29-05:00"
+        dst: true
+      - data: "2021-06-30T21:57:32.25-05:00"
+        dst: true
+      - data: "2021-07-09T08:59:43.12-04:00"
+        dst: true
+      - data: "2021-07-09T09:01:57.26-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:03.74-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:45.76-04:00"
+        dst: true
+      - data: "2021-07-09T09:21:10.88-04:00"
+        dst: true
+      - data: "2021-08-17T13:55:02.35-05:00"
+        dst: true
+      - data: "2021-08-25T12:48:44.94-05:00"
+        dst: true
+      - data: "2021-08-25T12:48:45.00-05:00"
+        dst: true
+      - data: "2021-09-16T12:02:36.09-05:00"
+        dst: true
+      - data: "2021-09-27T12:02:14.51-05:00"
+        dst: true
+      - data: "2021-09-27T12:02:14.54-05:00"
+        dst: true
+      - data: "2021-09-27T12:19:26.05-05:00"
+        dst: true
+      - data: "2021-09-27T12:19:26.10-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:55.59-05:00"
+        dst: true
+  - name: $ScriptLib
+    type: text
+    data: |
+      '++LotusScript Development Environment:2:5:(Options):0:74
+      %REM
+        © Copyright HCL Company, 2021
+      	
+      	Library ObjectListLite
+      	Created by Andre Guirard
+      	Description: Maintain a doubly-linked list of objects of any type. 
+      %END REM
+      Option Public
+      Option Declare
+      
+      '++LotusScript Development Environment:2:5:(Forward):0:1
+      Declare Class ObjectListLite
+      Declare Private Class ObjectListNode
+      
+      '++LotusScript Development Environment:2:5:(Declarations):0:10
+      %REM
+      	Class ObjectListLite
+      	Description: A list of objects of whatever type, leaving out the functionality to search for
+      		nodes in the list (see ObjectList class for that). The class maintains a "current node" which
+      		was the last one added or fetched, so you can ask for the next or previous node
+      		without providing context. You may also treat this object like an array, addressing items by
+      		numeric position.
+      %END REM
+      Class ObjectListLite
+      	m_first As ObjectListNode
+      	m_last As ObjectListNode
+      	m_current As ObjectListNode	' last-accessed node in the list.
+      	m_pos As Long ' "current" position in the list.
+      	m_count As Long
+      	
+      	' if TRUE, delete the objects in the list when the list is deleted. Default FALSE.
+      	Public OwnObjects As Boolean
+      	
+      	%REM
+      		Sub Append
+      		Description: Add a value at the end of the list. The added node becomes the new "current" position.
+      	%END REM
+      	Sub Append(valu)
+      		Dim tmp As New ObjectListNode(valu)
+      		If m_count Then
+      			Set m_last.Next = tmp
+      			Set tmp.prev = m_last
+      		Else
+      			Set m_first = tmp
+      			Set m_current = tmp
+      			m_pos = 0
+      		End If
+      		Set m_last = tmp
+      		Set m_current = tmp
+      		m_pos = m_count
+      		m_count = m_count + 1
+      	End Sub
+      	
+      	%REM
+      		Sub AddAt
+      		Description: Insert a value at a specified index position (0-based).
+      			The new node becomes the new "current" node.
+      	%END REM
+      	Sub AddAt(ByVal ind As Long, valu)
+      		If ind = m_count Then
+      			me.Append valu
+      		Else
+      			Dim nuNode As New ObjectListNode(valu)
+      			If ind = 0 Then
+      				' insert at start of list
+      				Set nuNode.Next = m_first
+      				Set m_first.Prev = nuNode
+      				Set m_first = nuNode
+      			Else
+      				Position = ind-1
+      				Set nuNode.Prev = m_current
+      				Set nuNode.Next = m_current.Next
+      				Set nuNode.Next.Prev = nuNode
+      				Set m_current.Next = nuNode
+      			End If
+      			Set m_current = nuNode
+      			m_pos = ind
+      			m_count = m_count + 1
+      		End If
+      	End Sub
+      
+      	%REM
+      		Property Get Count
+      		Description: Return number of elements in the list
+      	%END REM
+      	Public Property Get Count As Long
+      		count = m_count
+      	End Property
+      	
+      	%REM
+      		Property Get First
+      		Description: Return the first object in the list.
+      	%END REM
+      	Public Property Get First
+      		If m_count = 0 Then
+      			Set First = Nothing
+      		Else
+      			m_pos = 0
+      			Set m_current = m_first
+      			Set First = m_current.Value
+      		End If
+      	End Property
+      	
+      	%REM
+      		Property Get Last
+      		Description: Returns the last node in the list.
+      	%END REM
+      	Public Property Get Last
+      		If m_count = 0 Then
+      			Set Last = Nothing
+      		Else
+      			m_pos = m_count - 1
+      			Set m_current = m_last
+      			Set Last = m_current.Value
+      		End If
+      	End Property
+      	
+      	%REM
+      		Property Get Position
+      		Description: The zero-based index of the "current" list node.
+      	%END REM
+      	Public Property Get Position As Long
+      		Position = m_pos		
+      	End Property
+      	
+      	%REM
+      		Property Set Position
+      		Description: Reposition by number (0-based index).
+      	%END REM
+      	Public Property Set Position As Long
+      		' try to find desired node by counting from the closest known location:
+      		' forward from start, backward from current, forward from current, or backward from end.
+      		If Position >= m_count Or Position < 0 Then
+      			' refuse to set a value that's out of range.
+      			Error 9, {ObjectList subscript out of range}
+      		End If
+      		
+      		If Position = 0 Then
+      			Set m_current = m_first
+      			m_pos = 0
+      		ElseIf position = m_pos + 1 then
+      			Set m_current = m_current.Next
+      			m_pos = Position
+      		ElseIf Position <> m_pos then
+      			Dim mindif As Long
+      			
+      			' how far is it from current position?
+      			mindif = Abs(m_pos-Position)
+      			
+      			' how far from the start?
+      			If Position < mindif Then
+      				mindif = Position
+      				Set m_current = m_first
+      				m_pos = 0
+      			End If
+      			
+      			' how far from the end?
+      			If m_count-Position-1 < mindif Then
+      				Set m_current = m_last
+      				m_pos = count-1
+      			End If
+      			
+      			' current pointer is at the closest position we could easily find.
+      			If Position < m_pos Then
+      				' go backward
+      				While Position < m_pos
+      					Set m_current = m_current.Prev
+      					m_pos = m_pos - 1
+      				Wend
+      			Else ' forward
+      				While Position > m_pos
+      					Set m_current = m_current.Next
+      					m_pos = m_pos + 1
+      				Wend
+      			End If
+      		End If
+      	End Property
+      
+      	%REM
+      		Function GetItem
+      		Description: Get the 'ind'th item (has good performance for "for' loops).
+      		Arguments: ind: zero-based index.
+      	%END REM
+      	Function GetItem(ByVal ind As Long)
+      		If ind >= m_count Or ind < 0 Then
+      			Set me.GetItem = Nothing
+      		Else
+      			Position = ind
+      			Set me.GetItem = m_current.Value
+      		End If
+      	End Function
+      	
+      	Public Property Get Next
+      		If m_pos < m_count-1 Then
+      			Set m_current = m_current.Next
+      			m_pos = m_pos + 1
+      			Set me.Next = m_current.Value
+      		Else
+      			Set me.Next = Nothing
+      		End If
+      	End Property
+      	
+      	Public Property Get Prev
+      		If m_pos > 0 Then
+      			Set m_current = m_current.Prev
+      			m_pos = m_pos - 1
+      			Set me.Prev = m_current.Value
+      		Else
+      			Set me.Prev = Nothing
+      		End If
+      	End Property
+      	
+      	
+      	%REM
+      		Property Get Current
+      		Description: Return the current (last-referenced) object.
+      	%END REM
+      	Public Property Get Current
+      		If m_count = 0 Then
+      			Set Current = Nothing
+      		Else
+      			Set current = m_current.value
+      		End If
+      	End Property
+      	
+      	%REM
+      		Sub RemoveCurrent
+      		Description: Delete the current object, making the next object current (or
+      			the last object, if there is no next object).
+      	%END REM
+      	Sub RemoveCurrent
+      		If m_count = 0 Then Exit Sub ' nothing to remove
+      		Dim doomed As ObjectListNode
+      		Set doomed = m_current
+      		If m_pos = 0 Then
+      			Set m_first = doomed.next
+      		Else
+      			Set m_current.Prev.Next = doomed.Next
+      		End If
+      		If m_pos = m_count-1 Then
+      			Set m_last = doomed.prev
+      			Set m_current = m_last
+      			m_pos = m_pos - 1
+      		Else
+      			Set m_current = doomed.Next
+      			Set doomed.Next.Prev = doomed.Prev
+      		End If
+      		If OwnObjects Then
+      			If Not (doomed.value Is Nothing) Then Delete doomed.value
+      		End If
+      		Delete doomed
+      		m_count = m_count - 1
+      	End Sub
+      	
+      	%REM
+      		Function ExtractCurrent
+      		Description: Remove something from the list without deleting the object
+      			(if it is "owned"). Return the extracted object.
+      	%END REM
+      	Function ExtractCurrent
+      		Dim bOwn As Boolean 
+      		Set ExtractCurrent = Current
+      		' make a temporary exception to owning while we remove this
+      		bOwn = OwnObjects
+      		OwnObjects = false
+      		RemoveCurrent
+      		OwnObjects = bOwn
+      	End Function
+      
+      	%REM
+      		Sub RemoveAt
+      		Description: Remove the element at a given index (0-based)
+      	%END REM
+      	Sub RemoveAt(ByVal index As Long)
+      		Position = index
+      		RemoveCurrent
+      	End Sub
+      	
+      	Sub Delete
+      		On Error Resume Next
+      		Do Until m_first Is Nothing
+      			Set m_current = m_first.next
+      			If OwnObjects Then Delete m_first.value
+      			Delete m_first
+      			Set m_first = m_current
+      		Loop
+      	End Sub
+      	
+      	Sub Remove(obj)
+      		Dim tmp
+      		Set tmp = first
+      		Do Until tmp Is Nothing
+      			If tmp Is obj Then
+      				RemoveCurrent
+      				Exit Sub
+      			End If
+      			Set tmp = me.Next
+      		Loop
+      	End Sub
+      End Class
+      %REM
+      	Class ObjectNode
+      	Description: Internal class to serve as a node in a doubly linked list,
+      		containing a pointer to the user's object, and links to other nodes.
+      %END REM
+      Private Class ObjectListNode
+      	Public Value As Variant ' but it is an object
+      	Public Next As ObjectListNode
+      	Public Prev As ObjectListNode
+      	
+      	Sub New(datum)
+      		Set Value = datum
+      	End Sub
+      End Class
+    signed: true
+    nonsummary: true
+  - name: $TITLE
+    type: text
+    data: ObjectListLite
+    signed: true
+remaining: []

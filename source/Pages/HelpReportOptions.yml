@@ -1,0 +1,257 @@
+---
+class: 4
+flags: 0x0000
+unid: OF73DEA09724BD384F-ON005D132B862586FC
+items:
+  - name: $$ScriptName
+    type: text
+    data: HelpReportOptions
+    signed: true
+    nonsummary: true
+  - name: $Comment
+    type: text
+    data: ""
+    signed: true
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: C34WQ
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-06-22T11:56:37.55-05:00"
+        dst: true
+      - data: "2021-06-22T12:36:36.90-05:00"
+        dst: true
+      - data: "2021-06-22T14:26:34.01-05:00"
+        dst: true
+      - data: "2021-06-30T21:57:34.89-05:00"
+        dst: true
+      - data: "2021-07-09T08:59:46.96-04:00"
+        dst: true
+      - data: "2021-07-09T09:02:01.08-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:07.52-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:49.61-04:00"
+        dst: true
+      - data: "2021-07-09T09:21:14.71-04:00"
+        dst: true
+      - data: "2021-08-17T13:55:05.35-05:00"
+        dst: true
+      - data: "2021-09-16T12:02:39.10-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:58.48-05:00"
+        dst: true
+  - name: $TITLE
+    type: text
+    data:
+      - HelpReportOptions
+      - HelpReportOptions
+  - name: $WindowTitle
+    type: formula
+    data: "\"Help: Export Options\""
+    opaque: IAAAAB4AAQAUAEhlbHA6IEV4cG9ydCBPcHRpb25zAwA=
+    signed: true
+    nonsummary: true
+  - name: $Body
+    type: composite
+    signed: true
+    nonsummary: true
+    data:
+      - type: 0x0081
+      - type: 0xff82
+        FirstLineLeftMargin: 1440
+        Flags: 0x0100
+        Flags2: 0x8494
+        JustifyMode: 0
+        LeftMargin: 1440
+        LineSpacing: 0
+        PABID: 1
+        ParagraphSpacingAfter: 0
+        ParagraphSpacingBefore: 0
+        RightMargin: 0
+        Tab:
+          - 720
+          - 1440
+          - 2160
+          - 2880
+          - 3600
+          - 4320
+          - 5040
+          - 5760
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+        TabTypes: 0x00000000
+        Tabs: 8
+        data:
+          - 1440
+          - 10
+          - 1440
+          - 10
+          - 0
+          - 100
+          - 0x00000001
+          - 0x00000004
+      - type: 0x00a6
+        FONTID: 234881281
+        Flags: 0x00000007
+        PABID: 1
+        StyleName: Headline
+        UserName: Andre Guirard-
+      - type: 0x0083
+        PABID: 1
+      - type: 0x00dd
+        Signature: 0xff85
+        Version: 0
+      - type: 0xff85
+        FontID: 0xc0b0101
+        data: Comparison Report Options
+      - type: 0x00d2
+        Color:
+          Flags: 0x0001
+          rgb: 0x800080
+      - type: 0x00de
+        Signature: 0xff85
+        Version: 0
+      - type: 0x0081
+      - type: 0xff82
+        FirstLineLeftMargin: 1800
+        Flags: 0x0500
+        Flags2: 0x8494
+        JustifyMode: 0
+        LeftMargin: 1800
+        LineSpacing: 0
+        PABID: 2
+        ParagraphSpacingAfter: 1
+        ParagraphSpacingBefore: 0
+        RightMargin: 0
+        Tab:
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+        TabTypes: 0x00000000
+        Tabs: 0
+        data:
+          - 1800
+          - 10
+          - 1800
+          - 10
+          - 0
+          - 100
+          - 0x00000001
+          - 0x00000004
+      - type: 0x0083
+        PABID: 2
+      - type: 0xff85
+        FontID: 0xa000101
+        data: Ignore case differences
+      - type: 0xff85
+        FontID: 0xa000001
+        data: " treats uppercase and lowercase the same for purposes of comparing left and right."
+      - type: 0x0081
+      - type: 0x0083
+        PABID: 2
+      - type: 0xff85
+        FontID: 0xa000101
+        data: Ignore indentation differences
+      - type: 0xff85
+        FontID: 0xa000001
+        data: " ignores differences in leading whitespace when comparing lines of DXL. You usually do want to do this, because if you put some fields in a table cell (for instance) but didn't change them otherwise, you don't need every line flagged as different, just the beginning and end of the table cell."
+      - type: 0x0081
+      - type: 0x0083
+        PABID: 2
+      - type: 0xff85
+        FontID: 0xa000101
+        data: "Line numbers "
+      - type: 0xff85
+        FontID: 0xa000001
+        data: "includes line numbers that come from the DXL file in the report. These are useful for referring to the differing lines during code review meetings. The line numbers are not useful otherwise, and you may want to disable them to reduce clutter (and to be able to have longer reports without Notes client complaining your rich text contains too many paragraphs)."
+      - type: 0x0081
+      - type: 0x0083
+        PABID: 2
+      - type: 0xff85
+        FontID: 0xa000101
+        data: Timestamp matching
+      - type: 0xff85
+        FontID: 0xa000001
+        data: " saves time by assuming design elements that have the same last modified timestamp (and the same title/UNID) are the same. Leave this checked unless you have cause to suspect otherwise."
+      - type: 0x0081
+      - type: 0x0083
+        PABID: 2
+      - type: 0xff85
+        FontID: 0xa000101
+        data: UNID matching
+      - type: 0xff85
+        FontID: 0xa000001
+        data: " assumes design elements with the same \"universal ID\" in the two databases you're comparing, are different versions of the same design element. This makes it possible to match design elements whose title and alias has changed between the versions, so the report can say \"the title changed\" as opposed to \"this design element was deleted and this other one was created.\" However, when comparing a template with an application created from the template, you can't assume the UNIDs will be the same. Even if UNID matching is enabled, design element names will be used for matching "
+      - type: 0x0081
+      - type: 0x0083
+        PABID: 2
+      - type: 0xff85
+        FontID: 0xa000101
+        data: Context lines
+      - type: 0xff85
+        FontID: 0xa000001
+        data: " selects how many lines of identical DXL data are shown before and after a section of different data, to supply context for the difference. Some file types, such as .properties files, don't display any context because the order of the lines doesn't matter."
+      - type: 0x0081
+      - type: 0x0083
+        PABID: 2
+      - type: 0xff85
+        FontID: 0xa000101
+        data: New files
+      - type: 0xff85
+        FontID: 0xa000001
+        data: " setting controls how items appear in the report that are in the \"right\" database but not the \"left\". The choices are to just list their names, to attach them as XML files and other files, or to include them in the report in text form (embed). Generally embedding makes for easier code reviews, but if this results in a lot of text, it may exceed the ability of the Notes client to display in a single document."
+      - type: 0x0081
+      - type: 0x0083
+        PABID: 2
+      - type: 0xff85
+        FontID: 0xa000101
+        data: Abbreviate left...
+      - type: 0xff85
+        FontID: 0xa000001
+        data: " selects what happens when there's a very long section that's different between left and right, that has a lot of text on the left. This can happen, in particular, if you delete or move a large part of a form. If the section that would be displayed in the left column exceeds the specified length, a part is removed from the middle and replaced with a marker string."
+  - name: $HTMLCode
+    signed: true
+    nonsummary: true
+    type: opaque
+    type_num: 1
+    opaque: X/8QAAIADwAHAAAAAAAAAA==
+  - name: $Info
+    signed: true
+    nonsummary: true
+    type: opaque
+    type_num: 1
+    opaque: hhgBAIAAAAAAgAAAAQABAP///wAQAAAA
+remaining: []

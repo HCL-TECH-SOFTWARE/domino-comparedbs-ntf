@@ -1,0 +1,583 @@
+---
+class: 32770
+flags: 0x0000
+unid: OFF4BDA1E0AF19882B-ON0072679A8625872D
+items:
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: ""
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-08-10T15:49:36.42-05:00"
+        dst: true
+      - data: "2021-08-10T20:15:40.12-05:00"
+        dst: true
+      - data: "2021-08-10T20:15:49.12-05:00"
+        dst: true
+      - data: "2021-08-11T08:57:17.53-05:00"
+        dst: true
+      - data: "2021-08-11T10:08:33.07-05:00"
+        dst: true
+  - name: $Body
+    type: composite
+    signed: true
+    nonsummary: true
+    data:
+      - type: 0x0081
+      - type: 0xff82
+        FirstLineLeftMargin: 1440
+        Flags: 0x0100
+        Flags2: 0x8794
+        JustifyMode: 0
+        LeftMargin: 1440
+        LineSpacing: 0
+        PABID: 1
+        ParagraphSpacingAfter: 0
+        ParagraphSpacingBefore: 0
+        RightMargin: 0
+        Tab:
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+        TabTypes: 0x00000000
+        Tabs: 0
+        data:
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0x00000001
+          - 0x00000004
+      - type: 0x0083
+        PABID: 1
+      - type: 0xff85
+        FontID: 0xa000001
+      - type: 0x0081
+      - type: 0xff82
+        FirstLineLeftMargin: 1440
+        Flags: 0x0100
+        Flags2: 0x8594
+        JustifyMode: 0
+        LeftMargin: 1440
+        LineSpacing: 0
+        PABID: 2
+        ParagraphSpacingAfter: 0
+        ParagraphSpacingBefore: 0
+        RightMargin: 0
+        Tab:
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+        TabTypes: 0x00000000
+        Tabs: 0
+        data:
+          - 0
+          - 0
+          - 1440
+          - 7
+          - 0
+          - 0
+          - 0x00000001
+          - 0x00000004
+      - type: 0x0083
+        PABID: 2
+      - type: 0x00dd
+        Signature: 0xfffb
+        Version: 1
+      - type: 0xfffb
+        opaque: +/8sAAEAAAABAgEAAAAAAAAAAAAAAAAAR1NdAICAgAABAAAAAAAAAAAAAAA=
+      - type: 0xff5c
+        opaque: |
+          XP8+AAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4AAAAAAAAAAQAACgAAAAABAAAA
+          AAA=
+      - type: 0x00de
+        Signature: 0xfffb
+        Version: 1
+      - type: 0x00a3
+        opaque: ow6gBZAAkACQAJAAg28=
+      - type: 0x00a4
+        opaque: pBIAADAGEAgAAAACAAABAQAA
+      - type: 0x0081
+      - type: 0xff82
+        FirstLineLeftMargin: 1584
+        Flags: 0x0186
+        Flags2: 0x8754
+        JustifyMode: 0
+        LeftMargin: 1584
+        LineSpacing: 0
+        PABID: 3
+        ParagraphSpacingAfter: 0
+        ParagraphSpacingBefore: 0
+        RightMargin: 2064
+        Tab:
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+        TabTypes: 0x00000000
+        Tabs: 0
+        data:
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0x00000001
+          - 0x00000004
+      - type: 0x0083
+        PABID: 3
+      - type: 0xff85
+        FontID: 0xa000001
+      - type: 0x00dd
+        Signature: 0x0099
+        Version: 1
+      - type: 0x0099
+        opaque: mQAcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAA==
+      - type: 0x007d
+        opaque: fQAcAAAAAwAgACAAAAAAAAAAAAAAAAAAAAAAAA==
+      - type: 0x0052
+        opaque: UhQEAAAAAAAAAAAAAAAAAAAAAAA=
+      - type: 0xfff6
+        opaque: |
+          9v9LAAAAAAADABMAKQAAAAAAAAAAAAAAAAAAAAAAAAAAAENvbXBhcmUgYXBwIGhlYWRlcnxARUlDMDAw
+          MTk5fENvbXBhcmVJY29u
+      - type: 0x00de
+        Signature: 0x0099
+        Version: 1
+      - type: 0xff85
+        FontID: 0xa000001
+      - type: 0x00a4
+        opaque: pBIAATAJOEaAcAACAAABAQAA
+      - type: 0x0081
+      - type: 0xff82
+        FirstLineLeftMargin: 2352
+        Flags: 0x0186
+        Flags2: 0x8754
+        JustifyMode: 0
+        LeftMargin: 2352
+        LineSpacing: 0
+        PABID: 4
+        ParagraphSpacingAfter: 0
+        ParagraphSpacingBefore: 0
+        RightMargin: 17976
+        Tab:
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+        TabTypes: 0x00000000
+        Tabs: 0
+        data:
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0x00000001
+          - 0x00000004
+      - type: 0x0083
+        PABID: 4
+      - type: 0x00dd
+        Signature: 0xff85
+        Version: 0
+      - type: 0xff85
+        FontID: 0x142f0001
+        data: "About HCL's "
+      - type: 0x00d2
+        Color:
+          Flags: 0x0001
+          rgb: 0xf7f7f7
+      - type: 0x00de
+        Signature: 0xff85
+        Version: 0
+      - type: 0x00dd
+        Signature: 0xff85
+        Version: 0
+      - type: 0xff85
+        FontID: 0x14010101
+        data: CompareDBs Reports
+      - type: 0x00d2
+        Color:
+          Flags: 0x0001
+          rgb: 0xffffff
+      - type: 0x00de
+        Signature: 0xff85
+        Version: 0
+      - type: 0x00dd
+        Signature: 0xff85
+        Version: 0
+      - type: 0xff85
+        FontID: 0x142f0001
+        data: " Application"
+      - type: 0x00d2
+        Color:
+          Flags: 0x0001
+          rgb: 0xf7f7f7
+      - type: 0x00de
+        Signature: 0xff85
+        Version: 0
+      - type: 0x00a5
+        opaque: pQYAAAAA
+      - type: 0x0081
+      - type: 0xff82
+        FirstLineLeftMargin: 1440
+        Flags: 0x0100
+        Flags2: 0x8794
+        JustifyMode: 0
+        LeftMargin: 1440
+        LineSpacing: 0
+        PABID: 5
+        ParagraphSpacingAfter: 0
+        ParagraphSpacingBefore: 1
+        RightMargin: 0
+        Tab:
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+        TabTypes: 0x00000000
+        Tabs: 0
+        data:
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0x00000001
+          - 0x00000004
+      - type: 0x0083
+        PABID: 5
+      - type: 0xff85
+        FontID: 0xa000001
+        data: "This application lets Domino application developers generate detailed design synopses of their projects, and compare different versions of an application to locate the differences. This can be used as input to a code review, and for change tracking."
+      - type: 0x0081
+      - type: 0x0083
+        PABID: 5
+      - type: 0xff85
+        FontID: 0xa000001
+        data: "You may be familiar with the feature of Domino Designer that lets you compare designs using exported DXL descriptions of design elements. This tool is similar in that design element descriptions are expressed in Notes' built-in DXL syntax, but the output is modified to eliminate insignificant differences and improve readability. Some of the elements are simplified, and information not relevant to the task of comparing database designs and document content are stripped out. Basically we're removing anything you don't care about for a code review."
+      - type: 0x0081
+      - type: 0xff82
+        FirstLineLeftMargin: 1080
+        Flags: 0x0100
+        Flags2: 0x8494
+        JustifyMode: 0
+        LeftMargin: 1080
+        LineSpacing: 0
+        PABID: 6
+        ParagraphSpacingAfter: 0
+        ParagraphSpacingBefore: 1
+        RightMargin: 0
+        Tab:
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+        TabTypes: 0x00000000
+        Tabs: 0
+        data:
+          - 1080
+          - 0
+          - 1080
+          - 0
+          - 0
+          - 0
+          - 0x00000001
+          - 0x00000004
+      - type: 0x0083
+        PABID: 6
+      - type: 0xff85
+        FontID: 0xa000101
+      - type: 0x00dd
+        Signature: 0xffad
+        Version: 0
+      - type: 0xffad
+        opaque: rf8MAAwACAAAAAAA
+      - type: 0x00dd
+        Signature: 0xffac
+        Version: 0
+      - type: 0xffac
+        opaque: rP8YAACDABQBAQAKDQAoZGV0YWlscykA
+      - type: 0x00d2
+        Color:
+          Flags: 0x0001
+          rgb: 0x008080
+      - type: 0x00de
+        Signature: 0xffac
+        Version: 0
+      - type: 0xff85
+        FontID: 0xa000101
+      - type: 0x0081
+      - type: 0xff82
+        FirstLineLeftMargin: 1800
+        Flags: 0x0100
+        Flags2: 0x8494
+        JustifyMode: 0
+        LeftMargin: 1800
+        LineSpacing: 0
+        PABID: 7
+        ParagraphSpacingAfter: 0
+        ParagraphSpacingBefore: 1
+        RightMargin: 0
+        Tab:
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+        TabTypes: 0x00000000
+        Tabs: 0
+        data:
+          - 1800
+          - 0
+          - 1800
+          - 0
+          - 0
+          - 0
+          - 0x00000001
+          - 0x00000004
+      - type: 0x0083
+        PABID: 7
+      - type: 0xff85
+        FontID: 0xa000001
+        data: "Data removed includes \"last accessed\" timestamps, note IDs (which aren't expected to be the same in different copies), line breaks in the DXL data, among other things. Blocks of base64-encoded data are replaced with hashcodes so you can just tell whether they're different between versions (you couldn't tell what the differences were by just looking at the binary data anyway). Paragraph definition IDs are also replaced with hash codes corresponding to the paragraph properties, so you only see a difference in the report if the properties were changed -- as opposed to the sequential IDs being renumbered because someone added a paragraph above that point."
+      - type: 0x0081
+      - type: 0x0083
+        PABID: 7
+      - type: 0xff85
+        FontID: 0xa000001
+        data: "Optionally, empty \"run\" elements in a form body are removed, and consecutive runs with the same formatting are merged. There's an option to control this behavior because sometimes you care about these differences -- for instance, if doing translations with DGW (Domino Global Workbench) which represents a string differently in its properties files if it has a formatting change in the middle."
+      - type: 0x00ae
+        opaque: rgI=
+      - type: 0x00de
+        Signature: 0x00ae
+        Version: 0
+      - type: 0xff85
+        FontID: 0xa000001
+      - type: 0x0081
+      - type: 0x0083
+        PABID: 5
+      - type: 0xff85
+        FontID: 0xa000001
+        data: "The comparison reports are generated and stored in this application. Design synopses are created as separate Notes applications containing a document for each design element in the application you're describing."
+      - type: 0x0081
+      - type: 0x0083
+        PABID: 5
+      - type: 0xff85
+        FontID: 0xa000001
+        data: "This tool can integrate with GIT or other source code control systems whose submission records can be located via URL. It also can integrate with Jira and other task/defect tracking systems whose task records can be located via URL. This includes Notes-based tracking applications, since the Notes client supports a \"notes://\" URL syntax."
+      - type: 0x0081
+      - type: 0x0083
+        PABID: 5
+      - type: 0xff85
+        FontID: 0xa000001
+        data: "Before use, you must customize the application to your environment by specifying the URL locations of the repositories and task/defect tracking in your organization."
+      - type: 0x0081
+      - type: 0x0083
+        PABID: 5
+      - type: 0xff85
+        FontID: 0xa000001
+        data: "Refer to the "
+      - type: 0x00dd
+        Signature: 0xffad
+        Version: 0
+      - type: 0xffad
+        opaque: rf8sAAIAHAAAACAAIAAAABIAAgCkFwAAAAAAAO0BAwAHAAwABQAJMFMwRQA=
+      - type: 0x00dd
+        Signature: 0xff85
+        Version: 0
+      - type: 0xff85
+        FontID: 0xb040501
+        data: Help Using
+      - type: 0x00d2
+        Color:
+          Flags: 0x0001
+          rgb: 0x0000ff
+      - type: 0x00de
+        Signature: 0xff85
+        Version: 0
+      - type: 0x00ae
+        opaque: rgI=
+      - type: 0x00de
+        Signature: 0x00ae
+        Version: 0
+      - type: 0xff85
+        FontID: 0xa000001
+        data: " document for details."
+      - type: 0x0081
+      - type: 0x0083
+        PABID: 5
+      - type: 0xff85
+        FontID: 0xa000001
+      - type: 0x00dd
+        Signature: 0x0099
+        Version: 1
+      - type: 0x0099
+        opaque: mQAcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAA==
+      - type: 0x007d
+        opaque: fQAcAAAAAwAwABgAAAAAAAAAAAAAAAAAAAAAAA==
+      - type: 0x0052
+        opaque: UhQEAAAAAAAAAAAAAAAAAAAAAAA=
+      - type: 0xff76
+        opaque: dv8eAAIAAQEBAAwBAAAAAAAAAAAAAAAAAAAAAE9L
+      - type: 0xfff6
+        opaque: 9v8vAAAAAAADABMADQAAAAAAAAAAAAAAAAAAAAAAAAAAAGRsZ0J1dHRvbi5wbmc=
+      - type: 0x00de
+        Signature: 0x0099
+        Version: 1
+      - type: 0x00dd
+        Signature: 0xfff4
+        Version: 1
+      - type: 0xfff4
+        opaque: 9P8iAAAAAAAAAA0AOAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
+      - type: 0x00dd
+        Signature: 0xfff5
+        Version: 1
+      - type: 0xfff5
+        opaque: 9f8eAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      - type: 0xff7a
+        ID: DefaultHotspot15
+        reserved: AAAAAAAAAAAAAA==
+      - type: 0x00de
+        Signature: 0xfff5
+        Version: 1
+      - type: 0x00de
+        Signature: 0xfff4
+        Version: 1
+      - type: 0xff85
+        FontID: 0xa000001
+  - name: $HTMLCode
+    signed: true
+    nonsummary: true
+    type: opaque
+    type_num: 1
+  - name: $Info
+    signed: true
+    nonsummary: true
+    type: opaque
+    type_num: 1
+    opaque: hhgBAIAAAAAAgAAAAQABAP///wAQAAAA
+remaining: []

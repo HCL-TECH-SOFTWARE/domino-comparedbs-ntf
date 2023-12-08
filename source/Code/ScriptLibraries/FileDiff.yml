@@ -1,0 +1,455 @@
+---
+class: 512
+flags: 0x2000
+unid: OF6E45982F82E896EB-ON004C2258862586E0
+items:
+  - name: $Comment
+    type: text
+    data: Compare two text streams line by line.
+    signed: true
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: 34Qs
+  - name: $PublicAccess
+    type: text
+    data: "1"
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-05-25T08:51:37.52-05:00"
+        dst: true
+      - data: "2021-05-27T11:23:20.89-05:00"
+        dst: true
+      - data: "2021-06-30T21:57:33.01-05:00"
+        dst: true
+      - data: "2021-07-09T08:59:44.09-04:00"
+        dst: true
+      - data: "2021-07-09T09:01:58.22-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:04.68-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:46.73-04:00"
+        dst: true
+      - data: "2021-07-09T09:21:11.85-04:00"
+        dst: true
+      - data: "2021-08-17T13:55:03.05-05:00"
+        dst: true
+      - data: "2021-09-16T12:02:36.82-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:56.37-05:00"
+        dst: true
+  - name: $ScriptLib
+    type: text
+    data: |
+      '++LotusScript Development Environment:2:5:(Options):0:74
+      %REM
+        © Copyright HCL Company, 2021
+        
+      	Library FileDiff
+      	Description: Supports finding the differences between two text files, with a
+      		line-based comparison.
+      %END REM
+      Option Public
+      Option Declare
+      
+      Use "StringDiff"
+      
+      
+      '++LotusScript Development Environment:2:5:(Forward):0:1
+      Declare Class FileDiffer
+      Declare Class DiffWriterFilePlain As DiffWriter
+      Declare Class DiffWriterFileHTML As DiffWriter
+      
+      '++LotusScript Development Environment:2:5:(Declarations):0:10
+      Const REPORTSTYLE = |
+      table {border-width: 0; width: 100%;}
+      td {border-width: 0;}
+      th { font-style:italic; font-weight: bold }
+      .empty { background-color: #CCCCCC }
+      .diff { background-color:#FFFF99 }
+      .added { color:#CC0033 }
+      .deleted { color: #666666 }
+      .lnCol { padding-left: 4px; padding-right: 4px; }
+      .contentCol { width: 48%; font-family: Andale Mono, Courier, mono;}|
+      
+      Private Const TABB = {	}
+      Class FileDiffer
+      	Public IgnoreCase As Boolean ' string comparison options
+      	Public IgnoreIndentation As Boolean
+      	Public result As DiffResult
+      	
+      	' create a difference list even it will have just one "same" node in it (files identical).
+      	Public bGenerateIfSame As Boolean
+      	
+      	ffrom As Variant
+      	tto As Variant
+      	
+      	Sub New
+      		Dim i%
+      		On Error Goto ERRHANDLE
+      		ffrom = Split(String(15, ","), ",")
+      		For i = 0 To 3
+      			ffrom(i) = NEWLINE & String(4-i, TABB)
+      			ffrom(i+4) = NEWLINE & String(4-i," ")
+      			ffrom(i+8) = String(4-i, TABB) & NEWLINE
+      			ffrom(i+12) = String(4-i," ") & NEWLINE
+      		Next
+      		tto = Split(NEWLINE, ",")
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub Process
+      		Description: compare two strings which are file contents...
+      		Return: True if they are equal.
+      	%END REM
+      	Function Process(a$, b$) As Boolean
+      		On Error Goto ERRHANDLE
+      		If Not bGenerateIfSame Then
+      			If a = b Then
+      				Process = True
+      				Exit Function
+      			End If
+      		End If
+      		Dim sd As New StringDiffer
+      		Dim aCopy$, bCopy$, llen&
+      		aCopy = Replace(a, Chr$(13), "")
+      		bCopy = Replace(b, Chr$(13), "")
+      		If IgnoreCase Then
+      			aCopy = Lcase(aCopy)
+      			bCopy = Lcase(bCopy)
+      		End If
+      		If IgnoreIndentation Then
+      			Do
+      				llen = Len(aCopy)
+      				aCopy = Replace(acopy, ffrom, tto)
+      			Loop While llen > Len(aCopy)
+      			Do
+      				llen = Len(bCopy)
+      				bCopy = Replace(bCopy, ffrom, tto)
+      			Loop While llen > Len(bCopy)
+      		End If
+      		
+      		If Not bGenerateIfSame Then
+      			If aCopy = bCopy Then
+      				Process = True
+      				Exit Function
+      			End If
+      		End If
+      		
+      		sd.Mode = DIFFMODE_LINE
+      		Set result = sd.FindDifferences(aCopy, bCopy)
+      		
+      		' and now restore the original data if we mangled it.
+      		If IgnoreCase Or IgnoreIndentation Then
+      			Dim adiff As DiffResultNode
+      			Set adiff = result.First
+      			aCopy = Replace(a, Chr$(13), "")
+      			bCopy = Replace(b, Chr$(13), "")
+      			' loop thru the diffs replacing the difference results with the same number of lines of original text
+      			Do While True
+      				If adiff.Next Is Nothing Then
+      					adiff.val1 = aCopy
+      					If Not adiff.isSame Then
+      						adiff.val2 = bCopy
+      					End If
+      					Exit Do
+      				Else ' there's a node to follow; figure out how much of the original strings correspond to what's
+      					' in the current node.
+      					If IgnoreIndentation Then
+      						Dim nuval$
+      						adiff.val1 = GCU.firstNLines(aCopy, adiff.lines1)
+      						acopy = Mid$(acopy, Len(adiff.val1)+1)
+      						If Not adiff.issame Then
+      							adiff.val2 = GCU.firstNLines(bCopy, adiff.lines2)
+      							bcopy = Mid$(bcopy, Len(adiff.val2)+1)
+      						Else
+      							nuval = GCU.FirstNLines(bCopy, adiff.lines1)
+      							bcopy = Mid$(bcopy, Len(nuval)+1)
+      						End If
+      					Else ' not ignoring indentation so lengths are same as originals.
+      						adiff.val1 = Left$(aCopy, Len(adiff.val1))
+      						aCopy = Mid$(aCopy, Len(adiff.val1)+1)
+      						If Not adiff.isSame Then
+      							adiff.val2 = Left$(bCopy, Len(adiff.val2))
+      							bCopy = Mid$(bCopy, Len(adiff.val2)+1)
+      						Else
+      							bCopy = Mid$(bCopy, Len(adiff.val1)+1)
+      						End If
+      					End If
+      				End If
+      				Set adiff = adiff.next
+      			Loop
+      		End If
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	Sub Delete
+      		On Error Resume Next
+      		Delete result
+      	End Sub
+      End Class
+      
+      %REM
+      	Class DiffWriterFilePlain
+      	Description: Generate a summary of diffs as plain text, using < for left line, > for right line, = for equal lines
+      		Only suitable for line-mode diffs.
+      %END REM
+      Class DiffWriterFilePlain As DiffWriter
+      	Public Result As String
+      	Public ContextLines As Integer ' how many extra lines of 'same' to include before and after a diff.
+      
+      	Sub New
+      		On Error Goto ERRHANDLE
+      		ContextLines = 1
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	Private Sub WriteNewText(strNewText$)
+      		On Error Goto ERRHANDLE
+      		WritePrefixText "-->", strNewText
+      		If Right$(strNewText, 1) <> NEWLINE Then
+      			WriteText "<!LF>" & NEWLINE
+      		End If
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	Private Sub WriteDeletedText(strDeleted$)
+      		On Error Goto ERRHANDLE
+      		WritePrefixText "<--", strDeleted
+      		If Right$(strDeleted, 1) <> NEWLINE Then
+      			WriteText "<!LF>" & NEWLINE
+      		End If
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	Private Sub WriteSameText(strSame$)
+      		On Error Goto ERRHANDLE
+      		If ContextLines = 0 Then Exit Sub
+      		
+      		Dim pos&, lc%, lpos&
+      		If Not z_first Then
+      			pos = 0
+      			' we need to output the first contextLines lines
+      			Do While lc < contextlines
+      				pos = Instr(pos+1, strSame, NEWLINE)
+      				If pos > 0 Then
+      					lpos = pos
+      				Else 
+      					lpos = Len(strSame)
+      					Exit Do
+      				End If
+      				lc = lc + 1
+      			Loop
+      			If lpos Then ' there are some lines to output
+      				WritePrefixText "===", Left$(strSame, lpos)
+      			End If
+      		End If
+      		If z_last Then
+      			If lpos < Len(strSame) Then
+      				WriteText "..."
+      			End If
+      			Exit Sub
+      		End If
+      
+      		' lpos is now the position of a newline, or 0 (a virtual NEWLINE)
+      		' back up from end to locate last few lines.
+      		pos = Len(strSame) ' assume last char is newline
+      		lc = 0
+      		Do While pos > lpos
+      			If Mid$(strSame, pos, 1) = NEWLINE Then
+      				If lc >= contextLines Then Exit Do
+      				lc = lc + 1
+      			End If
+      			pos = pos - 1
+      		Loop
+      		If pos > lpos Then
+      			WriteText "..." & NEWLINE
+      		End If
+      		If pos < Len(strSame) Then
+      			WritePrefixText "===", Mid$(strSame, pos+1)
+      		End If
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub WriteModified
+      		Description: Indicate that a section was changed between the two strings.
+      	%END REM
+      	Private Sub WriteModified(szOld$, szNew$)
+      		On Error Goto ERRHANDLE
+      		WriteDeletedText szOld
+      		WriteNewText szNew
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub WritePrefixText
+      		Description: Write multi-line text with a prefix character on each line.
+      	%END REM
+      	Sub WritePrefixText(Byval prefix$, llines$)
+      		On Error Goto ERRHANDLE
+      		If Len(llines) > 1 Then
+      			WriteText prefix & { } & Replace(Left$(llines, Len(llines)-1), NEWLINE, NEWLINE & prefix & { }) & Right$(llines, 1)
+      		Else
+      			WriteText prefix & { } & llines
+      		End If
+      		
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	Private Sub WriteText(strText$)
+      		On Error Goto ERRHANDLE
+      		result = result & strText
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      End Class
+      %REM
+      	Class DiffWriterFileHTML
+      	Description: Write a report into an HTML file about differences between two entities (derived from DiffWriter).
+      	Constructor:
+      		New DiffWriterFileHTML(stream as NotesStream)
+      %END REM
+      Class DiffWriterFileHTML As DiffWriter
+      	z_result As NotesStream
+      	
+      	Public NewTag As String		' lets you control what's output around "new" text.
+      	Public DelTag As String
+      	Public EllipsisTag As String
+      	
+      	%REM
+      		Sub New
+      		Description: pass in the stream to which you wish to add.
+      	%END REM
+      	Sub New(stream As NotesStream)
+      		On Error Goto ERRHANDLE
+      		If stream Is Nothing Then
+      			Dim session As New NotesSession
+      			Set z_result = session.CreateStream
+      		Else
+      			Set z_result = stream
+      		End If
+      		NewTag = "new"
+      		DelTag = "strike"
+      		EllipsisTag = "ellipsis"
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Property Get Stream
+      		Description: The stream containing the output. Note the Position will not be at zero.
+      	%END REM
+      	Public Property Get Stream As NotesStream
+      		On Error Goto ERRHANDLE
+      		Set stream = z_result
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		Property Get HTML
+      		Description: The text version of the output. If you passed the constructor a stream,
+      			this will include any characters that were in the stream originally.
+      	%END REM
+      	Public Property Get HTML
+      		On Error Goto ERRHANDLE
+      		z_result.Position = 0
+      		HTML = z_result.Readtext
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		Sub WriteNewText
+      		Description: Write text inside a <new> element.
+      	%END REM
+      	Private Sub WriteNewText(strNewText$)
+      		On Error Goto ERRHANDLE
+      		z_result.Writetext {<} & NewTag & {>}
+      		WriteText strNewText
+      		z_result.Writetext {</} & Strtoken(NewTag, " ", 1) & {>}
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub WriteDeletedText
+      		Description: Write text inside a <strike> element.
+      	%END REM
+      	Private Sub WriteDeletedText(strDeleted$)
+      		On Error Goto ERRHANDLE
+      		z_result.Writetext {<} & DelTag & {>}
+      		WriteText strDeleted
+      		z_result.Writetext {</} & Strtoken(DelTag, " ", 1) & {>}
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub WriteSameText
+      		Description: Just write the "plain" text.
+      	%END REM
+      	Private Sub WriteSameText(strSame$)
+      		On Error Goto ERRHANDLE
+      		WriteText strSame
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub PutText
+      		Description: When putting text at the lowest level, convert to HTML chars.
+      	%END REM
+      	Private Sub PutText(strText$)
+      		'z_result.Writetext ToHTML(strText)
+      	End Sub
+      	
+      	%REM
+      		Sub WriteEllipsis
+      		Description: Write an indication that characters were omitted at this point.
+      	%END REM
+      	Private Sub WriteEllipsis
+      		On Error Goto ERRHANDLE
+      		z_result.Writetext "<" & EllipsisTag & ">" & EllipsisText & "</" & Strtoken(EllipsisTag, " ", 1) & ">"
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      End Class
+    signed: true
+    nonsummary: true
+  - name: $TITLE
+    type: text
+    data: FileDiff
+    signed: true
+remaining: []

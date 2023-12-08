@@ -1,0 +1,54 @@
+---
+class: 1
+flags: 0x0100
+unid: OF0A807D381BBFC9AC-ON006EA9518525872F
+items:
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-08-12T16:09:23.16-04:00"
+        dst: true
+      - data: "2021-10-21T07:00:35.51-05:00"
+        dst: true
+  - name: Description
+    type: text
+    data: Compare a modified template against the latest release from HCL.
+  - name: DocKeyFormula
+    type: text
+    data: "@Trim(Form + \": \" + @If(Subject != \"\"; Subject; Title != \"\"; Title; Name != \"\"; Name; @Text(@DocumentUniqueID)))"
+  - name: Form
+    type: text
+    data: CompareConfig
+  - name: FormKeyFields
+    type: text
+    data: ""
+  - name: Howmany
+    type: text
+    data: "2"
+  - name: MaxLeftBlock
+    type: number
+    data: 10000
+  - name: Name
+    type: text
+    data: Update Review
+  - name: NewFiles
+    type: text
+    data: "1"
+  - name: Options
+    type: text
+    data:
+      - language
+      - signbit
+      - ".properties"
+      - unids
+      - lscap
+  - name: RunLevel
+    type: text
+    data: "2"
+  - name: contextLines
+    type: text
+    data: "3"
+  - name: reportOptions
+    type: text
+    data: lineno
+remaining: []

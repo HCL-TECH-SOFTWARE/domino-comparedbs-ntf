@@ -1,0 +1,419 @@
+---
+class: 512
+flags: 0x2000
+unid: OF8EA2A23760A1F816-ON007AEECC862586DB
+items:
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: 34Qs
+  - name: $PublicAccess
+    type: text
+    data: "1"
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-05-20T17:22:47.20-05:00"
+        dst: true
+      - data: "2021-05-27T11:23:20.06-05:00"
+        dst: true
+      - data: "2021-06-15T15:30:26.32-05:00"
+        dst: true
+      - data: "2021-06-30T21:57:32.42-05:00"
+        dst: true
+      - data: "2021-07-09T08:59:43.32-04:00"
+        dst: true
+      - data: "2021-07-09T09:01:57.46-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:03.93-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:45.97-04:00"
+        dst: true
+      - data: "2021-07-09T09:21:11.08-04:00"
+        dst: true
+      - data: "2021-08-16T16:54:39.38-05:00"
+        dst: true
+      - data: "2021-08-16T16:54:39.43-05:00"
+        dst: true
+      - data: "2021-08-17T13:55:02.52-05:00"
+        dst: true
+      - data: "2021-09-16T12:02:36.26-05:00"
+        dst: true
+      - data: "2021-09-27T12:22:46.47-05:00"
+        dst: true
+      - data: "2021-09-27T12:22:46.51-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:55.74-05:00"
+        dst: true
+  - name: $ScriptLib
+    type: text
+    data: |
+      '++LotusScript Development Environment:2:5:(Options):0:74
+      Option Public
+      Option Declare
+      
+      %REM
+      This library contains the ObjectSortedCollection class, which is an extension to LotusScript's basic datatypes.
+      It allows you to maintain a sorted list of objects of a user-defined class.
+      
+      -- METHODS OF THIS CLASS --
+      New(unique_flag) : if unique_flag is True, then when an object is added to the collection, if it is found to
+      be "identical" to an object already present, they will be "merged" instead of the new object being added.
+      
+       Clear( ) : discard all data in the collection.
+       Size( ) : reports the number of objects in the collection.
+       GetElement(index%) : returns a handle to the index%th object in the collection (valid index is from 1 to Size( ))
+       SortedInsert(value) : inserts the object into the collection in sorted order.
+       Remove(index%) : removes the element at a given position.
+      
+       -- METHODS REQUIRED TO BE PRESENT IN MEMBER CLASSES --
+       Compare(x) as integer: returns 1 if the current object should sort "after" x, -1 if it should sort "before," 0 if they
+          are identical (so we don't care about the sort order).
+       Merge(x) : required if the unique_flag is set.  Merge the contents of the given object with those of the current
+          object.
+          
+      © Copyright HCL Company, 2021
+      %END REM
+      Use "CommonUtil"
+      Use "DOMUtils"
+      
+      
+      '++LotusScript Development Environment:2:5:(Forward):0:1
+      Declare Public Class ObjectSortedCollection
+      Declare Class DomSortedCollection As ObjectSortedCollection
+      Declare Class LSSortedCollection As DomSortedCollection
+      Declare Class ObjectCollection
+      Declare Sub Initialize
+      
+      '++LotusScript Development Environment:2:5:(Declarations):0:10
+      Private GLSOrdering As Variant
+      %REM
+         Class ObjectSortedCollection
+         Description: Maintain a list of objects of a user-defined class.
+         Constructor: New ObjectSortedCollection(unique_flag)
+            If unique_flag is True, objects that compare as equal will be merged (by calling their Merge method).
+      %END REM
+      Public Class ObjectSortedCollection
+      	Count As Integer
+      	Current As Integer
+      	Unique As Integer ' TRUE if the list may not contain duplicates when sorted.
+      	Values( ) As Variant
+      	
+      	Sub New(Byval unique_flag As Integer)
+      		On Error Goto ERRHANDLE
+      		Unique = unique_flag
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	Public Property Get Size As Integer
+      		On Error Goto ERRHANDLE
+      		Size = Count
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	Function GetElement(Byval ind%)
+      		On Error Goto ERRHANDLE
+      		If ind% > 0 And ind% <= Count Then
+      			Set GetElement = Values(ind%) 
+      		End If
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	Sub Remove(Byval ind%)
+      		On Error Goto ERRHANDLE
+      		If ind% > 0 And ind% <= Count Then
+      			Dim i%
+      			For i% = ind% To Count-1
+      				Set Values(i%) = Values(i%+1)
+      			Next
+      			Count = Count - 1
+      			If Count = 0 Then
+      				Erase Values
+      			End If
+      		End If
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Function Compare
+      		Description: Compare two members for sorting purposes, returning negative
+      			value if valu should precede valu2, positive if valu2 comes first, 0
+      			if we don't care.
+      	%END REM
+      	Function Compare(valu As Variant, valu2 As Variant) As Integer
+      		On Error Goto ERRHANDLE
+      		Compare = valu.Compare(valu2)
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	Sub SortedInsert(valu)
+      		On Error Goto ERRHANDLE
+      		If Count = 0 Then
+      			Redim Values(1 To 1)
+      			Set Values(1) = valu
+      			Count = Count + 1
+      		Else
+      			Dim i%, top%, bottom%, res%
+      			top = 1
+      			bottom = 1 + Count
+      			Do While bottom > top
+      				i = (top + bottom) \ 2
+      				res = Compare(valu, Values(i))
+      				If res > 0 Then ' not far enough down.
+      					top = i + 1
+      				Elseif res < 0 Then ' too far down
+      					bottom = i
+      				Else
+      					If Unique Then
+      						Values(i).Merge valu
+      						Exit Sub
+      					End If
+      					top = i+1
+      					Exit Do
+      				End If
+      			Loop
+      			Count = Count + 1
+      			Redim Preserve Values(1 To Count)
+      			For i = Count-1 To top Step -1
+      				Set Values(i+1) = Values(i)
+      			Next
+      			Set Values(top) = valu
+      		End If
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	Function IsSorted( ) As Integer
+      		On Error Goto ERRHANDLE
+      		IsSorted = True
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	Function SortOrderAscending( ) As Integer
+      		On Error Goto ERRHANDLE
+      		SortOrderAscending = True
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	Sub Clear( )
+      		On Error Goto ERRHANDLE
+      		Count = 0
+      		Erase Values
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      End Class
+      %REM
+      	Class DomSortedCollection
+      	Description: Like an ObjectSortedCollection except the objects are assumed to be DOM elements
+      		and we want to sort them based on an attribute.
+      %END REM
+      Class DomSortedCollection As ObjectSortedCollection
+      	attrName As String
+      	Public attrType As Integer ' 0=text, 1=number
+      	Private z_addNL As Boolean
+      	Private z_domdoc As NotesDOMDocumentNode
+      	
+      	Sub New(attrName$, Byval bNLAfter), objectSortedCollection(False)
+      		On Error Goto ERRHANDLE
+      		Me.attrName = attrName
+      		z_addNL = bNLAfter
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Property Get docNode
+      		Description: Return the "document" node for the tree containing a given node. The value is cached for subsequent calls.
+      		Arguments: aNode: any node in the DOM tree.
+      	%END REM
+      	Private Property Get docNode(aNode As NotesDOMNode) As NotesDOMDocumentNode
+      		If z_domdoc Is Nothing Then
+      			Set z_domdoc = DU_GetDocNode(aNode)
+      		End If
+      		Set docNode = z_domdoc
+      	End Property
+      	
+      	%REM
+      		Sub Compare
+      		Description: Compare the attribute value we're sorting by in two nodes.
+      	%END REM
+      	Function Compare(a As Variant, b As Variant) As Integer
+      		On Error Goto ERRHANDLE
+      		If attrtype = 0 Then
+      			Compare = Strcomp(a.Getattribute(attrName), b.Getattribute(attrName))
+      		Else
+      			Compare = Sgn(CDbl(a.Getattribute(attrName)) - CDbl(b.Getattribute(attrName)))
+      		End If
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Sub AddNodes
+      		Description: Add a whole list of nodes at once.
+      	%END REM
+      	Sub AddNodes(domnl As NotesDOMNodeList)
+      		Dim i%
+      		On Error Goto ERRHANDLE
+      		For i = 1 To domnl.Numberofentries
+      			SortedInsert domnl.Getitem(i)
+      		Next
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub ReinsertNodes
+      		Description: Remove the nodes from whatever is their parent element, and
+      			re-add them in sorted order as children of the node we're passed as argument.
+      			Typically the old parent and the new parent will be the same node.
+      	%END REM
+      	Sub ReinsertNodes(domePar As NotesDOMElementNode)
+      		Dim i%, domd As NotesDOMDocumentNode, domn As NotesDOMNode, domDoc As NotesDOMDocumentNode
+      		On Error Goto ERRHANDLE
+      		If count > 0 And z_addnl Then
+      			Set domDoc = docNode(domePar)
+      		End If
+      		For i = 1 To Count
+      			Dim domeTmp As NotesDOMElementNode
+      			Set domeTmp = GetElement(i)
+      			Set domn = domeTmp.Nextsibling
+      			If Not domn.Isnull then
+      				If domn.nodetype = Domnodetype_text_node Then
+      					If FullTrim(domn.Nodevalue) = "" Then
+      						domn.Parentnode.Removechild domn ' whitespace after the node we're removing, vanishes along with that node.
+      					Else
+      						Dim dnPrev As NotesDOMNode
+      						Set dnPrev = domn.Previoussibling
+      						If Not dnPrev.isnull then
+      							If dnPrev.nodetype = Domnodetype_text_node Then
+      								' we have consecutive text nodes -- one of them must go.
+      								dnPrev.Nodevalue = dnPrev.Nodevalue & domn.Nodevalue
+      								domn.Parentnode.Removechild domn
+      							End If
+      						End If
+      					End If
+      				End If
+      			End If
+      			domeTmp.Parentnode.Removechild domeTmp
+      			domePar.Appendchild domeTmp
+      			If z_addNL Then
+      				Set domn = domDoc.Createtextnode(NEWLINE)
+      				domePar.Appendchild domn
+      			End If
+      		Next
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub SortedInsertNodeList
+      		Description: nll: a list of element nodes to insert into the list.
+      		Arguments:
+      	%END REM
+      	Sub SortedInsertNodeList(nll As NotesDOMNodeList)
+      		Dim i%, aNode As NotesDOMNode
+      		For i = 1 To nll.Numberofentries
+      			Set aNode = nll.Getitem(i)
+      			SortedInsert aNode
+      		Next
+      	End Sub
+      End Class
+      %REM
+      	Class LSSortedCollection
+      	Description: Sort Code elements by event name, and interior sort Declarations sections by class name.
+      %END REM
+      Class LSSortedCollection As DomSortedCollection
+      	Sub New(), DomSortedCollection("event", True)
+      	End Sub
+      	
+      	Function Compare(a, b) As Integer
+      		Dim akey$, bkey$, apos, bpos
+      		On Error Goto ERRHANDLE
+      		akey = a.getattribute(attrname)
+      		bkey = b.getattribute(attrname)
+      		apos = Arraygetindex(GLSOrdering, akey, 1)
+      		bpos = Arraygetindex(GLSOrdering, bkey, 1)
+      		If Isnull(apos) Then
+      			If Isnull(bpos) Then
+      				Compare = Strcomp(akey, bkey, 1)
+      			Else
+      				Compare = 1
+      			End If
+      		Elseif Isnull(bpos) Then
+      			Compare = -1
+      		Else
+      			Compare = apos - bpos
+      		End If
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      End Class
+      %REM
+      	Class ObjectCollection
+      	Description: Unsorted small collection of objects (1-based index)
+      %END REM
+      Class ObjectCollection
+      	Public objs() As Variant
+      	Public count As Integer
+      	
+      	%REM
+      		Sub add
+      		Description: add an object to the collection.
+      	%END REM
+      	Sub add(obj)
+      		On Error Goto ERRHANDLE
+      		If count = 0 Then
+      			Redim objs(1 To 12)
+      		Elseif count = Ubound(objs) Then
+      			Redim Preserve objs(1 To Ubound(objs)+12)
+      		End If
+      		count = count + 1
+      		Set objs(count) = obj
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      End Class
+      '++LotusScript Development Environment:2:2:Initialize:1:10
+      Sub Initialize
+      	On Error Goto ERRHANDLE
+      	GLSOrdering = Split("options,declarations,initialize,terminate", ",")
+      	Exit Sub
+      ERRHANDLE:
+      	Error Err, Error & { //} & Getthreadinfo(1) & {:} & Erl
+      End Sub
+    signed: true
+    nonsummary: true
+  - name: $TITLE
+    type: text
+    data: ObjectSortedCollection
+    signed: true
+remaining: []

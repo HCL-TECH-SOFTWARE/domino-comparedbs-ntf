@@ -1,0 +1,32 @@
+---
+class: 4
+flags: 0x0000
+unid: OF1A344FD341E4ECBF-ON0050F3BD86258704
+items:
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $FileNames
+    type: text
+    data: WEB-INF/faces-config.xml
+    signed: true
+  - name: $Flags
+    type: text
+    data: ~C4g
+  - name: $FlagsExt
+    type: text
+    data: w
+    signed: true
+  - name: $Revisions
+    type: time
+    data: "2021-06-30T09:44:12.79-05:00"
+    dst: true
+  - name: $TITLE
+    type: text
+    data: WEB-INF/faces-config.xml
+  - name: $FileData
+    type: composite
+    signed: true
+    nonsummary: true
+remaining: []

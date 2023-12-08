@@ -1,0 +1,330 @@
+---
+class: 512
+flags: 0x2000
+unid: OFE32DB968239DB583-ON007ADDB5862586DB
+items:
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: 34Qs
+  - name: $PublicAccess
+    type: text
+    data: "1"
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-05-20T17:22:04.72-05:00"
+        dst: true
+      - data: "2021-05-27T11:23:20.47-05:00"
+        dst: true
+      - data: "2021-06-30T21:57:32.48-05:00"
+        dst: true
+      - data: "2021-07-09T08:59:43.41-04:00"
+        dst: true
+      - data: "2021-07-09T09:01:57.55-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:04.02-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:46.06-04:00"
+        dst: true
+      - data: "2021-07-09T09:21:11.18-04:00"
+        dst: true
+      - data: "2021-08-17T13:55:02.58-05:00"
+        dst: true
+      - data: "2021-09-16T12:02:36.34-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:55.81-05:00"
+        dst: true
+  - name: $ScriptLib
+    type: text
+    data: |
+      '++LotusScript Development Environment:2:5:(Options):0:74
+      %REM
+         © Copyright HCL Company, 2021
+         
+      	Library PrettyPrinter
+      	Created by Andre Guirard
+      	Description: Code to reorganize XML data into a nicely indented, consistent format.
+      		This can also be done using XSL, but that doesn't seem to work reliably in Notes,
+      		and also this implementation, using DOM, makes sense for situations where you
+      		have the data parsed into a DOM tree anyway.
+      %END REM
+      Option Public
+      Option Declare
+      Use "DOMUtils"
+      Use "CommonUtil"
+      
+      
+      '++LotusScript Development Environment:2:5:(Forward):0:1
+      Declare Class PrettyPrinter
+      
+      '++LotusScript Development Environment:2:5:(Declarations):0:10
+      Class PrettyPrinter
+      	z_domd As NotesDOMDocumentNode
+      	z_placeholder As NotesDOMTextNode ' sometimes we need a node as temporary bookmark, create once and reuse.
+      	z_ind As String ' newline followed by a bunch of tabs.
+      	z_noIndentElements List As Integer
+      	
+      	Sub New(domp As NotesDOMParser, ByVal noIndentElements$)
+      		On Error Goto ERRHANDLE
+      		Set z_domd = domp.Document
+      		Set z_placeholder = z_domd.Createtextnode("placeholder")
+      		z_ind = NEWLINE & String(30, 9)
+      		Dim elems
+      		elems = FullTrim(Split(Noindentelements, ","))
+      		ForAll elem In elems
+      			z_noIndentElements(elem) = 1
+      		End ForAll
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub insertBefore
+      		Description: Insert a node before another node. The LotusScript
+      			DOM implementation doesn't directly support this, but we can punt.
+      	%END REM
+      	Private Sub insertBefore(noCur As NotesDOMNode, noNew As NotesDOMNode)
+      		Dim frag As NotesDOMDocumentFragmentNode, elPar As NotesDOMElementNode
+      		On Error Goto ERRHANDLE
+      		Set frag = z_domd.Createdocumentfragmentnode
+      		Set elPar = noCur.Parentnode
+      		elPar.Replacechild z_placeholder, noCur
+      		frag.Appendchild noNew
+      		frag.Appendchild noCur
+      		elPar.Replacechild frag, z_placeholder
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub insertIndent
+      		Description: Indent a node a specified number of levels on a new line,
+      			by inserting a text node before it, containing a newline and tabs. This
+      			is done only if there isn't already a preceding text node that we can
+      			append to. 
+      	%END REM
+      	Private Sub insertIndent(noCur As NotesDOMNode, Byval indent%)
+      		Dim txtTmp As NotesDOMTextNode
+      		On Error Goto ERRHANDLE
+      		Set txtTmp = z_domd.Createtextnode(Left$(z_ind, indent+1))
+      		insertBefore noCur, txtTmp
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub indentBefore
+      		Description: Given a node of unknown type, indent it to the current
+      			level by adding a text node before it or adjusting the value of a preceding
+      			text node, if there is one.
+      		Arguments:
+      				noCur: node to indent.
+      				indent: how many levels to indent (number of tabs)
+      	%END REM
+      	Private Sub indentBefore(noCur As NotesDOMNode, Byval indent%)
+      			Dim noTmp As NotesDOMNode
+      		On Error Goto ERRHANDLE
+      			Set noTmp = noCur.Previoussibling
+      			If noTmp.Isnull Then
+      				' first child of its parent
+      				insertIndent noCur, indent
+      			Elseif noTmp.Nodetype <> Domnodetype_text_node Then
+      				insertIndent noCur, indent
+      			Else
+      				' a text node: does it end with the indentation we need?
+      				TextIndentAfter noTmp, indent
+      			End If
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub TextIndentAfter
+      		Description: Passed a text node which has a following element that must be
+      			indented by a specified number of tabs, this function modifies the value
+      			of the text node, if necessary, so that it ends with the specified indentation.
+      		Arguments:
+      			textCur: the node whose value might need adjusting.
+      			indent: the number of tabs by which the following element should be adjusted.
+      	%END REM
+      	Private Sub TextIndentAfter(texCur As NotesDOMTextNode, Byval indent%)
+      		Dim szVal$, wantIndent$
+      		On Error Goto ERRHANDLE
+      		szval = texCur.nodeValue
+      		wantIndent = Left$(z_ind, indent+1)
+      		If Right(szVal, Len(wantIndent)) <> wantIndent Then
+      			' remove trailing spaces and tabs
+      			While Right$(szVal, 1) Like "[	 ]"
+      				szVal = Left$(szVal, Len(szVal)-1)
+      			Wend
+      			If Right(szVal, 1) = NEWLINE Then
+      				szVal = szVal & String(indent, 9)
+      			Else
+      				szVal = szVal & wantIndent
+      			End If
+      			texCur.nodevalue = szVal
+      		End If
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub processNode
+      		Description: make sure an element node is properly indented, then indent its contents.
+      		Arguments:
+      			el: the element node to indent.
+      			indent: the number of tabs by which that element should be indented.
+      		Retuns: True if there was any indenting action from this call (in which case the caller needs to indent its closing tag).
+      	%END REM
+      	Private function processNode(el As NotesDOMElementNode, Byval indent%, ByVal indentThis As Boolean) As Boolean
+      		' first, name sure the node itself is properly indented
+      		Dim noTmp As NotesDOMNode, wantIndent$, texval$, bPrettify As Boolean, nextIndent%
+      		On Error Goto ERRHANDLE
+      		bPrettify = (Not IsElement(z_noIndentElements(el.Nodename))) And el.Haschildnodes
+      		If indent > 0 And indentThis Then
+      			indentBefore el, indent ' make an indent before this element.
+      		End If
+      		' now, look at its children.
+      		Dim noNext As NotesDOMNode
+      		Set noTmp = el.Firstchild
+      		If Not noTmp.Isnull Then
+      			' there are some contents to indent.
+      			If bPrettify and (noTmp.Nodetype = Domnodetype_text_node Or noTmp.Nodetype = Domnodetype_cdatasection_node) Then
+      				' special case if there's -just- a text child: if there are not newlines in it, put it all on one line.
+      				Set noNext = noTmp.Nextsibling
+      				If noNext.Isnull Then
+      					texval = lstrip(rstrip(noTmp.Nodevalue)) ' remove leading/trailing whitespace and line breaks.
+      					'Print {texval=} & debugstr(texval) & { indent=} & indent
+      					If Len(texval) = 0 Then ' there was only whitespace in the text node -- toss it.
+      						el.Removechild noTmp
+      					Elseif Instr(texval, NEWLINE) = 0 Then ' single-line value; stick it inline. 
+      						noTmp.Nodevalue = texval
+      					Else	' multi-line value; adjust the last line to indent the closing element.
+      						noTmp.Nodevalue = NEWLINE & texval & Left$(z_ind, indent+1)
+      						processNode = True
+      					End If
+      					Exit function
+      				End If
+      			End If
+      			
+      			If bPrettify Then nextIndent = indent+1 Else nextIndent = indent
+      			
+      			' multiple children, so indent them.			
+      			wantIndent = Left$(z_ind, indent+2) ' this is the string we want to insert before each child.
+      			Do
+      				Set noNext = noTmp.nextsibling
+      				Select Case noTmp.Nodetype
+      				Case Domnodetype_element_node
+      					processNode = processNode Or ProcessNode(noTmp, nextIndent, bPrettify) ' recursively process elements.
+      				Case Domnodetype_text_node
+      					' if text doesn't already start with the indent sequence...
+      					If bPrettify then
+      						texval = noTmp.Nodevalue
+      						If Not texVal Like wantIndent & {[! 	]*} Then
+      							' strip leading whitespace and replace with indent sequence.
+      							noTmp.nodevalue = wantIndent & lstrip(texval)
+      							processNode = True
+      						End If
+      					end if
+      				Case DOMNODETYPE_CDATASECTION_NODE
+      					' CDATAs are not indented, but we insert a newline before.
+      					If bPrettify Or InStr(noTmp.Nodevalue, NEWLINE) > 0 Then
+      						indentBefore noTmp, 0
+      						processNode = True
+      					End If 
+      				Case Else
+      					indentBefore noTmp, indent+1
+      					processNode = True
+      				End Select
+      				Set noTmp = noNext
+      			Loop Until noTmp.isNull
+      		End If
+      		
+      		' now, make sure the last child is a text node ending with the proper indent
+      		' to precede the </element>.
+      		If indentThis And bPrettify And el.Haschildnodes Then ' And processNode Then
+      			Set noTmp = el.Lastchild
+      			If noTmp.Nodetype = Domnodetype_text_node Then
+      				TextIndentAfter noTmp, indent
+      			Else
+      				el.Appendchild z_domd.createtextnode(NEWLINE & String(indent, 9))
+      			End If
+      		End If
+      		Exit function
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Function lstrip
+      		Description: If the beginning of a string contains spaces/tabs , optionally newline,
+      			optionally more spaces/tabs, strip all that off.
+      	%END REM
+      	Private Function lstrip(Byval x$) As String
+      		On Error Goto ERRHANDLE
+      		Do While Left$(x, 1) Like "[ 	]"
+      			x = Mid$(x, 2)
+      		Loop
+      		If Left$(x, 1) = NEWLINE Then
+      			x = Mid$(x, 2)
+      		End If
+      		Do While Left$(x, 1) Like "[ 	]"
+      			x = Mid$(x, 2)
+      		Loop
+      		lstrip = x
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Function rstrip
+      		Description: If the end of a string contains spaces/tabs , optionally newline,
+      			optionally more spaces/tabs, strip all that off.
+      	%END REM
+      	Private Function rstrip(Byval x$) As String
+      		On Error Goto ERRHANDLE
+      		Do While Right$(x, 1) Like "[ 	]"
+      			x = Left$(x, Len(x)-1)
+      		Loop
+      		If Right$(x, 1) = NEWLINE Then
+      			x = Left$(x, Len(x)-1)
+      		End If
+      		Do While Right$(x, 1) Like "[ 	]"
+      			x = Left$(x, Len(x)-1)
+      		Loop
+      		rstrip = x
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Sub process
+      		Description: Format the root element of a DOM tree, and all its contents.
+      	%END REM
+      	Sub process
+      		On Error Goto ERRHANDLE
+      		processNode z_domd.Documentelement, 0, true
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      End Class
+    signed: true
+    nonsummary: true
+  - name: $TITLE
+    type: text
+    data: PrettyPrinter
+    signed: true
+remaining: []

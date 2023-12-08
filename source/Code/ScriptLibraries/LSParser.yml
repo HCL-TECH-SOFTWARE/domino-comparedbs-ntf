@@ -1,0 +1,1186 @@
+---
+class: 512
+flags: 0x2000
+unid: OFDED00DCDE4AAB04F-ON007ADDB3862586DB
+items:
+  - name: $Comment
+    type: text
+    data: Functions to parse LotusScript code in a DOM node or design element.
+    signed: true
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.4
+    signed: true
+  - name: $Flags
+    type: text
+    data: s34Q
+  - name: $PublicAccess
+    type: text
+    data: "1"
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-05-20T17:22:04.58-05:00"
+        dst: true
+      - data: "2021-05-27T11:23:20.39-05:00"
+        dst: true
+      - data: "2021-06-30T21:57:32.34-05:00"
+        dst: true
+      - data: "2021-07-09T08:59:43.24-04:00"
+        dst: true
+      - data: "2021-07-09T09:01:57.38-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:03.85-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:45.87-04:00"
+        dst: true
+      - data: "2021-07-09T09:21:10.99-04:00"
+        dst: true
+      - data: "2021-08-13T08:06:36.55-05:00"
+        dst: true
+      - data: "2021-08-13T08:06:36.57-05:00"
+        dst: true
+      - data: "2021-08-13T14:01:00.08-05:00"
+        dst: true
+      - data: "2021-08-13T14:01:00.13-05:00"
+        dst: true
+      - data: "2021-08-17T13:55:02.44-05:00"
+        dst: true
+      - data: "2021-09-16T12:02:36.18-05:00"
+        dst: true
+      - data: "2021-09-27T12:04:01.15-05:00"
+        dst: true
+      - data: "2021-09-27T12:04:01.18-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:55.68-05:00"
+        dst: true
+      - data: "2021-09-27T22:33:22.28-05:00"
+        dst: true
+      - data: "2021-11-11T16:12:09.39-06:00"
+      - data: "2021-11-11T16:12:09.44-06:00"
+      - data: "2021-11-29T13:28:31.20-05:00"
+      - data: "2021-11-29T13:28:31.21-05:00"
+      - data: "2021-11-29T14:01:01.86-05:00"
+  - name: $ScriptLib
+    type: text
+    data: |
+      '++LotusScript Development Environment:2:5:(Options):0:74
+      %REM
+      	Library LSParser
+      	Created by Andre Guirard
+      	Description: A parser for LotusScript code, written in LotusScript.
+      	© Copyright HCL Company, 2021
+      %END REM
+      Option Public
+      Option Declare
+      Use "ObjectListLite"
+      Use "DOMUtils"
+      Use "CommonUtil"
+      Use "lsconst"
+      
+      '++LotusScript Development Environment:2:5:(Forward):0:1
+      Declare Class LSPartBase
+      Declare Class LSPart As LSPartBase
+      Declare Class LSGrouping As LSPart
+      Declare Class LSModule As LSGrouping
+      Declare Class LSType As LSGrouping
+      Declare Class LSClass As LSGrouping
+      Declare Class LSDesignElementScript As LSPart
+      Declare Class LSLine As LSPartBase
+      Declare Class LSCodeLine As LSLine
+      Declare Class LSComment As LSLine
+      Declare Sub Initialize
+      
+      '++LotusScript Development Environment:2:5:(Declarations):0:10
+      
+      Private Const LINEMORE = {_
+      }
+      Private Const LSKEYWORDS = _
+      {ACos ASin ATn ATn2 Abs ActivateApp And ArrayAppend ArrayGetIndex ArrayReplace ArrayUnique Asc Base Beep Bin
+      Boolean ByVal Byte CBool CByte CCur CDat CDbl CInt CLng CSng CStr CVar Call ChDir ChDrive Chr Class Close CodeLock
+      CodeLockCheck CodeUnlock Command Compare Const Cos CreateLock CreateObject CurDir CurDrive Currency DataType
+      Date DateNumber DateValue Day Declare Delete DestroyLock Dim Dir Do Double Else ElseIf End Error Event False
+      FileDateTime FileLen ForAll FreeFile FullTrim Function Get GetThreadInfo GoSub GoTo IMESetMode IMEStatus If Implode InStr InStrB InStrBP InStrC
+      Initialize Input InputB InputBP InputBox Int Integer IsArray IsDate IsElement IsEmpty IsList IsNull IsNumeric
+      IsObject IsScalar IsUnknown Join Kill LBound LCase LOC LOF LSet LTrim Left LeftB LeftBP LeftC Len LenB LenBP
+      LenC Let Like Line ListTag Lock Log Long MessageBox Mid MidB MidBP MidC Minute MkDir Mod Month MsgBox Name New Next NotesDatabase
+      NotesDocument NotesItem NotesUIDocument NotesUIWorkspace Now Oct On Open Option Or Print Private Property Public Put RSet
+      RTrim Randomize ReDim Rem Replace Reset Resume Return Right RightB RightBP RightC RmDir Rnd Round Run Second
+      Seek Select Case SendKeys Set SetFileAttr Sgn Shell Sin Single Sleep Space Spc Split Sqr Stop Str StrCompare
+      StrConv StrLeft StrLeftBack StrRight StrRightBack StrToken String Sub Tab Tan Terminate Then Time TimeNumber
+      TimeValue Timer Today Trim True Type TypeName UBound UCase UChr UString Uni Unlock Use UseLSX Val Variant
+      Weekday While Width With Write Year Yield}
+      Private GKEYWORDS List As String
+      
+      
+      %REM
+      	Class LSPartBase
+      	Description: Any bit of LotusScript code, either a line or a larger chunk
+      		like a module or class or type definition.
+      %END REM
+      Class LSPartBase
+      	Public parent As LSPartBase
+      	z_dirty As Boolean
+      	z_startline As Long
+      	
+      	%REM
+      		Sub SetDirty
+      		Description: Flag this code as having been modified.
+      	%END REM
+      	Sub SetDirty
+      		If Not z_dirty Then
+      			z_dirty = True
+      			If Not (parent Is Nothing) Then
+      				parent.SetDirty
+      			End If
+      		End If
+      	End Sub
+      	
+      	Public Property Get isDirty As Boolean
+      		isDirty = z_dirty
+      	End Property
+      	
+      	%REM
+      		SET isDirty
+      		Description: Flag that this section of code has been modified since loading.
+      	%END REM
+      	Public Property Set isDirty As Boolean
+      		If isDirty Then
+      			SetDirty
+      		ElseIf z_dirty Then
+      			z_dirty = False
+      			Dim oo As ObjectListLite
+      			Set oo = Elements 
+      			Dim abp As LSPartBase
+      			Set abp = oo.first
+      			Do Until abp Is Nothing
+      				abp.isDirty = False
+      				Set abp = oo.next
+      			Loop
+      		End If
+      	End Property
+      	
+      	Public Property Get Elements As ObjectListLite
+      	End Property
+      	
+      	Public Property Get Text As String
+      	End Property
+      		
+      	Public Property Get isBlank As Boolean
+      		isBlank = True
+      	End Property
+      	
+      	Public Property Get stripped As String
+      	End Property
+      	
+      	%REM
+      		GET isExecutable
+      		Description: for identifying parts of code which are just comments or declarative.
+      	%END REM
+      	Public Property Get isExecutable As Boolean
+      		isexecutable = True
+      	End Property
+      	
+      	%REM
+      		Sub StandardizeKeywords
+      		Description: Scan the code looking for LS keywords that aren't in a comment or quoted string, and standardize their capitalization (like it the code were
+      			pasted or typed afresh)
+      		Arguments:
+      	%END REM
+      	Sub StandardizeKeywords
+      		Dim oo As ObjectListLite
+      		Set oo = Elements
+      		If oo Is Nothing Then Exit Sub
+      		Dim abp As LSPartBase
+      		Set abp = oo.first
+      		Do Until abp Is Nothing
+      			abp.StandardizeKeywords
+      			Set abp = oo.next
+      		Loop
+      	End Sub
+      End Class
+      
+      
+      %REM
+      	Class LSPart
+      	Description: A chunk of LotusScript code comprising a logical unit; a function, sub, class,
+      		section, line, etc. Derived classes for these.
+      %END REM
+      Class LSPart As LSPartBase
+      	subparts As ObjectListLite
+      	Public Title As String
+      	
+      	Public Property Get Elements As ObjectListLite
+      		If subparts Is Nothing Then
+      			Set subparts = New ObjectListLite
+      			subparts.OwnObjects = True
+      		End If
+      		Set elements = subparts
+      	End Property
+      	
+      	%REM
+      		Sub AddPart
+      		Description: Adds a part to the end
+      	%END REM
+      	Sub AddPart(part As LSPartBase)
+      		Elements.Append part
+      		Set part.parent = Me
+      	End Sub
+      	
+      	%REM
+      		Function addLine
+      		Description: Adds a line to the end, returns True if this line ends the part.
+      	%END REM
+      	Function addLine(aline As LSLine) As Boolean
+      		Elements.Append aline
+      		Set aline.parent = Me
+      		addLine = LineEndsMe(Aline)
+      	End Function
+      	
+      	%REM
+      		Sub Merge
+      		Description: Adds 'part' as a subcomponent of this entity.
+      	%END REM
+      	Sub Merge(part As LSPartBase)
+      		Set part.parent = Me
+      		Call subparts.AddAt(0, part)
+      	End Sub
+      	
+      	%REM
+      		Property Text
+      		Description: Returns the text of this LotusScript
+      	%END REM
+      	Public Property Get Text As String
+      		Dim aPart As LSPartBase, i%
+      		Set aPart = subparts.First
+      		If Not (aPart Is Nothing) Then
+      			me.Text = aPart.Text
+      			Set aPart = subparts.Next
+      			Do Until aPart Is Nothing
+      				me.Text = me.Text & NEWLINE & aPart.Text
+      				Set aPart = subparts.Next
+      			Loop
+      		End If
+      	End Property
+      	
+      	Public Property Get stripped As String
+      		Dim aPart As LSPartBase, i%
+      		Set aPart = subparts.First
+      		If Not (aPart Is Nothing) Then
+      			me.stripped = aPart.stripped
+      			Set aPart = subparts.Next
+      			Do Until aPart Is Nothing
+      				stripped = stripped & NEWLINE & aPart.stripped
+      				Set aPart = subparts.Next
+      			Loop
+      		End If
+      	End Property
+      
+      	%REM
+      		Function LineEndsMe
+      		Description: Returns True if the line is the ending line of the current entity.
+      	%END REM
+      	Function LineEndsMe(aLine As LSLine) As Boolean
+      		' base class returns default False.
+      	End Function
+      	
+      	%REM
+      		Sub Parse
+      		Description: Populate this object from a chunk of code thas comes from a <lotusscript> DXL element.
+      	%ENDREM
+      	Sub Parse(codeblock$)
+      		Dim state%
+      		' 0=base state
+      		' 1=following whitespace
+      		' 2=after %end rem
+      		' 3=saw &, not sure whether operator.
+      		' 4=in word
+      		' 5=in a non-word token like 45 or &h10
+      		' 6=in number exponent looking for +-digit
+      		' 7=in number exponent looking for digit only
+      		' 8 in hex number
+      		' 20=in quotes of any kind (seeking eq as end quote)
+      		' 22=in %rem,
+      		' 23=sighted _
+      		Dim curLine$, pos%, lines, curPart As LSPart, i%, mline$, mStrip$, mlabel$, stripped$, iscont As Boolean
+      		Dim c$, k%, eq$, epos%
+      		lines = Split(codeblock, NEWLINE)
+      		Set curPart = Me
+      		For i = 0 To UBound(lines)
+      			curLine = lines(i)
+      			If iscont Then ' continued from previous.
+      				mline = mline & NEWLINE & curline
+      				If state = 20 Then
+      					mstrip = mstrip & NEWLINE ' if in quotes the newline is part of the string
+      				ElseIf state = 23 Then ' following line continuation char
+      					If Len(mstrip) > 0 And Right$(mstrip, 1) <> " " Then
+      						mstrip = mstrip & " "
+      					End If
+      					state = 1
+      				ElseIf state = 22 Then ' looking for end rem
+      					stripped = UCase(LTrim(Replace(curLine, TABB, " ")))
+      					If stripped = "%END REM" Or stripped = "%ENDREM" _
+      					Or stripped Like "%END REM *" Or stripped Like "%ENDREM *" Then
+      						state = 2
+      						GoTo doneLine
+      					Else
+      						GoTo nextline
+      					End If
+      				End If
+      			Else ' start of new statement
+      				state = 1
+      				mline = curline
+      				mstrip = ""
+      				mlabel = ""
+      				If InStr(1, curline, "REM", 1) Then
+      					stripped = UCase(LTrim(Replace(curLine, TABB, " ")))
+      					If stripped Like "%REM*" Then
+      						state = 22
+      						iscont = True
+      						GoTo nextline
+      					ElseIf stripped Like "REM *" Then
+      						' remark statement
+      						state = 2
+      						GoTo doneLine
+      					End If
+      				End If
+      				If Not (curLine Like {*[|{"_:']*}) Then ' no special chars
+      					mstrip = FullTrim(Replace(LCase(curline), TABB, " "))
+      					GoTo doneLine
+      				End If
+      			End If
+      			
+      			' now build the stripped line and scan to tell whether the line continues.
+      			epos = 0
+      			For k = 1 To Len(curLine)
+      				If state = 20 Then ' inside of quotes.
+      					pos = k-2
+      					' search from current char to find end quote (eq) not followed by another eq.
+      					Do
+      						pos = InStr(pos+2, curLine, eq)
+      						If pos = 0 Then Exit Do
+      					Loop While Mid$(curLine, pos+1, 1) = eq
+      					If pos > 0 Then ' quotes end before end of line
+      						c = Mid$(curLine, k, pos+1-k)
+      						k = pos ' resume scan with next char after close quote.
+      						state = 0
+      					Else ' grab rest of line and move pointer to end.
+      						c = Mid$(curLine, k)
+      						k = Len(curLine)
+      					End If
+      				Else ' not in quotes
+      					c = LCase(Mid$(curLine, k, 1))
+      					If c = {'} Then ' start of comment.
+      						If Len(mstrip) = 0 Then state = 2 ' comment is the whole line.
+      						Exit For
+      					ElseIf InStr(" 	", c) Then ' change tab to space and eliminate duplicate whitespace
+      						If state = 1 Then c = "" Else c = " "
+      						state = 1
+      					ElseIf c = "_" Then	' line continuation character
+      						If state <> 4 Then  ' always unless we're in a name.
+      							state = 23
+      							epos = k-1 ' stripped data ends here.
+      							Exit For
+      						End If
+      					ElseIf c = ":" Then ' label
+      						mlabel = Trim(mstrip)
+      						If mlabel Like "[a-z]*" And Not mlabel Like "*[!a-z0-9_]*" Then
+      							' it is a label; the label name isn't part of the stripped line.
+      							mstrip = ""
+      							c = ""
+      							state = 1
+      						Else
+      							mlabel = "" ' not a label after all
+      							state = 0
+      						End If
+      					ElseIf InStr("""{|", c) Then
+      						' a quote of some sort
+      						If c = "{" Then eq = "}" Else eq = c
+      						state = 20
+      					Else
+      						Select Case state
+      						Case 4, 8 ' in a word/identifier or hex number
+      							If Not (c Like "[a-z0-9]") Then
+      								state = 0
+      							End If
+      							
+      						Case 0, 1
+      							If c Like "[a-z]" Then ' start of identifier or word
+      								state = 4
+      							ElseIf InStr(".-0123456789", c) Then
+      								state = 5
+      							ElseIf c = "&" Then
+      								state = 3
+      							Else
+      								state = 0 ' whatever this is (operator?), go to default state.
+      							End If
+      
+      						Case 3 ' saw an &
+      							Select Case c
+      							Case "h"
+      								state = 8
+      							Case "o"
+      								state = 7
+      							Case Else
+      								state = 0
+      							End Select
+      							
+      						Case 5 ' in a number
+      							If c = "e" Then
+      								state = 6
+      							ElseIf Not (c Like "[0-9.])") Then
+      								state = 0
+      							End If
+      							
+      						Case 6 ' looking for +/- exponent
+      							If InStr("+-", c) Then
+      								state = 7
+      							ElseIf Not (c Like "#") Then
+      								state = 0
+      							End If
+      							
+      						Case 7: ' looking for digits only.
+      							If Not (c Like "#") Then
+      								state = 0
+      							End If
+      						End Select
+      					End If
+      				End If
+      					
+      				mstrip = mstrip & c
+      			Next
+      			mstrip = Trim(mstrip)
+      			
+      			If state < 20 Then ' we have a complete line
+      doneLine:
+      				Dim nuStatement As LSLine
+      				Dim lBlock As LSPart
+      				
+      				If state = 2 Then ' a comment statement
+      					Set nuStatement = New LSComment(mLine)
+      					nuStatement.label = mlabel
+      					curPart.AddPart nuStatement
+       				Else
+      					' look for statements that begin sub-blocks
+      					Set nuStatement = New lsCodeLine(mLine, mstrip)	
+      					nuStatement.label = mlabel
+      					If Len(mstrip) Then
+      						If Left(mstrip, 7) = "public " Or Left(mstrip, 8) = "private " Then
+      							mstrip = LTrim(StrRight(mstrip, " "))
+      						End If
+      						Select Case StrToken(mstrip, " ", 1)
+      						Case "class"
+      							Set lBlock = New LSClass(StrToken(mstrip, " ", 2))
+      						Case "sub", "function", "property"
+      							Set lBlock = New LSModule(mstrip)
+      						Case "type"
+      							Set lBlock = New LSType
+      						End Select
+      					End If
+      					If Not (lblock Is Nothing) Then
+      						If curPart IsA "LSMODULE" Then
+      							Error 23445, "Illegal nesting inside module: " & curPart.Elements.First.strippednaked
+      						End If
+      						lblock.AddPart nuStatement
+      						curPart.AddPart lblock
+      						Set curPart = lblock
+      						Set lblock = Nothing
+      					Else
+      						If curPart.addLine(nuStatement) Then
+      							' that was the end statement for whatever we were in.
+      							Set curPart = curPart.parent
+      						End If
+      					End If
+      				End If
+      				iscont = False
+      			Else ' adding on to line
+      				iscont = True
+      			End If
+      nextline:
+      		Next
+      		
+      	End Sub
+      	
+      	%REM
+      		Sub AddErrorTrapping
+      		Description: Recurse thru a structure of code and add error trapping to each module.
+      			Since LSMODULE overrides this method we don't recurse below that level, but we might
+      			contain classes which contain modules so we have to dig into each class.
+      	%END REM
+      	Sub AddErrorTrapping
+      		On Error GoTo oops
+      		Dim pb As LSPartBase
+      		If subparts Is Nothing Then Exit Sub
+      		Set pb = subparts.First
+      		Do Until pb Is Nothing
+      			If pb IsA "LSPART" Then
+      				Dim part As LSPart
+      				Set part = pb
+      				part.addErrorTrapping
+      			End If
+      			Set pb = subparts.Next
+      		Loop
+      		Exit Sub
+      oops:
+      		Error Err, Error & " //" & TypeName(Me) & "." & GetThreadInfo(1) & ":" & Erl
+      	End Sub
+      	
+      	Function NoResumeList As String
+      		Dim lParts As ObjectListLite, apb As LSPartBase, aPart As LSPart
+      		Set lParts = elements
+      		Dim i%, tmp$, rv$
+      		For i = 0 To lparts.Count-1
+      			Set apb = lparts.getitem(i)
+      			If apb IsA "lspart" Then
+      				Set aPart = apb
+      				tmp = aPart.NoResumeList
+      				If Len(tmp) Then
+      					rv = rv & NEWLINE & tmp
+      				End If
+      			End If
+      		Next
+      		If Len(rv) Then
+      			If title = "" Then
+      				NoResumeList = Mid$(rv, 2)
+      			Else
+      				Dim bContents As Boolean
+      				If InStr(2, rv, NEWLINE) Or Me IsA "lsclass" Then
+      					bContents = True
+      				ElseIf StrComp(StrToken(Title, " ", -1), StrToken(rv, " ", -1), 1) Then
+      					bContents = True
+      				End If
+      				If bContents Then
+      					NoResumeList = Title & Replace(rv, NEWLINE, NEWLINE & TABB)
+      				Else
+      					NoResumeList = Title
+      				End If
+      			End If
+      		End If
+      	End Function
+      	
+      	Sub Delete
+      		On Error Resume Next
+      		Delete subparts
+      	End Sub
+      End Class
+      %REM
+      	Class LSGrouping
+      	Description: A multi-line statement such as while ... wend
+      %END REM
+      Class LSGrouping As LSPart
+      	z_endPattern As String
+      	
+      	Sub New(endPattern$)
+      		z_endPattern = LCase(endPattern)
+      	End Sub
+      	
+      	%REM
+      		Function LineEndsMe
+      		Description: Does this line match the pattern that calls for the end of the grouping?
+      			i.e. generally an "End" statement.
+      	%END REM
+      	Function LineEndsMe(aLine As LSLine) As Boolean
+      		If aLine IsA "LSCODELINE" Then
+      			LineEndsMe = LCase(aLine.strippedNaked) Like z_endPattern
+      		End If
+      	End Function
+      	
+      	%REM
+      		Function ExistsLabel
+      		Description: return True if the module contains a label with a given name.
+      	%END REM
+      	Private Function ExistsLabel(ByVal labelname$) As Boolean
+      		Dim apb As LSPartBase, gru As LSGrouping, aline As LSLine
+      		Set apb = subparts.First
+      		labelname = LCase(labelname)
+      		Do Until apb Is Nothing
+      			If apb IsA "LSGROUPING" Then ' recurse into indented statement groups
+      				Set gru = apb
+      				If gru.ExistsLabel(labelName) Then
+      					ExistsLabel = True
+      					Exit Function
+      				End If
+      			ElseIf apb IsA "LSLINE" Then
+      				Set aline = apb
+      				If StrComp(aline.Label, labelName, 1) = 0 Then
+      					ExistsLabel = True
+      					Exit Function
+      				End If 
+      			End If
+      			Set apb = subparts.Next
+      		Loop
+      	End Function
+      End Class
+      
+      
+      %REM
+      	Class LSModule
+      	Description: A function, sub or property.
+      %END REM
+      Class LSModule As LSGrouping
+      	Sub New(ByVal firstline As String), LSGrouping("end " + StrLeft(firstline, " "))
+      		me.Title = StrToken(firstline, "(", 1)
+      	End Sub
+      	
+      	%REM
+      		Function FirstLine
+      		Description: Return the first code line, in this case the Sub, Function or Property
+      			statement that begins the module.
+      	%END REM
+      	Function FirstLine As lsCodeLine
+      		Set FirstLine = elements.first
+      	End Function
+      	
+      	%REM
+      		Function FirstExecutable
+      		Description: Return the first line of the module that contains executable
+      			code (not just comments, blank, or declarations. A declaration
+      			line that includes an assignment (dim x as new whatever) is executable. 
+      	%END REM
+      	Function FirstExecutable As LSPartBase
+      		Dim aLine As LSLine, apb As LSPartBase
+      		Set apb = subparts.getitem(1) ' 2nd line
+      		Do Until apb Is Nothing
+      			If apb.isexecutable Then
+      				Set firstExecutable = apb
+      				Exit Function
+      			End If
+      			Set apb = subparts.next
+      		Loop
+      	End Function
+      	
+      	%REM
+      		Function PartIsErrorTrap
+      		Description: Return True if a statement is of the form 'on error resume...'
+      			or 'on error goto ..."
+      	%END REM
+      	Private Function PartIsErrorTrap(aLine As LSPartBase) As Boolean
+      		If aLine IsA "LSCODELINE" Then
+      			Dim ktext$, code As LSCodeLine
+      			Set code = aLine
+      			ktext = code.strippednaked
+      			If ktext = "on error resume next" Or ktext Like "on error goto *" Then
+      				PartIsErrorTrap = True
+      			End If
+      		End If
+      	End Function
+      	
+      	Public Sub insertLineBefore(newLine As LSPartBase, anotherLine As LSPartBase)
+      		Dim pos As Long
+      		pos = 0
+      		Do Until subparts.getitem(pos) Is anotherLine
+      			pos = pos + 1
+      		Loop
+      		subparts.AddAt pos, newLine
+      	End Sub
+      	
+      	%REM
+      		Sub AddErrorTrapping
+      		Description: Add standard error trapping code to module.
+      	%END REM
+      	Sub AddErrorTrapping
+      		Dim apb As LSPartBase
+      		Set apb = FirstExecutable
+      		If apb Is subparts.Last Then Exit Sub ' no executable statements.
+      		If Not PartIsErrorTrap(apb) Then
+      			' module doesn't already trap errors as first executable line.
+      			Dim labelName$, codeline$, indent$, inclass As Boolean
+      			If Not ExistsLabel("ERRHANDLE") Then
+      				labelName = "ERRHANDLE"
+      			Else
+      				Dim i%
+      				For i = 0 To 1000
+      					labelName = "ERRHANDLE" & i
+      					If Not ExistsLabel(labelname) Then Exit For
+      				Next
+      			End If
+      			inclass = me.parent IsA "LSCLASS"
+      			If inclass Then indent = String(2, 9) Else indent = Chr$(9)
+      			codeline = "On Error Goto " & labelname
+      			Dim throwline As New LSCodeLine(indent & codeline, LCase(codeline))
+      			me.insertLineBefore throwline, apb
+      			Set apb = subparts.Last
+      			Dim wword$, lline$, eline$
+      			wword = StrRight(me.z_endPattern, " ")
+      			eline = "Exit " & wword
+      			
+      			If inclass Then
+      				' in a class, because the line numbers are relative to the top of the Declarations section,
+      				' we provide both the error line number and the offset of the error line from this line
+      				' (a negative number, so the output will be " //Class.Module:778-12" for instance.
+      				lline = |Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-GetThreadInfo(0))|
+      			Else
+      				lline = |Error Err, Error & { //} & GetThreadInfo(1) & {:} & Erl|
+      			End If
+      			Dim exitline As New LSCodeLine(indent & eline, LCase(eline))
+      			Dim trapline As New LSCodeLine(labelname & ":" & NEWLINE & indent & lline, LCase(lline))
+      			trapline.label = labelname
+      			Dim atLine As Long
+      			atLine = subparts.Count-1 ' the 'end sub' or whatever.
+      			Dim penult As LSPartBase, addExit As Boolean
+      			addExit = True
+      			Set penult = subparts.GetItem(atline-1)
+      			If penult IsA "lscodeline" Then
+      				Dim aLine As LSCodeLine
+      				Set aline = penult
+      				If StrComp(aline.strippedNaked, eline, 1) = 0 Then
+      					addExit = False ' already have 'exit whatever'
+      				End If
+      			End If
+      			If addExit Then
+      				subparts.AddAt atLine, exitLine
+      				atLine = atLine + 1
+      			End If
+      			subparts.AddAt atLine, trapline
+      			SetDirty
+      		End If
+      	End Sub
+      	
+      	%REM
+      		Function NoResume
+      		Description: Return True if the module is a risk of throwing a No Resume error.
+      	%END REM
+      	Function NoResume As Boolean
+      		Dim apb As LSPartBase, aLine As LSCodeLine
+      		Set apb = subparts.getitem(1) ' 2nd line
+      		Do Until apb Is Nothing
+      			If apb.stripped Like "on error goto *" Or apb.stripped Like "on error * goto *" Then
+      				Dim i%
+      				For i = subparts.Count-2 To 2 Step -1
+      					Set apb = subparts.Getitem(i)
+      					If apb IsA "LSCodeLine" Then
+      						Set aLine = apb
+      						If Not aline.isBlank Then
+      							NoResume = Not aline.isErrorHandlerEnd
+      							Exit Function
+      						End If
+      						If aLine.label <> "" Then
+      							NoResume = True
+      						End If
+      					End If
+      				Next
+      				Exit Function
+      			End If
+      			Set apb = subparts.next
+      		Loop
+      	End Function
+      	
+      	%REM
+      		Function NoResumeList
+      		Description: Return a list of modules in this part that have a potential
+      			"no resume" problem. Use NL as delimiter.
+      	%END REM
+      	Function NoResumeList As String
+      		If NoResume Then
+      			NoResumeList = me.Title
+      		End If
+      	End Function
+      End Class
+      %REM
+      	Class LSType
+      	Description: TODO
+      %END REM
+      Class LSType As LSGrouping
+      	Sub New(), LSGrouping("end type")
+      	End Sub
+      End Class
+      %REM
+      	Class LCClass
+      	Description: Represents a class
+      %END REM
+      Class LSClass As LSGrouping
+      	Sub New(ByVal className$), LSGrouping("end class")
+      		me.Title = "Class " & className
+      	End Sub
+      	
+      	Function NoResumeList As String
+      		Dim rv$, tmp$, i%
+      		Dim ap As LSPartBase, aMod As LSModule
+      		Dim parts As ObjectListLite
+      		Set parts = elements
+      		For i = 0 To parts.count-1
+      			Set ap = parts.getitem(i)
+      			If ap IsA "lsmodule" Then
+      				Set aMod = ap
+      				If aMod.NoResume Then
+      					Stop
+      					rv = rv & NEWLINE & aMod.Title
+      				End If
+      			End If
+      		Next
+      		If Len(rv) Then
+      			NoResumeList = me.title & Replace(rv, NEWLINE, NEWLINE & TABB)
+      		End If 
+      	End Function
+      End Class
+      %REM
+      	Class LSDesignElementScript
+      	Description: Represents all the LotusScript in one design element.
+      %END REM
+      Class LSDesignElementScript As LSPart
+      	z_nlScripts As NotesDOMNodeList
+      	z_domp As NotesDOMParser
+      	z_domdoc As NotesDOMDocumentNode
+      	z_elRoot As NotesDOMElementNode
+      	z_db As NotesDatabase
+      	z_docMod As Variant
+      	z_docElem As NotesDocument
+      	
+      	Sub New(docElem As NotesDocument)
+      		On Error GoTo oops
+      		Dim ses As New NotesSession
+      		Dim dxle As NotesDXLExporter
+      		Dim elScript As NotesDOMElementNode, elParent As NotesDOMElementNode, tx As NotesDOMTextNode
+      		
+      		me.title = Join(docElem.Getitemvalue("$TITLE"), " | ")
+      		Set z_db = docElem.Parentdatabase
+      		z_docmod = docElem.Lastmodified
+      		Set z_docElem = docElem
+      		Set z_domp = ses.Createdomparser()
+      		Set dxle = ses.Createdxlexporter(docElem, z_domp)
+      		z_domp.Inputvalidationoption = VALIDATE_NEVER
+      		dxle.Process
+      		Set z_domdoc = z_domp.Document
+      		Set z_elRoot = z_domdoc.Documentelement
+      		Set z_nlScripts = z_elRoot.Getelementsbytagname("lotusscript")
+      		Dim i%, CodeText$, bAdd As Boolean
+      		For i = 1 To z_nlScripts.Numberofentries
+      			bAdd = True
+      			Set elScript = z_nlScripts.Getitem(i)
+      			CodeText = DU_GetTextFromNodeInclCDATA(elScript)
+      			Dim part As New LSPart
+      			part.Parse CodeText
+      			Set elParent = elScript.Parentnode
+      			If elParent.Nodename = "code" Then
+      				If part.title = "" Then part.Title = elParent.Getattribute("event")
+      				Set elParent = elParent.Parentnode
+      				Select Case elParent.Nodename
+      				Case "global"
+      					part.title = "GLOBAL : " & part.title
+      				Case "button"
+      					Set tx = DU_GetTextChild(elParent)
+      					If tx Is Nothing Then
+      						part.title = "BUTTON (untitled): " & part.title
+      					Else
+      						part.title = "BUTTON '" & tx.NodeValue & "': " & part.title
+      					End If
+      				Case "action"
+      					If elParent.Parentnode.Nodename = "sharedactionref" Then
+      						bAdd = False
+      					Else
+      						part.title = "ACTION '" & elParent.Getattribute("title") & "': " & part.Title
+      					End If
+      				Case "agent", "scriptlibrary", "databasescript"
+      					part.title = ""
+      				Case Else
+      					part.title = UCase$(elParent.Nodename) & " " & part.title
+      			End Select
+      			End If
+      			If bAdd Then me.AddPart part
+      		Next
+      		Exit Sub
+      oops:
+      		Error Err, Error & " //" & TypeName(Me) & "." & GetThreadInfo(1) & ":" & Erl
+      	End Sub
+      	
+      	%REM
+      		Property Name
+      		Description: Name of design element.
+      	%END REM
+      	Public Property Get Name As String
+      		me.Name = z_elRoot.Getattribute("name")
+      	End Property
+      	
+      	
+      	%REM
+      		Sub rename
+      		Description: Change the name of the design element (so that you can
+      			"save" it (reimport) as a copy. 
+      	%END REM
+      	Sub rename(ByVal newName$, ByVal newAlias$)
+      		z_elRoot.Setattribute "name", newName
+      		z_elRoot.Setattribute "alias", newAlias
+      		Dim noteinfo As NotesDOMElementNode
+      		Set noteinfo = DU_GetChildNamed("noteinfo", z_elRoot)
+      		z_elRoot.Removechild noteinfo
+      		SetDirty
+      	End Sub
+      	
+      	%REM
+      		Function Save
+      		Description: Return True if save was done (false means no changes were made since loading)
+      	%END REM
+      	Function Save As Boolean
+      		On Error GoTo oops
+      		If z_dirty Then
+      			Dim i%, aPart As LSPart, elScript As NotesDOMElementNode, elText As NotesDOMTextNode
+      			For i = 0 To subparts.Count-1
+      				Set aPart = subparts.Getitem(i)
+      				If aPart.isDirty Then
+      					Set elScript = z_nlScripts.Getitem(i+1)
+      					DU_ReplaceText z_domdoc, elScript, aPart.text, False
+      				End If
+      			Next
+      			Dim stream As NotesStream, ses As New NotesSession
+      			Set stream = ses.Createstream
+      			z_domp.Setoutput stream
+      			z_domp.serialize
+      			Dim dxli As NotesDXLImporter
+      			Set dxli = ses.Createdxlimporter(stream, z_db)
+      			dxli.Inputvalidationoption = Validate_never
+      			dxli.Designimportoption = DXLIMPORTOPTION_REPLACE_ELSE_CREATE
+      			dxli.Process
+      			Dim plog$
+      			plog = FullTrim(StrLeft(StrRight(dxli.Log, {<DXLImporterLog>}), {</DXLImporterLog>}))
+      			If Len(plog) Then
+      				Stop
+      				Error 28880, "Log contains errors."
+      			End If
+      			If Not (z_docElem Is Nothing) Then
+      				Delete z_docElem
+      			End If
+      			Set z_docElem = z_db.Getdocumentbyid(dxli.Getfirstimportednoteid)
+      			z_docElem.Sign
+      			z_docElem.Save True, False, True
+      			save = (Len(plog) = 0)
+      			isDirty = False
+      		End If
+      		Exit Function
+      oops:
+      		Dim spareDat$, parts, k%
+      		If Not (dxli Is Nothing) Then
+      			If dxli.log <> "" Then
+      				parts = Split(dxli.Log, "<")
+      				For k = 1 To UBound(parts)
+      					parts(k) = StrRight(parts(k), ">")
+      				Next
+      				spareDat = " (" & Replace(Join(parts, ""), NEWLINE, "") & ")"
+      			End If	
+      		End If
+      		Error Err, Error & " //" & TypeName(Me) & "." & GetThreadInfo(1) & ":" & Erl & spareDat
+      	End Function
+      End Class
+      
+      %REM
+      	Class LSLine
+      	Description: A single line of code, either comment or otherwise.
+      %END REM
+      Class LSLine As LSPartBase
+      	Public lineText As String
+      	Public label As String
+      	
+      	Public Property Get Text As String
+      		me.Text = lineText
+      	End Property
+      	
+      	%REM
+      		GET strippedNaked
+      		Description: the line text without the label.
+      	%END REM
+      	Public Property Get strippedNaked As String
+      	End Property
+      	
+      	Public Property Get stripped As String
+      		If Len(label) Then
+      			stripped = label & ": " & strippedNaked
+      		Else
+      			stripped = strippedNaked
+      		End If
+      	End Property
+      End Class
+      
+      %REM
+      	Class LSCodeLine
+      	Description: A single line of code, not comment (may be blank).
+      %END REM
+      Class LSCodeLine As LSLine
+      	
+      	Public strippedText As String
+      	
+      	%REM
+      		Sub New
+      		Description: the fullLine is the original source line, which may contain extra
+      			spacing, comments, line continuation characters, and a mix of cases. strippedLine
+      			if the "essential" code line in lowercase, without comments, to be used in comparisons.
+      	%END REM
+      	Sub New(fullline$, strippedline$)
+      		lineText = fullline
+      		strippedText = strippedline
+      	End Sub
+      	
+      	%REM
+      		GET stripped
+      		Description: Return a version of the string with comments stripped
+      			and all words converted to lowercase.
+      	%END REM
+      	Public Property Get strippedNaked As String
+      		strippedNaked = strippedText
+      	End Property
+      	
+      	Public Property Get isBlank As Boolean
+      		isBlank = Len(strippedText) = 0
+      	End Property
+      	
+      	Public Property Get isExecutable As Boolean
+      		If Len(strippedText) > 0 Then
+      			If strippedtext Like "dim *" _
+      			Or strippedtext Like "private *" _
+      			Or strippedtext Like "public *" _
+      			Or strippedtext Like "static *" Then
+      				Dim parts, ttype$
+      				parts = Split(StrRight(strippedtext, " "), ",")
+      				ForAll part In parts
+      					ttype = Trim(StrRight(part, " as new "))
+      					If ttype <> "" And ttype <> "notessession" Then
+      						isExecutable = True
+      						Exit Property
+      					End If
+      				End ForAll
+      			Else
+      				isExecutable = Not (strippedtext Like "const *")
+      			End If
+      		End If
+      	End Property
+      	
+      	%REM
+      		GET isErrorHandlerEnd
+      		Description: Tell whether a statement can terminate the handling of an error.
+      	%END REM
+      	Public Property Get isErrorHandlerEnd As Boolean
+      		If Len(strippedText) > 0 Then
+      			If strippedtext = "exit function" _
+      			Or strippedtext = "exit sub" _
+      			Or strippedtext = "exit property" _
+      			Or strippedtext = "end" _
+      			Or strippedtext Like "goto *" _
+      			Or strippedtext Like "error *" _
+      			Or strippedtext Like "resume *" Then
+      				isErrorHandlerEnd = True
+      			End If
+      		End If
+      		
+      	End Property
+      	
+      	%REM
+      		Function fixKeywords
+      		Description: Given a snippet of code that contains no string literals or comments, scan it for words and see whether any of those
+      			words are keywords in LotusScript. If so, substitute in the correct capitalization.
+      		Arguments:
+      		Return value:
+      	%END REM
+      	Private Function fixKeywords(ByVal szIn$) As String
+      		Dim i%, ch$, tword$, lword$, cWord$, bpos%
+      		For i = 1 To Len(szIn)
+      			ch = Mid$(szIn, i, 1)
+      			If bpos = 0 Then ' looking for a word
+      				If ch Like "[A-Za-z0-9]" Then
+      					bpos = i
+      				End If
+      			Else ' already in a word
+      				If Not ch Like {[A-Za-z0-9_]} Then
+      					' word ended
+      					tword = Mid$(szIn, bpos, i-bpos)
+      					lword = LCase(tword)
+      					If IsElement(GKEYWORDS(lword)) Then
+      						cword = GKEYWORDS(lword)
+      						If cword <> tword Then
+      							Mid$(szIn, bpos, i-bpos) = cword
+      						End If
+      					End If
+      					bpos = 0
+      				End If
+      			End If
+      		Next
+      		If bpos Then
+      			tword = Mid$(szIn, bpos)
+      			lword = LCase(tword)
+      			If IsElement(GKEYWORDS(lword)) Then
+      				cword = GKEYWORDS(lword)
+      				If cword <> tword Then
+      					Mid$(szIn, bpos, i-bpos) = cword
+      				End If
+      			End If
+      		End If
+      		fixKeywords = szIn
+      	End Function
+      	
+      	%REM
+      		Sub StandardizeKeywords
+      		Description: Scan one line looking to change all LotusScript keywords to their proper case.
+      	%END REM
+      	Sub StandardizeKeywords
+      		Dim ch$, pos%, fpos%, szUpdate$, szLine$
+      		szLine = lineText
+      		Do 
+      			pos = GCU.FindDelim(szLine, |||"{'|)
+      			If pos = 0 Then
+      				szUpdate = szUpdate & fixKeywords(szLine)
+      				Exit Do
+      			Else
+      				If pos > 1 Then
+      					szUpdate = szUpdate & FixKeywords(Left$(szLine, pos-1))
+      					szLine = Mid$(szLine, pos)
+      				End If
+      				ch = Left$(szLine, 1)
+      				If ch = "{" Then
+      					fpos = InStr(2, szLine, "}", 0)
+      					Do While fpos ' if the string contains }} that's an escaped } rather than an end quote
+      						If Mid$(szLine, fpos+1, 1) <> |}| Then Exit Do
+      						fpos = InStr(fpos+2, szLine, |}|, 0)
+      					Loop
+      				ElseIf ch = {'} Then
+      					fpos = 0
+      				Else
+      					fpos = InStr(2, szLine, ch, 0)
+      				End If
+      				If fpos = 0 Then ' whatever it is goes to end of line
+      					szUpdate = szUpdate & szLine
+      					Exit Do
+      				Else
+      					szUpdate = szUpdate & Left$(szLine, fpos)
+      					szLine = Mid$(szLine, fpos+1)
+      				End If
+      			End If
+      		Loop
+      		If szUpdate <> lineText Then
+      			lineText = szUpdate
+      			SetDirty
+      		End If
+      	End Sub
+      End Class
+      %REM
+      	Class LSComment
+      	Description: Represents a LotusScript full-line comment.
+      %END REM
+      Class LSComment As LSLine
+      	Sub New(fullline$)
+      		lineText = fullline
+      	End Sub
+      	
+      	Public Property Get isBlank As Boolean
+      		isBlank = False
+      	End Property
+      	
+      	%REM
+      		GET isExecutable
+      		Description: return false; comments are not executable.
+      	%END REM
+      	Public Property Get isExecutable As Boolean
+      	End Property
+      End Class
+      '++LotusScript Development Environment:2:2:Initialize:1:10
+      Sub Initialize
+      	Dim tmp
+      	tmp = Split(Replace(LSKEYWORDS, NEWLINE, " "), " ")
+      	ForAll thing In tmp
+      		GKEYWORDS(LCase(thing)) = thing
+      	End ForAll
+      End Sub
+    signed: true
+    nonsummary: true
+  - name: $TITLE
+    type: text
+    data: LSParser
+    signed: true
+remaining: []

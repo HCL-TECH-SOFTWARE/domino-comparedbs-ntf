@@ -1,0 +1,396 @@
+---
+class: 512
+flags: 0x2000
+unid: OFCD55F047FCA61E7A-ON0065ECF5852586FC
+items:
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: s34Q
+  - name: $PublicAccess
+    type: text
+    data: "1"
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-06-30T21:57:31.86-05:00"
+        dst: true
+      - data: "2021-07-01T15:13:25.42-04:00"
+        dst: true
+      - data: "2021-07-01T15:13:25.43-04:00"
+        dst: true
+      - data: "2021-07-09T08:59:42.65-04:00"
+        dst: true
+      - data: "2021-07-09T09:01:56.77-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:03.26-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:45.28-04:00"
+        dst: true
+      - data: "2021-07-09T09:21:10.40-04:00"
+        dst: true
+      - data: "2021-08-12T13:26:44.00-05:00"
+        dst: true
+      - data: "2021-08-12T13:26:44.01-05:00"
+        dst: true
+      - data: "2021-08-16T17:08:28.95-05:00"
+        dst: true
+      - data: "2021-08-16T17:08:28.96-05:00"
+        dst: true
+      - data: "2021-08-16T17:16:49.04-05:00"
+        dst: true
+      - data: "2021-08-16T17:16:49.10-05:00"
+        dst: true
+      - data: "2021-08-17T13:55:01.91-05:00"
+        dst: true
+      - data: "2021-09-16T12:02:35.63-05:00"
+        dst: true
+      - data: "2021-09-22T12:22:01.62-05:00"
+        dst: true
+      - data: "2021-09-22T12:22:01.64-05:00"
+        dst: true
+      - data: "2021-09-22T17:45:52.32-05:00"
+        dst: true
+      - data: "2021-09-22T17:45:52.37-05:00"
+        dst: true
+      - data: "2021-09-22T18:03:18.78-05:00"
+        dst: true
+      - data: "2021-09-22T18:03:18.82-05:00"
+        dst: true
+      - data: "2021-09-22T18:16:19.57-05:00"
+        dst: true
+      - data: "2021-09-22T18:16:19.61-05:00"
+        dst: true
+      - data: "2021-09-24T09:52:27.78-05:00"
+        dst: true
+      - data: "2021-09-24T09:52:27.83-05:00"
+        dst: true
+      - data: "2021-09-24T09:55:00.76-05:00"
+        dst: true
+      - data: "2021-09-24T09:55:00.82-05:00"
+        dst: true
+      - data: "2021-09-24T15:08:26.81-05:00"
+        dst: true
+      - data: "2021-09-24T15:08:26.86-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:57.39-05:00"
+        dst: true
+  - name: $ScriptLib
+    type: text
+    data: |
+      '++LotusScript Development Environment:2:5:(Options):0:74
+      %REM
+      	Library Test
+      	Created by Scott O'Keefe
+      	Description: Functions on the Submission Report form for opening URLs pertaining to tasks and pull reports.
+      	© Copyright HCL Software. 2021
+      %END REM
+      Option Public
+      Option Declare
+      Use "lsconst"
+      Use "zprintf"
+      Use "CommonUtil"
+      
+      '++LotusScript Development Environment:2:5:(Forward):0:1
+      Declare Class DefectManager
+      
+      '++LotusScript Development Environment:2:5:(Declarations):0:10
+      Private Const DLG_TITLE_DEFECT_OPEN = {Defects/Tasks}
+      Private Const MSG_DEFECT_OPEN = {Select defects/tasks to open:}
+      
+      Private Const MSG_DEFECT_OPEN_FAIL = {The following items were unable to be opened:}
+      Private Const MSG_DBNOTFOUND = |Database could not be opened: {1:filepath} on {0:servername}.|
+      Private Const MSG_VUNOTFOUND = |View {2:viewname} not found in database {1:filepath} on {0:servername}.|
+      Private Const MSG_DOCNOTFOUND = |No document with key "{3:docid}" found in view {2:viewname} of database {1:filepath} on {0:servername}.|
+      Private Const MSG_UNRECOGNIZED_IDS = |The following defect/task IDs were not found:|
+      Private Const DLGTITLE_INVALID_DATA = |Unrecognized input|
+      
+      'Begin DNT
+      Private Const FLD_DEFECTID = "DefectID"
+      Private Const FLD_NOTESLINKS = "NotesLinks"
+      'Begin DNT
+      
+      %REM
+      	Class SystemManager
+      	Description: Comments for Class
+      %END REM
+      Class DefectManager
+      
+      	z_ses As NotesSession
+      	z_db As NotesDatabase
+      	z_uiws As NotesUIWorkspace
+      	z_formula As String
+      	z_SCCS List As String
+      	
+      	%REM
+      		Sub New
+      		Description: Comments for Sub
+      	%END REM
+      	Public Sub New
+      
+      		On Error GoTo ERROR_HANDLER
+      
+      		Set z_ses = New NotesSession
+      		Set z_db = z_ses.CurrentDatabase
+      		Set z_uiws = New NotesUIWorkspace
+      		
+      		Dim docProfile As NotesDocument
+      		Set docProfile = z_db.Getprofiledocument({AppProfile})
+      		
+      		z_formula = docProfile.Getitemvalue("TaskMatchFormula")(0)
+      		
+      		Dim vSCCS
+      		vSCCS = docProfile.Getitemvalue("SCCSNames")
+      		
+      		ForAll v In vSCCS
+      			If v Like "*@*" Then
+      				z_SCCS(LCase(StrLeft(v, "@"))) = StrRight(v, "@")
+      			End If
+      		End ForAll
+      		
+      		Exit Sub
+      
+      ERROR_HANDLER:
+      		Error Err, Error & { //}& GetThreadInfo(1) & {:} & Erl
+      
+      	End Sub
+      	
+      	%REM
+      		Sub OpenDefects
+      		Description: Comments for Sub
+      	%END REM
+      	Public Sub OpenDefects(docCurrent As NotesDocument)
+      
+      		On Error GoTo ERROR_HANDLER
+      		
+      		Dim defectList As Variant
+      		defectList = docCurrent.Getitemvalue(FLD_DEFECTID)
+      		
+      		'present list of IDs, prompt for which to open
+      		Dim selected As Variant		
+      		selected = z_uiws.Prompt(PROMPT_OKCANCELLISTMULT, DLG_TITLE_DEFECT_OPEN, MSG_DEFECT_OPEN, defectList, defectList)
+      		
+      		If IsEmpty(selected) Then Exit Sub
+      		
+      		Dim docFormula As New NotesDocument(z_db)
+      		Dim url As Variant
+      		
+      		Dim failures As String, reason$
+      		
+      		ForAll v In selected
+      			
+      			Call docFormula.Replaceitemvalue("ID", v)
+      			url = Evaluate(z_formula,docFormula)
+      			If IsArray(url) Then
+      				url = url(0)
+      				If url Like "@*" Then
+      					reason = OpenNotesDoc(url)
+      					If reason <> "" Then
+      						failures = failures & v & {: } & reason
+      					End If
+      				Else
+      					Call z_uiws.Urlopen(url)
+      				End If
+      			Else
+      				failures = failures & NEWLINE & v & {: } & url
+      			End If
+      						
+      		End ForAll
+      		
+      		If failures <> "" Then
+      			MsgBox MSG_DEFECT_OPEN_FAIL & NEWLINE & failures, 0, DLG_TITLE_DEFECT_OPEN
+      		End If 
+      
+      		Exit Sub
+      
+      ERROR_HANDLER:
+      		Error Err, Error & { //}& GetThreadInfo(1) & {:} & Erl
+      
+      	End Sub
+      	
+      	%REM
+      		Sub OpenNotesDoc
+      		Description: Given a string that specifies a Notes server, filepath, viewname and key value,
+      			open the matching document.
+      		Arguments: locationString is of the form "@server@filepath@viewname@key"
+      		Returns: "" for success, else an error message that can be displayed to a user.
+      	%END REM
+      	Function OpenNotesDoc(ByVal locationString$) As String
+      		Dim doc As NotesDocument, msg$
+      		On Error GoTo cannot
+      		Set doc = findDocFromAtList(Locationstring)
+      		If doc Is Nothing Then
+      			msg = zprintf(MSG_DOCNOTFOUND, Mid$(locationString, 2), "@")
+      		Else
+      			Call z_uiws.Editdocument(false, doc, false, , , false)
+      		End If
+      failed:
+      		OpenNotesDoc = msg ' to explain the failure if any
+      		Exit Function
+      cannot:
+      		msg = Error
+      		Resume failed
+      	End Function
+      	
+      	Private z_dbByKey List As NotesDatabase
+      	%REM
+      		Function getDB
+      		Description: Get a database from its server and filepath. This is a separate function
+      			to enable caching of database objects.
+      		Arguments: serv and path: server and filepath of database you want.
+      		Return value: NotesDatabase object. Throws error if database can't be opened.
+      	%END REM
+      	Private Function getDB(serv$, path$) As NotesDatabase
+      		Dim key$
+      		key = serv & "@" & path
+      		If IsElement(z_dbByKey(key)) Then
+      			Set getDB = z_dbByKey(key)
+      		Else
+      			Set getDB = New NotesDatabase("","")
+      			If Not getdb.Openwithfailover(serv, path) Then
+      				Error 20001, zprintf2(MSG_DBNOTFOUND, serv, path)
+      			End If
+      			Set z_dbByKey(key) = getDB
+      		End If
+      	End Function
+      	
+      	Private z_viewsByKey List As NotesView
+      	%REM
+      		Function getView
+      		Description: View caching function
+      		Arguments: serv, path, vuname: server, filepath, and view name we want to fetch.
+      		Return value: The view, or throws an error if the view can't be found.
+      	%END REM
+      	Private Function getView(serv$, path$, vuname$) As NotesView
+      		Dim key$
+      		key = serv & "@" & path & "@" & vuname
+      		If IsElement(z_viewsByKey(key)) Then
+      			Set getView = z_viewsByKey(key)
+      		Else
+      			Dim db As NotesDatabase
+      			Set db = getDB(serv, path)
+      			Set getView = db.Getview(vuname)
+      		End If
+      		If getView Is Nothing Then
+      			Error 20002, zprintf3(MSG_VUNOTFOUND, serv, path, vuname)
+      		Else
+      			Set z_viewsByKey(key) = getView
+      		End If
+      	End Function
+      	
+      	%REM
+      		Function findDocFromAtList
+      		Description: Given a string of the form @server@filepath@viewname@id, locate the document with that
+      			id in the given view of the specified database
+      		Arguments:
+      		Return value: NOTHING means the document was not found.
+      	%END REM
+      	Function findDocFromAtList(ByVal atList$) As NotesDocument
+      		Dim parts, serv$, path$, vuname$, key$
+      		parts = Split(atlist, "@")
+      		serv = parts(1)
+      		path = parts(2)
+      		vuname = parts(3)
+      		key = parts(4)
+      			Dim i%
+      			For i = 5 To UBound(parts)
+      				key = key & "@" & parts(i)
+      			Next
+      		Dim vu As NotesView
+      		Set vu = getview(serv, path, vuname)
+      		Set findDocFromAtList = vu.Getdocumentbykey(key, true) ' not caching document because it may change while this object is active.
+      	End Function
+      	
+      	%REM
+      		Sub OpenDefects
+      		Description: Comments for Sub
+      	%END REM
+      	Public Sub OpenFixes(docCurrent As NotesDocument)
+      
+      		On Error GoTo ERROR_HANDLER
+      		
+      		Dim repo, ourFix, url As String
+      		repo = Trim(docCurrent.Getitemvalue("Repository")(0))
+      		ourFix = Trim(docCurrent.Getitemvalue("FixID")(0))
+      				
+      		url = Replace(z_SCCS(lcase(repo)),"{ID}",ourFix)
+      		Call z_uiws.Urlopen(url) 
+      
+      		Exit Sub
+      
+      ERROR_HANDLER:
+      		Error Err, Error & { //} & GetThreadInfo(1) & {:} & Erl
+      
+      	End Sub
+      
+      	%REM
+      		Function querysave
+      		Description: Call on save event of submission record to figure out the Notes URLs of any
+      			task IDs that reference Notes databases.
+      		Return value: True if caller should continue save.
+      	%END REM
+      	Function querysave(Source As NotesUIDocument) As Boolean
+      		querysave = True
+      		Dim docCur As NotesDocument, taskids, docRef As NotesDocument, failures$, matches$
+      		Dim oldMatches List As String, tmp, idCur$
+      		
+      		Set docCur = source.document
+      		tmp = docCur.Getitemvalue(FLD_NOTESLINKS)
+      		ForAll thing In tmp
+      			If thing <> "" Then
+      				oldMatches(StrLeft(thing, ",")) = StrRight(thing, ",")
+      			End If
+      		End ForAll
+      		taskids = FullTrim(docCur.Getitemvalue(FLD_DEFECTID))
+      		ForAll id In taskids
+      			If Len(id) Then
+      				idcur = id
+      				Dim docFormula As New NotesDocument(z_db)
+      				Dim url As Variant
+      				Call docFormula.Replaceitemvalue("ID", id)
+      				url = Evaluate(z_formula, docFormula)
+      				If url(0) Like "@*" Then
+      					On Error GoTo docfail
+      					Set docRef = findDocFromAtList(url(0))
+      					On Error GoTo 0
+      					If docRef Is Nothing Then
+      recordFail:
+      						failures = failures & ", " & id
+      					Else
+      						matches = matches & NEWLINE & id & "," & Replace(nameabbr(docRef.Parentdatabase.server), "/", "%2F") _
+      							& "/" & docref.Parentdatabase.Replicaid & "/" & docRef.Parentview.Universalid _
+      							& "/" & docRef.Universalid
+      					End If
+      				End If
+      			End If
+      nextId:
+      		End ForAll
+      		If Len(failures) Then
+      			Dim ans%
+      			ans = MsgBox(MSG_UNRECOGNIZED_IDS & NEWLINE & Mid$(failures, 3), Mb_iconquestion + MB_YESNO + MB_DEFBUTTON2, DLGTITLE_INVALID_DATA)
+      			If ans = IDNO Then
+      			querysave = False
+      			Exit Function
+      			End if
+      		End If
+      		docCur.replaceitemvalue FLD_NOTESLINKS, Split(Mid$(matches, 2), NEWLINE)
+      		Exit Function
+      docFail:
+      		If IsElement(oldMatches(idcur)) Then
+      			matches = matches & NEWLINE & idCur & oldMatches(idcur)
+      			Resume nextId
+      		End If
+      		Resume recordFail
+      	End Function
+      End Class
+    signed: true
+    nonsummary: true
+  - name: $TITLE
+    type: text
+    data: DefectTaskManager
+    signed: true
+remaining: []

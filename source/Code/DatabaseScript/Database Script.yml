@@ -1,0 +1,139 @@
+---
+class: 512
+flags: 0x2000
+unid: OF7E0B1E70A9C5D99F-ON00541C2485258705
+items:
+  - name: $DBScript
+    type: text
+    data: |
+      '++LotusScript Development Environment:2:5:(Options):0:74
+      %REM
+      	Database Script Database Script
+      	Created Jul 1, 2021 by Scott O'Keefe
+      	Description: Comments for Database Script
+      %END REM
+      Option Declare
+      Use "UIUtils"
+      
+      
+      '++LotusScript Development Environment:2:5:(Forward):0:1
+      Declare Sub Postdocumentdelete(Source As Notesuidatabase)
+      
+      '++LotusScript Development Environment:2:5:(Declarations):0:10
+      Private Const VIEW_ALIAS_COMPARECONFIG = {CompareConfigByName}
+      
+      '++LotusScript Development Environment:2:2:BindEvents:1:129
+      Private Sub BindEvents(Byval Objectname_ As String)
+      	Static Source As NOTESUIDATABASE
+      	Set Source = Bind(Objectname_)
+      	On Event Postdocumentdelete From Source Call Postdocumentdelete
+      End Sub
+      
+      
+      '++LotusScript Development Environment:2:2:Postdocumentdelete:1:12
+      Sub Postdocumentdelete(Source As Notesuidatabase)
+      	
+      	On Error GoTo ERROR_HANDLER
+      	
+      	Dim uiws As New NotesUIWorkspace
+      	Dim uiview As NotesUIView
+      	Set uiview = uiws.Currentview
+      	
+      	'If we're deleting a config type, update the outline
+      	If uiview.Viewalias = VIEW_ALIAS_COMPARECONFIG Then
+      		Call UpdateOutline(uiws, OL_MAIN, FS_COMPTYPE, FR_NAV)
+      	End If
+      	
+      	Exit Sub
+      
+      ERROR_HANDLER:
+      	Error Err, Error & { //}& GetThreadInfo(1) & {:} & Erl
+      	
+      End Sub
+    signed: true
+    nonsummary: true
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: t34Q
+  - name: $PublicAccess
+    type: text
+    data: "1"
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-07-01T11:18:42.36-04:00"
+        dst: true
+      - data: "2021-07-01T11:19:57.84-04:00"
+        dst: true
+      - data: "2021-07-01T11:19:57.95-04:00"
+        dst: true
+      - data: "2021-07-01T11:25:28.37-04:00"
+        dst: true
+      - data: "2021-07-01T11:25:28.46-04:00"
+        dst: true
+      - data: "2021-07-01T12:40:06.90-04:00"
+        dst: true
+      - data: "2021-07-01T12:40:07.01-04:00"
+        dst: true
+      - data: "2021-07-01T12:40:15.62-04:00"
+        dst: true
+      - data: "2021-07-01T12:40:15.72-04:00"
+        dst: true
+      - data: "2021-07-01T12:53:33.17-04:00"
+        dst: true
+      - data: "2021-07-01T12:53:33.37-04:00"
+        dst: true
+      - data: "2021-07-01T13:06:36.58-04:00"
+        dst: true
+      - data: "2021-07-01T13:06:36.69-04:00"
+        dst: true
+      - data: "2021-07-01T13:08:09.91-04:00"
+        dst: true
+      - data: "2021-07-01T13:08:10.02-04:00"
+        dst: true
+      - data: "2021-07-01T15:05:01.42-04:00"
+        dst: true
+      - data: "2021-07-01T15:05:01.53-04:00"
+        dst: true
+      - data: "2021-07-02T09:38:10.51-04:00"
+        dst: true
+      - data: "2021-07-02T09:38:10.60-04:00"
+        dst: true
+      - data: "2021-07-02T10:13:39.00-04:00"
+        dst: true
+      - data: "2021-07-02T10:13:39.09-04:00"
+        dst: true
+      - data: "2021-07-02T10:22:25.07-04:00"
+        dst: true
+      - data: "2021-07-02T10:22:25.15-04:00"
+        dst: true
+      - data: "2021-07-08T14:57:14.01-04:00"
+        dst: true
+      - data: "2021-07-08T14:57:14.09-04:00"
+        dst: true
+      - data: "2021-07-09T08:59:45.69-04:00"
+        dst: true
+      - data: "2021-07-09T09:01:59.85-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:06.29-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:48.36-04:00"
+        dst: true
+      - data: "2021-07-09T09:21:13.46-04:00"
+        dst: true
+      - data: "2021-08-17T13:55:04.38-05:00"
+        dst: true
+      - data: "2021-09-16T12:02:38.13-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:57.67-05:00"
+        dst: true
+  - name: $TITLE
+    type: text
+    data: Database Script
+    signed: true
+remaining: []

@@ -1,0 +1,127 @@
+---
+class: 512
+flags: 0x2000
+unid: OFFD2A336902B4076E-ON005211FD85258705
+items:
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: s34Q
+  - name: $PublicAccess
+    type: text
+    data: "1"
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-07-01T10:56:25.63-04:00"
+        dst: true
+      - data: "2021-07-01T11:02:48.37-04:00"
+        dst: true
+      - data: "2021-07-01T11:02:48.52-04:00"
+        dst: true
+      - data: "2021-07-01T11:05:23.56-04:00"
+        dst: true
+      - data: "2021-07-01T11:05:39.85-04:00"
+        dst: true
+      - data: "2021-07-01T11:05:40.02-04:00"
+        dst: true
+      - data: "2021-07-01T15:00:24.99-04:00"
+        dst: true
+      - data: "2021-07-01T15:00:25.00-04:00"
+        dst: true
+      - data: "2021-07-01T15:02:07.22-04:00"
+        dst: true
+      - data: "2021-07-01T15:02:07.24-04:00"
+        dst: true
+      - data: "2021-07-02T10:13:09.10-04:00"
+        dst: true
+      - data: "2021-07-02T10:13:09.11-04:00"
+        dst: true
+      - data: "2021-07-02T10:22:01.00-04:00"
+        dst: true
+      - data: "2021-07-02T10:22:01.02-04:00"
+        dst: true
+      - data: "2021-07-09T08:59:44.80-04:00"
+        dst: true
+      - data: "2021-07-09T09:01:58.96-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:05.41-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:47.47-04:00"
+        dst: true
+      - data: "2021-07-09T09:21:12.58-04:00"
+        dst: true
+      - data: "2021-08-16T17:15:36.38-05:00"
+        dst: true
+      - data: "2021-08-16T17:15:36.41-05:00"
+        dst: true
+      - data: "2021-08-17T13:55:03.60-05:00"
+        dst: true
+      - data: "2021-09-16T12:02:37.38-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:56.90-05:00"
+        dst: true
+  - name: $ScriptLib
+    type: text
+    data: |
+      '++LotusScript Development Environment:2:5:(Options):0:74
+      %REM
+      	Library Form_ComparisonConfig
+      	Created Jul 1, 2021 by Scott O'Keefe
+      	Description: Code associated with the Compare Configuration form.
+      	© Copyright HCL Software. 2021
+      %END REM
+      Option Public
+      Option Declare
+      Use "UIUtils"
+      
+      
+      '++LotusScript Development Environment:2:5:(Forward):0:1
+      Declare Class form_CompareConfig
+      
+      '++LotusScript Development Environment:2:5:(Declarations):0:10
+      %REM
+      	Class form_ComparisonConfig
+      	Description: Comments for Class
+      %END REM
+      Class form_CompareConfig
+      
+      	z_uiws As NotesUIWorkspace
+      
+      	%REM
+      	Sub New
+      	Description: Comments for Sub
+      	%END REM
+      	Sub New
+      		Set z_uiws = New NotesUIWorkspace
+      	End Sub
+      
+      	%REM
+      		Sub Queryclose
+      		Description: Comments for Sub
+      	%END REM
+      	Sub Queryclose
+      
+      		On Error GoTo ERROR_HANDLER
+      		
+      		Call UpdateOutline(z_uiws, OL_MAIN, FS_COMPTYPE, FR_NAV)
+      
+      		Exit Sub
+      
+      ERROR_HANDLER:
+      		Error Err, Error & { //}& GetThreadInfo(1) & {:} & Erl
+      
+      	End Sub
+      
+      End Class
+    signed: true
+    nonsummary: true
+  - name: $TITLE
+    type: text
+    data: Form_CompareConfig
+    signed: true
+remaining: []

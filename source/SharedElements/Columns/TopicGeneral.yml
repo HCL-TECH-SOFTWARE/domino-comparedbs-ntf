@@ -1,0 +1,130 @@
+---
+class: 8
+flags: 0x0000
+unid: OF58207A671DA536CD-ON005CD007852586E8
+items:
+  - name: $CacheDocVersion
+    type: number
+    data: 1
+    signed: true
+  - name: $ClassName
+    type: text
+    data: View
+    signed: true
+  - name: $Collation
+    type_num: 2
+    type: opaque
+    opaque: BgAAAABE
+  - name: $Comment
+    type: text
+    data: ""
+    signed: true
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: ^Y
+  - name: $Formula
+    type: formula
+    data: "@All"
+    opaque: |
+      IgMBACoAEwBQcml2YXRlVHh0AHAWeQAfhSUAAAEACQBQUklWQVRFOiAAAwABACoAEwBFeHBpcmVkVHh0
+      AHEWeQAfhSUAAAEACQBFWFBJUkVEOiAAAwABAHwADwBBdXRob3IAchZ5AB+FJQAABQAEAEZvcm0BAAkA
+      TWFpblRvcGljAAoCBQAHAFN1YmplY3QAAQAAAAoCHAKvADYAKgABAAIAICgCAAUAAAAAAAAABQAEAEZy
+      b220AiICAQABACkAIgKuAAwAAQAAAK4ABAC1AwMAAQCeABMAdXNlU3ViamVjdABzFnkAH4UlAAAFAAQA
+      Zm9ybQEAEgBSZXNwb25zZVRvUmVzcG9uc2UKAq8AYAAgAAUAFgBJbW1lZGlhdGVQYXJlbnRTdWJqZWN0
+      rgBAAAUABABmb3JtAQAIAFJlc3BvbnNlCgKvACYAGgAFAA8AT3JpZ2luYWxTdWJqZWN0AK4ADAABAAAA
+      rgAEALUFAwACAIgBAwAkMzQABQAHAHJlYWRlcnMAAQAAAAsCrwBgAB4ABQATAFByaXZhdGVUeHQAcBZ5
+      AB+FJQAArgBCAAUACgBFeHBpcmVEYXRlAQAAAAsCrwAqAB4ABQATAEV4cGlyZWRUeHQAcRZ5AB+FJQAA
+      rgAMAAEAAACuAAQAtQUFAAQARm9ybQEACgBTdWJtaXNzaW9uCgKvAHwAaAAFAAoAUmVwb3NpdG9yeQEA
+      AQAgACICBQAFAEZpeElEACICAQACADogIgIFAAcAU3ViamVjdAAiAgEAAgAgKCICBQALAGFwcGxpY2F0
+      aW9uAAEAAgAsIIUCIgIBAAEAKQAiAq4AFAAFAAcAU3ViamVjdACuAAQAtQMiAgUAEwB1c2VTdWJqZWN0
+      AHMWeQAfhSUAAAEAAAALAq8ATgAyAAEABgAgKFJFOiAFABMAdXNlU3ViamVjdABzFnkAH4UlAAAiAgEA
+      AQApACICrgAcAAUADwBBdXRob3IAchZ5AB+FJQAArgAEALUDIgIDAAUAHgAaAAMAAwAJAAQAJDM0JENv
+      bmZsaWN0JFJFRgQABAAAAAgAZgADAA==
+    signed: true
+  - name: $FormulaClass
+    type: text
+    data: "1"
+    signed: true
+  - name: $Index
+    type: text
+    data: ""
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-06-02T12:53:45.68-04:00"
+        dst: true
+      - data: "2021-06-30T21:57:35.84-05:00"
+        dst: true
+      - data: "2021-07-09T08:59:48.10-04:00"
+        dst: true
+      - data: "2021-07-09T09:02:02.22-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:08.64-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:50.75-04:00"
+        dst: true
+      - data: "2021-07-09T09:21:15.85-04:00"
+        dst: true
+      - data: "2021-08-17T13:55:06.43-05:00"
+        dst: true
+      - data: "2021-09-16T12:02:40.16-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:59.56-05:00"
+        dst: true
+  - name: $SourceDbPath
+    type: text
+    data: CN=Masterlock/OU=Server/O=Templates!!TemplateReviews.nsf
+    signed: true
+  - name: $SourceSeqTime
+    type: time
+    data: "2020-03-02T17:02:35.85-05:00"
+    signed: true
+  - name: $SourceSequence
+    type: text
+    data: "00000001"
+    signed: true
+  - name: $SourceURL
+    type: text
+    data:
+      - "Notes:///8525828200081762//708AC763B4C935468525851F00791656"
+      - "Notes:///8525828200081762:8525828200081762:51C62FD5//B266"
+    signed: true
+  - name: $TITLE
+    type: text
+    data: TopicGeneral
+    signed: true
+  - name: $ViewFormat
+    type_num: 5
+    type: opaque
+    opaque: |
+      AQABAAEACAAAAFZDAAADAAUAPAQAABYBAQAACQAgAgAAAAAAAAACAAAgJDM0VG9waWM8BAcAHAAWAFZh
+      cmlhYmxlcyB0byB0cmFuc2xhdGUHAAoAAwAJMVMAAQAqABMAUHJpdmF0ZVR4dABwFnkAH4UlAAABAAkA
+      UFJJVkFURTogAAMABwAOAAcACTBSMVMyUwABACoAEwBFeHBpcmVkVHh0AHEWeQAfhSUAAAEACQBFWFBJ
+      UkVEOiAAAwAHAA4ABwAJMFIxUzJTAAcAIAAaAEVuZCB2YXJpYWJsZXMgdG8gdHJhbnNsYXRlBwAMAAUA
+      CTBSMVMAAQB8AA8AQXV0aG9yAHIWeQAfhSUAAAUABABGb3JtAQAJAE1haW5Ub3BpYwAKAgUABwBTdWJq
+      ZWN0AAEAAAAKAhwCrwA2ACoAAQACACAoAgAFAAAAAAAAAAUABABGcm9ttAIiAgEAAQApACICrgAMAAEA
+      AACuAAQAtQMDAAcAMAApAAkwUjFTMlM1UzZTN1M4UzlTMTBTMTJTMTNTMTRTMThTMjBTMjFTMjNTAAEA
+      ngATAHVzZVN1YmplY3QAcxZ5AB+FJQAABQAEAGZvcm0BABIAUmVzcG9uc2VUb1Jlc3BvbnNlCgKvAGAA
+      IAAFABYASW1tZWRpYXRlUGFyZW50U3ViamVjdK4AQAAFAAQAZm9ybQEACABSZXNwb25zZQoCrwAmABoA
+      BQAPAE9yaWdpbmFsU3ViamVjdACuAAwAAQAAAK4ABAC1BQMABwAiABwACTBSMVMyUjVTNlM4UzEwUzEx
+      UzEyUzE0UzE2UwIAiAEDACQzNAAFAAcAcmVhZGVycwABAAAACwKvAGAAHgAFABMAUHJpdmF0ZVR4dABw
+      FnkAH4UlAACuAEIABQAKAEV4cGlyZURhdGUBAAAACwKvACoAHgAFABMARXhwaXJlZFR4dABxFnkAH4Ul
+      AACuAAwAAQAAAK4ABAC1BQUABABGb3JtAQAKAFN1Ym1pc3Npb24KAq8AfABoAAUACgBSZXBvc2l0b3J5
+      AQABACAAIgIFAAUARml4SUQAIgIBAAIAOiAiAgUABwBTdWJqZWN0ACICAQACACAoIgIFAAsAYXBwbGlj
+      YXRpb24AAQACACwghQIiAgEAAQApACICrgAUAAUABwBTdWJqZWN0AK4ABAC1AyICBQATAHVzZVN1Ympl
+      Y3QAcxZ5AB+FJQAAAQAAAAsCrwBOADIAAQAGACAoUkU6IAUAEwB1c2VTdWJqZWN0AHMWeQAfhSUAACIC
+      AQABACkAIgKuABwABQAPAEF1dGhvcgByFnkAH4UlAACuAAQAtQMiAgMABwCEAH0ACTBSUjNTNFM2UzhT
+      OVMxMFMxMlMxNFMxNlJTMTdTMjBTMjFTMjNSVDI0UzI1UzI2UzI3UzI4UzI5UzMwUzMxUzMyUzMzUzM0
+      UzM1UzM5UzQxUzQyUzQ0UlQ0NVJTM0U0NlI0N1M1MFM1MVM1M1M1NFM1NVM1NlM1N1M1OVMAJgABAAAA
+      AQEACQEAAAoBAQ4KAAABAK0rAQABAAEAAAAAAAAAAABXQwIAAAkAAAAAAAAAAAAAAAAAAAAAAAAAgAAA
+      AAD//wAAAAAAAAAAAAAAAAAAQgAAAAAAAQD///8ABQD///8AAQAAAAAAAAAAAAAAAAABAP///wABAP//
+      /wAAAAEAAAAAAAEAAAAAAAEAAAAAAAAACAAAAAAAAQBhQ1QABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+    signed: true
+    nonsummary: true
+remaining: []

@@ -1,0 +1,146 @@
+---
+class: 512
+flags: 0x2000
+unid: OFC3296649C957C048-ON000E1C3A86258705
+items:
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: s34Q
+  - name: $PublicAccess
+    type: text
+    data: "1"
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-06-30T21:34:07.34-05:00"
+        dst: true
+      - data: "2021-06-30T21:47:38.46-05:00"
+        dst: true
+      - data: "2021-06-30T21:47:38.48-05:00"
+        dst: true
+      - data: "2021-06-30T21:57:33.14-05:00"
+        dst: true
+      - data: "2021-07-09T08:59:44.24-04:00"
+        dst: true
+      - data: "2021-07-09T09:01:58.38-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:04.85-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:46.89-04:00"
+        dst: true
+      - data: "2021-07-09T09:21:12.01-04:00"
+        dst: true
+      - data: "2021-08-16T17:14:11.04-05:00"
+        dst: true
+      - data: "2021-08-16T17:14:11.09-05:00"
+        dst: true
+      - data: "2021-08-17T13:55:03.19-05:00"
+        dst: true
+      - data: "2021-09-16T12:02:36.95-05:00"
+        dst: true
+      - data: "2021-09-22T18:37:46.29-05:00"
+        dst: true
+      - data: "2021-09-22T18:37:46.31-05:00"
+        dst: true
+      - data: "2021-09-22T18:39:01.43-05:00"
+        dst: true
+      - data: "2021-09-22T18:39:01.44-05:00"
+        dst: true
+      - data: "2021-09-22T18:39:26.32-05:00"
+        dst: true
+      - data: "2021-09-22T18:39:26.33-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:56.49-05:00"
+        dst: true
+      - data: "2021-09-27T22:33:23.19-05:00"
+        dst: true
+      - data: "2021-11-18T10:13:37.15-06:00"
+      - data: "2021-11-18T10:13:37.20-06:00"
+      - data: "2021-11-29T13:39:14.11-05:00"
+  - name: $ScriptLib
+    type: text
+    data: |
+      '++LotusScript Development Environment:2:5:(Options):0:74
+      %REM
+      	Library Subform_ReportOptions
+      	Created Jun 30, 2021 by Andre Guirard/USA/PNPHCL
+      	Description: Code that accompanies the ReportOptions subform.
+      	© Copyright HCL Software. 2021
+      %END REM
+      Option Public
+      Option Declare
+      
+      
+      '++LotusScript Development Environment:2:5:(Forward):0:1
+      Declare Class Subform_ReportOptions
+      
+      '++LotusScript Development Environment:2:5:(Declarations):0:10
+      Const FLD_REPORTOPTIONS = {ReportOptions}
+      Const FLD_NEWFILEOPT = {NewFiles}
+      	Const NEWFILEOPT_REPORT = {0}
+      	Const NEWFILEOPT_EMBED = {2}
+      	Const NEWFILEOPT_ATTACH = {1}
+      Const FLD_ABBREVCHARS = {MaxLeftBlock}
+      Const FLD_CONTEXTLINES = {ContextLines}
+      %REM
+      	Class Subform_ReportOptions
+      	Description: @@TODO
+      	Constructor:
+      %END REM
+      Class Subform_ReportOptions
+      	z_uidoc As NotesUIDocument
+      	z_wksp As NotesUIWorkspace
+      
+      	Sub New(source As NotesUIDocument) 
+      		Set z_wksp = New NotesUIWorkspace
+      		Set z_uidoc = source
+      	End Sub
+      	
+      	%REM
+      		Property Options   get
+      		Description: Retrieve the list of export-related options the user has selected. The value is an
+      			array of strings, each element naming a boolean option that's enabled.
+      	%END REM
+      	Public Property Get Options
+      		options = z_uidoc.Document.Getitemvalue(FLD_REPORTOPTIONS)
+      	End Property
+      	
+      	%REM
+      		Property contextLines   get
+      	%END REM
+      	Public Property Get contextLines As Long
+      		contextLines = 0
+      		On Error Resume Next
+      		contextLines = z_uidoc.document.Getitemvalue(FLD_CONTEXTLINES)(0)
+      	End Property
+      	
+      	%REM
+      		Property newfileOpt   get
+      	%END REM
+      	Public Property Get newfileOpt As Integer
+      		newfileOpt = CInt("0" & z_uidoc.document.Getitemvalue(FLD_NEWFILEOPT)(0))
+      	End Property
+      	
+      	%REM
+      		Property maxLeftChars   get
+      		Description: Get setting for maximum number of characters we show on the
+      			left side of a difference row on the report.
+      	%END REM
+      	Public Property Get maxLeftChars As Long
+      		maxLeftChars = 10000
+      		On Error Resume Next
+      		maxLeftChars = z_uidoc.document.Getitemvalue(FLD_ABBREVCHARS)(0)
+      	End Property
+      End Class
+    signed: true
+    nonsummary: true
+  - name: $TITLE
+    type: text
+    data: Subform_ReportOptions
+    signed: true
+remaining: []

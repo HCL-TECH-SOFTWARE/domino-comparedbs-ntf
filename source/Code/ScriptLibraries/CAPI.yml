@@ -1,0 +1,2553 @@
+---
+class: 512
+flags: 0x2000
+unid: OFC31A7FB186E8DD9E-ON007ADDAD862586DB
+items:
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: s34Q
+  - name: $PublicAccess
+    type: text
+    data: "1"
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-06-30T16:39:49.52-05:00"
+        dst: true
+      - data: "2021-06-30T16:39:49.57-05:00"
+        dst: true
+      - data: "2021-06-30T16:43:27.35-05:00"
+        dst: true
+      - data: "2021-06-30T16:43:27.40-05:00"
+        dst: true
+      - data: "2021-06-30T21:57:31.45-05:00"
+        dst: true
+      - data: "2021-07-09T08:59:42.12-04:00"
+        dst: true
+      - data: "2021-07-09T09:01:56.26-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:02.76-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:44.76-04:00"
+        dst: true
+      - data: "2021-07-09T09:21:09.90-04:00"
+        dst: true
+      - data: "2021-08-13T20:03:46.34-05:00"
+        dst: true
+      - data: "2021-08-13T20:03:46.40-05:00"
+        dst: true
+      - data: "2021-08-13T20:04:10.08-05:00"
+        dst: true
+      - data: "2021-08-13T20:04:10.12-05:00"
+        dst: true
+      - data: "2021-08-13T20:09:50.36-05:00"
+        dst: true
+      - data: "2021-08-13T20:09:50.42-05:00"
+        dst: true
+      - data: "2021-08-13T20:16:25.33-05:00"
+        dst: true
+      - data: "2021-08-13T20:16:25.38-05:00"
+        dst: true
+      - data: "2021-08-13T20:43:16.54-05:00"
+        dst: true
+      - data: "2021-08-13T20:43:16.58-05:00"
+        dst: true
+      - data: "2021-08-16T10:34:14.16-05:00"
+        dst: true
+      - data: "2021-08-16T10:34:14.19-05:00"
+        dst: true
+      - data: "2021-08-16T12:17:29.80-05:00"
+        dst: true
+      - data: "2021-08-16T12:17:29.86-05:00"
+        dst: true
+      - data: "2021-08-16T12:17:47.35-05:00"
+        dst: true
+      - data: "2021-08-16T12:17:47.41-05:00"
+        dst: true
+      - data: "2021-08-16T12:20:04.08-05:00"
+        dst: true
+      - data: "2021-08-16T12:20:04.13-05:00"
+        dst: true
+      - data: "2021-08-17T09:39:45.59-05:00"
+        dst: true
+      - data: "2021-08-17T09:39:45.63-05:00"
+        dst: true
+      - data: "2021-08-17T13:55:01.55-05:00"
+        dst: true
+      - data: "2021-08-24T12:48:48.84-05:00"
+        dst: true
+      - data: "2021-08-24T12:48:48.93-05:00"
+        dst: true
+      - data: "2021-09-16T12:02:35.27-05:00"
+        dst: true
+      - data: "2021-09-24T14:30:05.80-05:00"
+        dst: true
+      - data: "2021-09-24T14:30:05.85-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:54.92-05:00"
+        dst: true
+  - name: $ScriptLib
+    type: text
+    data: |
+      '++LotusScript Development Environment:2:5:(Options):0:74
+      %REM
+      	Library CAPI
+      	Description: A class to invoke various functions of the Notes C API, on any supported client platform.
+      	© Copyright HCL Software. 2021
+      %END REM
+      Option Public
+      Option Declare
+      
+      '++LotusScript Development Environment:2:5:(Forward):0:1
+      Declare Class DBHandle
+      Declare Class NoteHandle
+      Declare Class CPOINTER	' a pointer value for 32 or 64-bit systems.
+      Declare Class ReplicationHistory
+      Declare Class ReplHistEntry
+      Declare Class MemHandle
+      Declare Class CAPI
+      Declare Class CAPILUX As CAPI
+      Declare Class CAPIMAC As CAPI
+      Declare Class CAPILUX64 As CAPILUX
+      Declare Class CAPIMAC64 As CAPIMAC
+      Declare Class CAPIWIN64 As CAPI
+      Declare Function GetCAPI As CAPI
+      
+      '++LotusScript Development Environment:2:5:(Declarations):0:10
+      Private Const DAP_ERROR = "CAPI library 64bit call fails because INI {0}"
+      
+      'Begin DNT
+      Private Const INI_DAP = "LS64BITCCALLOUTPointerSupport"
+      Const NOTE_CLASS_REPLFORMULA = &h0800
+      Const NOTE_CLASS_FILTER = &h0200
+      Const NOTE_CLASS_DEFAULT = &h8000
+      
+      ' for NSFNoteGetInfo
+      Const NOTEINFO_OID = 2 'Get/set the Originator ID (OID).
+      Const NOTEINFO_MODIFIED = 4 ' Get/set the Modified in this file time/date (TIMEDATE : GMT normalized).
+      Const NOTEINFO_ADDED_TO_FILE = 13
+      Const NOTEINFO_CLASS = 3
+      
+      Const MAXPATH	= 256
+      Const MAXALPHATIMEDATE = 80
+      Private Const MAX_LIST_TO_STRING = 2048
+      
+      Const UPDATE_FORCE = 1
+      Const UPDATE_NOSTUB = &h200 ' delete without leaving stub.
+      
+      Const ITEM_SUMMARY = 4
+      
+      Const TDFMT_FULL		= 0	' year, month, and day
+      Const TDFMT_CPARTIAL	= 1		' month and day, year if not this year 
+      Const TDFMT_PARTIAL		= 2		' month and day 
+      Const TDFMT_DPARTIAL	= 3		' year and month 
+      Const TDFMT_FULL4		= 4		' year(4digit), month, and day 
+      Const TDFMT_CPARTIAL4	= 5		' month and day, year(4digit) if not this year 
+      Const TDFMT_DPARTIAL4	= 6		' year(4digit) and month 
+      
+      Const TTFMT_FULL		= 0		' hour, minute, and second 
+      Const TTFMT_PARTIAL		= 1		' hour and minute 
+      Const TTFMT_HOUR		= 2		' hour 
+      Const TTFMT_FULL_MAX	= 3		' hour, minute, second, hundredths (max resolution) 
+      
+      Const TZFMT_NEVER		= 0		' all times converted to THIS zone 
+      Const TZFMT_SOMETIMES	= 1		' show only when outside this zone 
+      Const TZFMT_ALWAYS		= 2		' show on all times, regardless
+       
+      Const TSFMT_DATE		= 0		' DATE 
+      Const TSFMT_TIME		= 1		' TIME 
+      Const TSFMT_DATETIME	= 2		' DATE TIME 
+      Const TSFMT_CDATETIME	= 3		' DATE TIME or TIME Today or TIME Yesterday 
+      Const TSFMT_CDATE		= 4		' DATE, Today or Yesterday 
+      
+      ' arguments to NSFDbReadReplHistory
+      Const STORE_IN_SOURCE = 1
+      Const DELETE_CACHE_ENTRY = 2
+      Const RETURN_OTHER_DBID = 4
+      
+      ' for NSFNoteOpen
+      Const OPEN_SUMMARY = 1
+      Const OPEN_SHARE = &h20
+      
+      ' arguments to local security
+      Const LSEC_ENCRYPT_NONE	= 0		
+      Const LSEC_ENCRYPT_SIMPLE = 1		
+      Const LSEC_ENCRYPT_STRONG = 3 ' I know -- skipped 2
+      Const LSEC_ENCRYPT_SUPER = 4
+      
+      Const LSEC_STATE_NONE = 0   ' no local security setup
+      Const LSEC_STATE_DONE = 1	' encrypted
+      Const LSEC_STATE_NEXTENCRYPT = 2 ' encrypt in Next compact
+      Const LSEC_STATE_NEXTDECRYPT = 3 ' decrypt in Next compact
+      
+      Const LSECINFOSET_CLEAR = 2 ' use with NSFDbLocalSecInfoSet to remove encryption
+      Const LSECINFOSET_MODIFY = 4 ' to add encryption
+      
+      Private Const NAME_GET_AB_FIRSTONLY	= 4
+      
+      Type TIMEDATE
+      	Innards0 As Long
+      	Innards1 As Long
+      End Type
+      
+      Type UNIVERSALNOTEID
+         DBID As TIMEDATE
+         TD	As TIMEDATE
+      End Type
+      
+      Type ACCESS_RIGHTS
+      	ReadR	As Integer
+      	CreateR	As Integer
+      	ModifyR	As Integer
+      	Special As Integer
+      	Privs	As Integer	
+      End Type
+      
+      Type OID
+      	File As TIMEDATE
+      	Note As TIMEDATE
+      	Sequence As Long
+      	SeqTime As TIMEDATE
+      End Type
+      
+      Type BSAFE_DIGEST
+      	md(0 To 15)	As Byte
+      End Type
+      
+      Type REPLHISTORY_INFO
+      	DBID			As TIMEDATE
+      	CutOff			As TIMEDATE
+      	AccessRights	As ACCESS_RIGHTS
+      	SearchedUntil	As TIMEDATE
+      	Digest			As BSAFE_DIGEST
+      	MoreInfo		As Integer
+      End Type
+      
+      Type REPLHIST_SUMMARY
+      	ReplicationTime As TIMEDATE
+      	AccessLevel As Integer
+      	AccessFlags As Integer
+      	Direction As Integer
+      	ServerNameOffset As Long
+      	ServerNameLength As Integer
+      	FileNameLength As Integer
+      	MoreInfo As Integer
+      End Type
+      
+      Type BLOCKID
+         pool As Long ' pool handle
+         block As Integer ' block handle
+      End Type
+      
+      Type DBREPLICAINFO
+      	ID As TIMEDATE
+      	Flags As Integer
+      	CutoffDays As Integer
+      	CutoffDate As TIMEDATE
+      End Type
+      
+      Type TFMT
+      	bDate As Byte ' Date Display Format
+      	bTime As Byte ' Time Display Format
+      	bZone As Byte ' Time Zone Display Format
+      	bStructure As Byte ' Overall Date/Time Structure
+      End Type
+      
+      Type DBACTIVITY
+      	First As TIMEDATE
+      	Last As TIMEDATE
+      	Uses As Long
+      	Reads As Long
+      	Writes As Long
+      	PrevDayUses As Long '# of uses In previous 24 hours
+      	PrevDayReads As Long '# of reads In previous 24 hours
+      	PrevDayWrites As Long '# of writes In previous 24 hours
+      	PrevWeekUses As Long '# of uses In previous week
+      	PrevWeekReads As Long '# of reads In previous week
+      	PrevWeekWrites As Long '# of writes in previous week
+      	PrevMonthUses As Long '# of uses in previous Month
+      	PrevMonthReads As Long '# of reads in previous Month
+      	PrevMonthWrites As Long '# of writes in previous Month
+      End Type
+      
+      Type DBACTIVITY_ENTRY
+      	Time As TIMEDATE ' Time of record
+      	Reads As Integer	'# of data notes Read
+      	Writes As Integer   '# of data notes written
+      	UserNameOffset As Long 'Offset of the user name from start of this memory block
+      End Type
+      
+      ' Bits defined In REPLHIST_SUMMARY.MoreInfo
+      Const ENTRY_HAS_FORMULA	= 1
+      Const ENTRY_IS_WILD_CARD = 2
+      Const ENTRY_IS_COMPLETE = 4
+      Const ENTRY_CAN_TRIANGULATE = 8
+      Const ENTRY_BY_TRIANGULATION = &h10	
+      
+      Const RHE_DIREC_NONE = 0
+      Const RHE_DIREC_SEND = 1
+      Const RHE_DIREC_RECEIVE = 2
+      
+      Const LIB_WIN = "nnotes.dll"
+      Const LIB_MAC = "libnotes.dylib"
+      Const LIB_LUX = "libnotes.so"
+      
+      ' for Windows
+      Declare Function w_NSFDbOpen Lib LIB_WIN Alias "NSFDbOpen" (ByVal sDbName As LMBCS String, hDb As Long) As Integer
+      Declare Function w_NSFDbClose Lib LIB_WIN Alias "NSFDbClose" (ByVal hDb As Long) As Integer
+      Declare Function w_NSFNoteOpen Lib Lib_WIN Alias "NSFNoteOpen" (ByVal hDb As Long, ByVal noteid As Long, ByVal open_flags%, notehandle As Long) As Integer
+      Declare Function w_NSFNoteClose Lib Lib_WIN Alias "NSFNoteClose" (ByVal hNote As Long) As Integer
+      Declare Function w_NSFNoteCreate Lib LIB_WIN Alias "NSFNoteCreate" (ByVal hDB As Long, nhRet As Long) As Integer
+      Declare Function w_NSFNoteUpdate Lib LIB_WIN Alias "NSFNoteUpdate" (ByVal hNote As Long, ByVal updateFlags%) As Integer
+      Declare Function w_NSFNoteDelete Lib LIB_WIN Alias "NSFNoteDelete" (ByVal hDb As Long, ByVal noteid As Long, ByVal options%) As Integer
+      Declare Sub w_NSFNoteSetInfo Lib LIB_WIN Alias "NSFNoteSetInfo" (ByVal hNote As Long, ByVal itemId As Integer, data As Any)
+      Declare Sub w_NSFNoteGetInfo Lib LIB_WIN Alias "NSFNoteGetInfo" (ByVal hNote As Long, ByVal itemId As Integer, info As Any)
+      Declare Function w_NSFItemGetTime Lib Lib_WIN Alias "NSFItemGetTime" (ByVal mhNote As Long, ByVal itemname As LMBCS String, td As TIMEDATE) As Integer
+      Declare Function w_NSFDbReadReplHistory  Lib LIB_WIN Alias "NSFDbReadReplHistory"(ByVal hDb As Long, ByVal FilePath As LMBCS String, replinfo As Any, _
+      	ByVal MiscInfo As Integer, ByVal hFormula As Long) As Integer
+      Declare Function w_NSFDbWriteReplHistory Lib LIB_WIN Alias "NSFDbWriteReplHistory"(ByVal hDb As Long, ByVal FilePath As LMBCS String, replinfo As Any, ByVal MiscInfo As Integer) As Integer
+      Declare Function w_CmovmemFOTO Lib LIB_WIN Alias "Cmovmem"(fFrom As Any, tTo As Any, ByVal cBytes As Integer) As Long
+      Declare Function w_CmovmemFOTP Lib LIB_WIN Alias "Cmovmem"(fFrom As Any, ByVal ptrTo As Long, ByVal cBytes As Integer) As Long
+      Declare Function w_CmovmemFPTO Lib LIB_WIN Alias "Cmovmem"(ByVal ptrFrom As Long, objTo As Any, ByVal cBytes As Integer) As Long
+      Declare Function w_NSFDbGetReplHistorySummary Lib LIB_WIN Alias "NSFDbGetReplHistorySummary" (ByVal hDb As Long, ByVal Flags As Long, hSummary As Long, lNumEntries As Long) As Integer
+      Declare Function w_OSLock Lib LIB_WIN Alias "OSLockObject" (ByVal handle As Long) As Long
+      Declare Function w_CstrncpyACB Lib LIB_WIN Alias "CstrncpyAlignOnCharBoundary" ( _
+      	ByVal szTo As LMBCS String, ByVal szFrom As Long, ByVal limit As Long) As Long
+      Declare Function w_OSUnlock Lib LIB_WIN Alias "OSUnlockObject" (ByVal handle As Long) As Integer
+      Declare Function w_OSMemFree Lib LIB_WIN Alias "OSMemFree" (ByVal handle As Long) As Integer
+      Declare Function w_OSGetSystemTempDirectory	Lib LIB_WIN	Alias "OSGetSystemTempDirectory" (ByVal retBuffer As LMBCS String, bufLen As Integer) As Integer
+      Declare Sub w_OSCurrentTIMEDATE Lib LIB_WIN Alias "OSCurrentTIMEDATE"(td As TIMEDATE)
+      Declare Function w_TimeDateDifference Lib LIB_WIN Alias "TimeDateDifference" (time1 As TIMEDATE, time2 As TIMEDATE) As Long
+      Declare Function w_NSFItemSetText Lib LIB_WIN Alias "NSFItemSetText" (ByVal hNote As Long, ByVal itemName As String, ByVal itemText As String, ByVal textLen As Integer) As Integer
+      Declare Function w_NSFItemCreateTextList Lib LIB_WIN Alias "NSFItemCreateTextList" (ByVal hNote As Long, ByVal itemName As String, ByVal itemText As String, ByVal textLen As Integer) As Integer
+      Declare Function w_NSFFormulaCompile Lib LIB_WIN Alias "NSFFormulaCompile" (ByVal formulaName As String, ByVal formulaNameLen As Integer, _
+      	ByVal formulaText As String, ByVal formulaLen As Integer, retH As Long, retLen As Long, errCode As Integer, errLine As Integer, _
+      	errCol As Integer, errOffset As Integer, errLen As Integer) As Integer
+      Declare Function w_NullFormulaCompile Lib LIB_WIN Alias "NSFFormulaCompile" (ByVal pNullName As Long, ByVal formulaNameLen As Integer, _
+      	ByVal pNullText As Long, ByVal formulaLen As Integer, retH As Long, retLen As Long, errCode As Integer, errLine As Integer, _
+      	errCol As Integer, errOffset As Integer, errLen As Integer) As Integer
+      Declare Function w_NSFItemAppend Lib LIB_WIN Alias "NSFItemAppend" (ByVal hNote As Long, ByVal flags As Integer, ByVal itemName As String, _
+      	ByVal nameLen As Integer, ByVal itemType As Integer, ByVal pValue As Long, ByVal valueLen As Long) As Integer
+      Declare Function w_NSGetServerClusterMates Lib LIB_WIN Alias "NSGetServerClusterMates" (ByVal servername As LMBCS String, ByVal flags As Long, hList As Long) As Integer
+      Declare Function w_NIFFindDesignNote Lib LIB_WIN Alias "NIFFindDesignNote"(ByVal hBb As Long, ByVal ElemName As LMBCS String, ByVal noteclass%, noteid As Long) As Integer
+      Declare Function w_NSFDbReplicaInfoGet Lib LIB_WIN Alias "NSFDbReplicaInfoGet" (ByVal H As Long, R As DBReplicaInfo) As Integer
+      Declare Function w_NSFDbReplicaInfoSet Lib LIB_WIN Alias "NSFDbReplicaInfoSet" (ByVal H As Long, R As DBReplicaInfo) As Integer
+      Declare Sub w_OSGetExecutableDirectory Lib LIB_WIN Alias "OSGetExecutableDirectory" (ByVal PathName As LMBCS String)
+      Declare Function w_REGGetIDInfo Lib LIB_WIN Alias "REGGetIDInfo"(ByVal path As LMBCS String, _
+      	ByVal infoType As Integer, ByVal outbuf As LMBCS String, ByVal outlen As Integer, actuallen As Integer) As Integer
+      Declare Function w_NSFDbLocalSecInfoGet Lib LIB_WIN Alias "NSFDbLocalSecInfoGet"( _
+      		ByVal hDb As Long, flags As Byte, strength As Byte) As Integer
+      Declare Function w_NSFDbLocalSecInfoSet Lib LIB_WIN Alias "NSFDbLocalSecInfoSet"(ByVal hDb As Long, ByVal options%, _
+      		ByVal EncryptStrength As Byte, ByVal Username$) As Integer
+      Declare Function w_ConvertTIMEDATEToText32	Lib LIB_WIN	Alias "ConvertTIMEDATEToText" _
+      	(ByVal IntlFormatNull As Long, TimeFormat As TFMT, InputTime As TIMEDATE, _
+      	 ByVal retTextBuffer As LMBCS String, ByVal TextBufferLength As Integer, retTextLength As Integer) As Integer
+      Declare Function w_NSFDbIDGet Lib Lib_WIN Alias "NSFDbIDGet"(ByVal hDB As Long, td As TIMEDATE) As Integer
+      Declare Function w_NSFDbGetInfoAccess Lib LIB_WIN Alias "NSFDbGetInfoAccess" (ByVal hDB As Long, acr As ACCESS_RIGHTS) As Integer
+      Declare Function w_ListToText Lib LIB_WIN Alias "ListToText" (ByVal pList As Long, ByVal fromNote As Boolean, ByVal delim As LMBCS String, _
+      	ByVal maxRetLen%, ByVal buffer As LMBCS String) As Long
+      Declare Function w_NSFDbGetNoteInfoByUNID Lib LIB_WIN Alias "NSFDbGetNoteInfoByUNID" (ByVal hDB As Long, unid As UNIVERSALNOTEID, _
+       	noteid As Long, ByVal zeroptr As Long, tdMod As TIMEDATE, noteclass As Integer) As Integer
+      Declare Function w_NSFDbGetUserActivity Lib LIB_WIN Alias "NSFDbGetUserActivity" (ByVal hDb As Long, ByVal flagsIsZero As Long, _
+      	retActivity As DBACTIVITY, hRetUserInfo As Long, retUserCount As Integer) As Integer
+      Declare Function w_TimeDateAdjust Lib LIB_WIN Alias "TimeDateAdjust" (ttime As TIMEDATE, ByVal secs%, ByVal mins%, ByVal hrs%, ByVal days%, ByVal months%, ByVal years%) As Integer
+      Declare Function w_OSDiskFreeSpaceFromDir Lib LIB_WIN Alias "OSDiskFreeSpaceFromDir" (ByVal PathName As LMBCS String, result As Double) As Integer
+      Declare Function w_NAMEGetAddressBooks Lib LIB_WIN Alias "NAMEGetAddressBooks" ( _
+      	ByVal server As LMBCS String, ByVal wOptions%, count As Integer, length As Integer, hRet As Long) As Integer
+      	
+      ' windows 64-bit
+      Declare Function w64_CmovmemFOTO Lib LIB_WIN Alias "Cmovmem"(fFrom As Any, tTo As Any, ByVal cBytes As Integer) As Double
+      Declare Function w64_CmovmemFOTP Lib LIB_WIN Alias "Cmovmem"(fFrom As Any, ByVal ptrTo As Double, ByVal cBytes As Integer) As Double
+      Declare Function w64_CmovmemFPTO Lib LIB_WIN Alias "Cmovmem"(ByVal ptrFrom As Double, objTo As Any, ByVal cBytes As Integer) As Double
+      Declare Function w64_OSLock Lib LIB_WIN Alias "OSLockObject" (ByVal handle As Long) As Double
+      Declare Function w64_CstrncpyACB Lib LIB_WIN Alias "CstrncpyAlignOnCharBoundary" ( _
+      	ByVal szTo As LMBCS String,  ByVal szFrom As Double, ByVal limit As Long) As Double
+      Declare Function w64_NSFItemAppend Lib LIB_WIN Alias "NSFItemAppend" (ByVal hNote As Long, ByVal flags As Integer, ByVal itemName As LMBCS String, _
+      	ByVal nameLen As Integer, ByVal itemType As Integer, ByVal pValue As Double, ByVal valueLen As Long) As Integer
+      Declare Function w64_ConvertTIMEDATEToText	Lib LIB_WIN	Alias "ConvertTIMEDATEToText" _
+      	(ByVal IntlFormatNull As Double, TimeFormat As TFMT, InputTime As TIMEDATE, _
+      	 ByVal retTextBuffer As LMBCS String, ByVal TextBufferLength As Integer, retTextLength As Integer) As Integer
+      Declare Function w64_ListToText Lib LIB_WIN Alias "ListToText" (ByVal pList As Double, ByVal fromNote As Boolean, ByVal delim As LMBCS String, _
+      	ByVal maxRetLen%, ByVal buffer As LMBCS String) As Long
+      Declare Function w64_NSFDbGetNoteInfoByUNID Lib LIB_WIN Alias "NSFDbGetNoteInfoByUNID" (ByVal hDB As Long, unid As UNIVERSALNOTEID, _
+       	noteid As Long, ByVal zeroptr As Double, tdMod As TIMEDATE, noteclass As Integer) As Integer
+      
+      ' for Mac
+      Declare Function m_NSFDbOpen Lib LIB_MAC Alias "NSFDbOpen" (ByVal sDbName As LMBCS String, hDb As Long) As Integer
+      Declare Function m_NSFDbClose Lib LIB_MAC Alias "NSFDbClose" (ByVal hDb As Long) As Integer
+      Declare Function m_NSFNoteOpen Lib LIB_MAC Alias "NSFNoteOpen" (ByVal hDb As Long, ByVal noteid As Long, ByVal open_flags%, notehandle As Long) As Integer
+      Declare Function m_NSFNoteClose Lib LIB_MAC Alias "NSFNoteClose" (ByVal hNote As Long) As Integer
+      Declare Function m_NSFNoteCreate Lib LIB_MAC Alias "NSFNoteCreate" (ByVal hDB As Long, nhRet As Long) As Integer
+      Declare Function m_NSFNoteUpdate Lib LIB_MAC Alias "NSFNoteUpdate" (ByVal hNote As Long, ByVal updateFlags%) As Integer
+      Declare Function m_NSFNoteDelete Lib LIB_MAC Alias "NSFNoteDelete" (ByVal hDb As Long, ByVal noteid As Long, ByVal options%) As Integer
+      Declare Sub m_NSFNoteSetInfo Lib LIB_MAC Alias "NSFNoteSetInfo" (ByVal hNote As Long, ByVal itemId As Integer, data As Any)
+      Declare Sub m_NSFNoteGetInfo Lib LIB_MAC Alias "NSFNoteGetInfo" (ByVal hNote As Long, ByVal itemId As Integer, info As Any)
+      Declare Function m_NSFItemGetTime Lib Lib_MAC Alias "NSFItemGetTime" (ByVal mhNote As Long, ByVal itemname As LMBCS String, td As TIMEDATE) As Integer
+      Declare Function m_NSFDbReadReplHistory  Lib LIB_MAC Alias "NSFDbReadReplHistory"(ByVal hDb As Long, ByVal FilePath As LMBCS String, replinfo As Any, _
+      	ByVal MiscInfo As Integer, ByVal hFormula As Long) As Integer
+      Declare Function m_NSFDbWriteReplHistory Lib LIB_MAC Alias "NSFDbWriteReplHistory"(ByVal hDb As Long, ByVal FilePath As LMBCS String, replinfo As Any, ByVal MiscInfo As Integer) As Integer
+      Declare Function m_CmovmemFOTO Lib LIB_MAC Alias "Cmovmem"(fFrom As Any, tTo As Any, ByVal cBytes As Integer) As Long
+      Declare Function m_CmovmemFOTP Lib LIB_MAC Alias "Cmovmem"(fFrom As Any, ByVal ptrTo As Long, ByVal cBytes As Integer) As Long
+      Declare Function m_CmovmemFPTO Lib LIB_MAC Alias "Cmovmem"(ByVal ptrFrom As Long, objTo As Any, ByVal cBytes As Integer) As Long
+      Declare Function m_NSFDbGetReplHistorySummary Lib LIB_MAC Alias "NSFDbGetReplHistorySummary" (ByVal hDb As Long, ByVal Flags As Long, hSummary As Long, lNumEntries As Long) As Integer
+      Declare Function m_OSLock Lib LIB_MAC Alias "OSLockObject" (ByVal handle As Long) As Long
+      Declare Function m_CstrncpyACB Lib LIB_MAC Alias "CstrncpyAlignOnCharBoundary" ( _
+      	ByVal szTo As LMBCS String, ByVal szFrom As Long, ByVal limit As Long) As				Long
+      Declare Function m_OSUnlock Lib LIB_MAC Alias "OSUnlockObject" (ByVal handle As Long) As Integer
+      Declare Function m_OSMemFree Lib LIB_MAC Alias "OSMemFree" (ByVal handle As Long) As Integer
+      Declare Function m_OSGetSystemTempDirectory	Lib LIB_MAC	Alias "OSGetSystemTempDirectory" (ByVal retBuffer As LMBCS String, bufLen As Integer) As Integer
+      Declare Sub m_OSCurrentTIMEDATE Lib LIB_MAC Alias "OSCurrentTIMEDATE"(td As TIMEDATE)
+      Declare Function m_TimeDateDifference Lib LIB_MAC Alias "TimeDateDifference" (time1 As TIMEDATE, time2 As TIMEDATE) As Long
+      Declare Function m_NSFItemSetText Lib LIB_MAC Alias "NSFItemSetText" (ByVal hNote As Long, ByVal itemName As String, ByVal itemText As String, ByVal textLen As Integer) As Integer
+      Declare Function m_NSFItemCreateTextList Lib LIB_MAC Alias "NSFItemCreateTextList" (ByVal hNote As Long, ByVal itemName As String, ByVal itemText As String, ByVal textLen As Integer) As Integer
+      Declare Function m_NSFFormulaCompile Lib LIB_MAC Alias "NSFFormulaCompile" (ByVal formulaName As String, ByVal formulaNameLen As Integer, _
+      	ByVal formulaText As String, ByVal formulaLen As Integer, retH As Long, retLen As Long, errCode As Integer, errLine As Integer, _
+      	errCol As Integer, errOffset As Integer, errLen As Integer) As Integer
+      Declare Function m_NSFItemAppend Lib LIB_MAC Alias "NSFItemAppend" (ByVal hNote As Long, ByVal flags As Integer, ByVal itemName As String, _
+      	ByVal nameLen As Integer, ByVal itemType As Integer, ByVal pValue As Long, ByVal valueLen As Long) As Integer
+      Declare Function m_NSGetServerClusterMates Lib LIB_MAC Alias "NSGetServerClusterMates" (ByVal servername As LMBCS String, ByVal flags As Long, hList As Long) As Integer
+      Declare Function m_NIFFindDesignNote Lib LIB_MAC Alias "NIFFindDesignNote"(ByVal hBb As Long, ByVal ElemName As LMBCS String, ByVal noteclass%, noteid As Long) As Integer
+      Declare Function m_NSFDbReplicaInfoGet Lib LIB_MAC Alias "NSFDbReplicaInfoGet" (ByVal H As Long, R As DBReplicaInfo) As Integer
+      Declare Function m_NSFDbReplicaInfoSet Lib LIB_MAC Alias "NSFDbReplicaInfoSet" (ByVal H As Long, R As DBReplicaInfo) As Integer
+      Declare Sub m_OSGetExecutableDirectory Lib LIB_MAC Alias "OSGetExecutableDirectory" (ByVal PathName As LMBCS String)
+      Declare Function m_REGGetIDInfo Lib LIB_MAC Alias "REGGetIDInfo"(ByVal path As LMBCS String, _
+      	ByVal infoType As Integer, ByVal outbuf As LMBCS String, ByVal outlen As Integer, actuallen As Integer) As Integer
+      Declare Function m_NSFDbLocalSecInfoGet Lib LIB_MAC Alias "NSFDbLocalSecInfoGet"( _
+      		ByVal hDb As Long, flags As Byte, strength As Byte) As Integer
+      Declare Function m_NSFDbLocalSecInfoSet Lib LIB_MAC Alias "NSFDbLocalSecInfoSet"(ByVal hDb As Long, ByVal options%, _
+      		ByVal EncryptStrength As Byte, ByVal Username$) As Integer
+      Declare Function m_ConvertTIMEDATEToText32	Lib LIB_MAC	Alias "ConvertTIMEDATEToText" _
+      	(ByVal IntlFormatNull As Long, TimeFormat As TFMT, InputTime As TIMEDATE, _
+      	 ByVal retTextBuffer As LMBCS String, ByVal TextBufferLength As Integer, retTextLength As Integer) As Integer
+      Declare Function m_NSFDbIDGet Lib Lib_MAC Alias "NSFDbIDGet"(ByVal hDB As Long, td As TIMEDATE) As Integer
+      Declare Function m_NSFDbGetInfoAccess Lib LIB_MAC Alias "NSFDbGetInfoAccess" (ByVal hDB As Long, acr As ACCESS_RIGHTS) As Integer
+      Declare Function m_ListToText Lib LIB_MAC Alias "ListToText" (ByVal pList As Long, ByVal fromNote As Boolean, ByVal delim As LMBCS String, _
+      	ByVal maxRetLen%, ByVal buffer As LMBCS String) As Long
+      Declare Function m_NSFDbGetNoteInfoByUNID Lib LIB_MAC Alias "NSFDbGetNoteInfoByUNID" (ByVal hDB As Long, unid As UNIVERSALNOTEID, _
+       	noteid As Long, ByVal zeroptr As Long, tdMod As TIMEDATE, noteclass As Integer) As Integer
+      Declare Function m_NSFDbGetUserActivity Lib LIB_MAC Alias "NSFDbGetUserActivity" (ByVal hDb As Long, ByVal flagsIsZero As Long, _
+      	retActivity As DBACTIVITY, hRetUserInfo As Long, retUserCount As Integer) As Integer
+      Declare Function m_TimeDateAdjust Lib LIB_MAC Alias "TimeDateAdjust" (ttime As TIMEDATE, ByVal secs%, ByVal mins%, ByVal hrs%, ByVal days%, ByVal months%, ByVal years%) As Integer
+      Declare Function m_OSDiskFreeSpaceFromDir Lib LIB_MAC Alias "OSDiskFreeSpaceFromDir" (ByVal PathName As LMBCS String, result As Double) As Integer
+      Declare Function m_NAMEGetAddressBooks Lib LIB_MAC Alias "NAMEGetAddressBooks" ( _
+      	ByVal server As LMBCS String, ByVal wOptions%, count As Integer, length As Integer, hRet As Long) As Integer
+      	
+      ' Mac 64-bit
+      Declare Function m64_CmovmemFOTO Lib LIB_MAC Alias "Cmovmem"(fFrom As Any, tTo As Any, ByVal cBytes As Integer) As Double
+      Declare Function m64_CmovmemFOTP Lib LIB_MAC Alias "Cmovmem"(fFrom As Any, ByVal ptrTo As Double, ByVal cBytes As Integer) As Double
+      Declare Function m64_CmovmemFPTO Lib LIB_MAC Alias "Cmovmem"(ByVal ptrFrom As Double, objTo As Any, ByVal cBytes As Integer) As Double
+      Declare Function m64_OSLock Lib LIB_MAC Alias "OSLockObject" (ByVal handle As Long) As Double
+      Declare Function m64_CstrncpyACB Lib LIB_MAC Alias "CstrncpyAlignOnCharBoundary" ( _
+      	ByVal szTo As LMBCS String,  ByVal szFrom As Double, ByVal limit As Long) As Double
+      Declare Function m64_NSFItemAppend Lib LIB_MAC Alias "NSFItemAppend" (ByVal hNote As Long, ByVal flags As Integer, ByVal itemName As LMBCS String, _
+      	ByVal nameLen As Integer, ByVal itemType As Integer, ByVal pValue As Double, ByVal valueLen As Long) As Integer
+      Declare Function m64_ConvertTIMEDATEToText	Lib LIB_MAC	Alias "ConvertTIMEDATEToText" _
+      	(ByVal IntlFormatNull As Double, TimeFormat As TFMT, InputTime As TIMEDATE, _
+      	 ByVal retTextBuffer As LMBCS String, ByVal TextBufferLength As Integer, retTextLength As Integer) As Integer
+      Declare Function m64_ListToText Lib LIB_MAC Alias "ListToText" (ByVal pList As Double, ByVal fromNote As Boolean, ByVal delim As LMBCS String, _
+      	ByVal maxRetLen%, ByVal buffer As LMBCS String) As Long
+      Declare Function m64_NSFDbGetNoteInfoByUNID Lib LIB_MAC Alias "NSFDbGetNoteInfoByUNID" (ByVal hDB As Long, unid As UNIVERSALNOTEID, _
+       	noteid As Long, ByVal zeroptr As Double, tdMod As TIMEDATE, noteclass As Integer) As Integer
+      
+      ' for Linux
+      Declare Function l_NSFDbOpen Lib LIB_LUX Alias "NSFDbOpen" (ByVal sDbName As LMBCS String, hDb As Long) As Integer
+      Declare Function l_NSFDbClose Lib LIB_LUX Alias "NSFDbClose" (ByVal hDb As Long) As Integer
+      Declare Function l_NSFNoteOpen Lib LIB_LUX Alias "NSFNoteOpen" (ByVal hDb As Long, ByVal noteid As Long, ByVal open_flags%, notehandle As Long) As Integer
+      Declare Function l_NSFNoteClose Lib LIB_LUX Alias "NSFNoteClose" (ByVal hNote As Long) As Integer
+      Declare Function l_NSFNoteCreate Lib LIB_LUX Alias "NSFNoteCreate" (ByVal hDB As Long, nhRet As Long) As Integer
+      Declare Function l_NSFNoteUpdate Lib LIB_LUX Alias "NSFNoteUpdate" (ByVal hNote As Long, ByVal updateFlags%) As Integer
+      Declare Function l_NSFNoteDelete Lib LIB_LUX Alias "NSFNoteDelete" (ByVal hDb As Long, ByVal noteid As Long, ByVal options%) As Integer
+      Declare Sub l_NSFNoteSetInfo Lib LIB_LUX Alias "NSFNoteSetInfo" (ByVal hNote As Long, ByVal itemId As Integer, data As Any)
+      Declare Sub l_NSFNoteGetInfo Lib LIB_LUX Alias "NSFNoteGetInfo" (ByVal hNote As Long, ByVal itemId As Integer, info As Any)
+      Declare Function l_NSFItemGetTime Lib Lib_LUX Alias "NSFItemGetTime" (ByVal mhNote As Long, ByVal itemname As LMBCS String, td As TIMEDATE) As Integer
+      Declare Function l_NSFDbReadReplHistory  Lib LIB_LUX Alias "NSFDbReadReplHistory"(ByVal hDb As Long, ByVal FilePath As LMBCS String, replinfo As Any, _
+      	ByVal MiscInfo As Integer, ByVal hFormula As Long) As Integer
+      Declare Function l_NSFDbWriteReplHistory Lib LIB_LUX Alias "NSFDbWriteReplHistory"(ByVal hDb As Long, ByVal FilePath As LMBCS String, replinfo As Any, ByVal MiscInfo As Integer) As Integer
+      Declare Function l_CmovmemFOTO Lib LIB_LUX Alias "Cmovmem"(fFrom As Any, tTo As Any, ByVal cBytes As Integer) As Long
+      Declare Function l_CmovmemFOTP Lib LIB_LUX Alias "Cmovmem"(fFrom As Any, ByVal ptrTo As Long, ByVal cBytes As Integer) As Long
+      Declare Function l_CmovmemFPTO Lib LIB_LUX Alias "Cmovmem"(ByVal ptrFrom As Long, objTo As Any, ByVal cBytes As Integer) As Long
+      Declare Function l_NSFDbGetReplHistorySummary Lib LIB_LUX Alias "NSFDbGetReplHistorySummary" (ByVal hDb As Long, ByVal Flags As Long, hSummary As Long, lNumEntries As Long) As Integer
+      Declare Function l_OSLock Lib LIB_LUX Alias "OSLockObject" (ByVal handle As Long) As Long
+      Declare Function l_CstrncpyACB Lib LIB_LUX Alias "CstrncpyAlignOnCharBoundary" ( _
+      	ByVal szTo As LMBCS String, ByVal szFrom As Long, ByVal limit As Long) As Long
+      Declare Function l_OSUnlock Lib LIB_LUX Alias "OSUnlockObject" (ByVal handle As Long) As Integer
+      Declare Function l_OSMemFree Lib LIB_LUX Alias "OSMemFree" (ByVal handle As Long) As Integer
+      Declare Function l_OSGetSystemTempDirectory	Lib LIB_LUX	Alias "OSGetSystemTempDirectory" (ByVal retBuffer As LMBCS String, bufLen As Integer) As Integer
+      Declare Sub l_OSCurrentTIMEDATE Lib LIB_LUX Alias "OSCurrentTIMEDATE"(td As TIMEDATE)
+      Declare Function l_TimeDateDifference Lib LIB_LUX Alias "TimeDateDifference" (time1 As TIMEDATE, time2 As TIMEDATE) As Long
+      Declare Function l_NSFItemSetText Lib LIB_LUX Alias "NSFItemSetText" (ByVal hNote As Long, ByVal itemName As String, ByVal itemText As String, ByVal textLen As Integer) As Integer
+      Declare Function l_NSFItemCreateTextList Lib LIB_LUX Alias "NSFItemCreateTextList" (ByVal hNote As Long, ByVal itemName As String, ByVal itemText As String, ByVal textLen As Integer) As Integer
+      Declare Function l_NSFFormulaCompile Lib LIB_LUX Alias "NSFFormulaCompile" (ByVal formulaName As String, ByVal formulaNameLen As Integer, _
+      	ByVal formulaText As String, ByVal formulaLen As Integer, retH As Long, retLen As Long, errCode As Integer, errLine As Integer, _
+      	errCol As Integer, errOffset As Integer, errLen As Integer) As Integer
+      Declare Function l_NSFItemAppend Lib LIB_LUX Alias "NSFItemAppend" (ByVal hNote As Long, ByVal flags As Integer, ByVal itemName As String, _
+      	ByVal nameLen As Integer, ByVal itemType As Integer, ByVal pValue As Long, ByVal valueLen As Long) As Integer
+      Declare Function l_NSGetServerClusterMates Lib LIB_LUX Alias "NSGetServerClusterMates" (ByVal servername As LMBCS String, ByVal flags As Long, hList As Long) As Integer
+      Declare Function l_NIFFindDesignNote Lib LIB_LUX Alias "NIFFindDesignNote"(ByVal hBb As Long, ByVal ElemName As LMBCS String, ByVal noteclass%, noteid As Long) As Integer
+      Declare Function l_NSFDbReplicaInfoGet Lib LIB_LUX Alias "NSFDbReplicaInfoGet" (ByVal H As Long, R As DBReplicaInfo) As Integer
+      Declare Function l_NSFDbReplicaInfoSet Lib LIB_LUX Alias "NSFDbReplicaInfoSet" (ByVal H As Long, R As DBReplicaInfo) As Integer
+      Declare Sub l_OSGetExecutableDirectory Lib LIB_LUX Alias "OSGetExecutableDirectory" (ByVal PathName As LMBCS String)
+      Declare Function l_REGGetIDInfo Lib LIB_LUX Alias "REGGetIDInfo"(ByVal path As LMBCS String, _
+      	ByVal infoType As Integer, ByVal outbuf As LMBCS String, ByVal outlen As Integer, actuallen As Integer) As Integer
+      Declare Function l_NSFDbLocalSecInfoGet Lib LIB_LUX Alias "NSFDbLocalSecInfoGet"( _
+      		ByVal hDb As Long, flags As Byte, strength As Byte) As Integer
+      Declare Function l_NSFDbLocalSecInfoSet Lib LIB_LUX Alias "NSFDbLocalSecInfoSet"(ByVal hDb As Long, ByVal options%, _
+      		ByVal EncryptStrength As Byte, ByVal Username$) As Integer
+      Declare Function l_ConvertTIMEDATEToText32	Lib LIB_LUX	Alias "ConvertTIMEDATEToText" _
+      	(ByVal IntlFormatNull As Long, TimeFormat As TFMT, InputTime As TIMEDATE, _
+      	 ByVal retTextBuffer As LMBCS String, ByVal TextBufferLength As Integer, retTextLength As Integer) As Integer
+      Declare Function l_NSFDbIDGet Lib Lib_LUX Alias "NSFDbIDGet"(ByVal hDB As Long, td As TIMEDATE) As Integer
+      Declare Function l_NSFDbGetInfoAccess Lib LIB_LUX Alias "NSFDbGetInfoAccess" (ByVal hDB As Long, acr As ACCESS_RIGHTS) As Integer
+      Declare Function l_ListToText Lib LIB_LUX Alias "ListToText" (ByVal pList As Long, ByVal fromNote As Boolean, ByVal delim As LMBCS String, _
+      	ByVal maxRetLen%, ByVal buffer As LMBCS String) As Long
+      Declare Function l_NSFDbGetNoteInfoByUNID Lib LIB_LUX Alias "NSFDbGetNoteInfoByUNID" (ByVal hDB As Long, unid As UNIVERSALNOTEID, _
+       	noteid As Long, ByVal zeroptr As Long, tdMod As TIMEDATE, noteclass As Integer) As Integer
+      Declare Function l_NSFDbGetUserActivity Lib LIB_LUX Alias "NSFDbGetUserActivity" (ByVal hDb As Long, ByVal flagsIsZero As Long, _
+      	retActivity As DBACTIVITY, hRetUserInfo As Long, retUserCount As Integer) As Integer
+      Declare Function l_TimeDateAdjust Lib LIB_LUX Alias "TimeDateAdjust" (ttime As TIMEDATE, ByVal secs%, ByVal mins%, ByVal hrs%, ByVal days%, ByVal months%, ByVal years%) As Integer
+      Declare Function l_OSDiskFreeSpaceFromDir Lib LIB_LUX Alias "OSDiskFreeSpaceFromDir" (ByVal PathName As LMBCS String, result As Double) As Integer
+      Declare Function l_NAMEGetAddressBooks Lib LIB_LUX Alias "NAMEGetAddressBooks" ( _
+      	ByVal server As LMBCS String, ByVal wOptions%, count As Integer, length As Integer, hRet As Long) As Integer
+      	
+      ' Linux 64-bit
+      Declare Function l64_CmovmemFOTO Lib LIB_LUX Alias "Cmovmem"(fFrom As Any, tTo As Any, ByVal cBytes As Integer) As Double
+      Declare Function l64_CmovmemFOTP Lib LIB_LUX Alias "Cmovmem"(fFrom As Any, ByVal ptrTo As Double, ByVal cBytes As Integer) As Double
+      Declare Function l64_CmovmemFPTO Lib LIB_LUX Alias "Cmovmem"(ByVal ptrFrom As Double, objTo As Any, ByVal cBytes As Integer) As Double
+      Declare Function l64_OSLock Lib LIB_LUX Alias "OSLockObject" (ByVal handle As Long) As Double
+      Declare Function l64_CstrncpyACB Lib LIB_LUX Alias "CstrncpyAlignOnCharBoundary" ( _
+      	ByVal szTo As LMBCS String,  ByVal szFrom As Double, ByVal limit As Long) As Double
+      Declare Function l64_NSFItemAppend Lib LIB_LUX Alias "NSFItemAppend" (ByVal hNote As Long, ByVal flags As Integer, ByVal itemName As LMBCS String, _
+      	ByVal nameLen As Integer, ByVal itemType As Integer, ByVal pValue As Double, ByVal valueLen As Long) As Integer
+      Declare Function l64_ConvertTIMEDATEToText	Lib LIB_LUX	Alias "ConvertTIMEDATEToText" _
+      	(ByVal IntlFormatNull As Double, TimeFormat As TFMT, InputTime As TIMEDATE, _
+      	 ByVal retTextBuffer As LMBCS String, ByVal TextBufferLength As Integer, retTextLength As Integer) As Integer
+      Declare Function l64_ListToText Lib LIB_LUX Alias "ListToText" (ByVal pList As Double, ByVal fromNote As Boolean, ByVal delim As LMBCS String, _
+      	ByVal maxRetLen%, ByVal buffer As LMBCS String) As Long
+      Declare Function l64_NSFDbGetNoteInfoByUNID Lib LIB_LUX Alias "NSFDbGetNoteInfoByUNID" (ByVal hDB As Long, unid As UNIVERSALNOTEID, _
+       	noteid As Long, ByVal zeroptr As Double, tdMod As TIMEDATE, noteclass As Integer) As Integer
+      %REM
+      	Class DBHandle
+      	Description: make sure a DB handle is closed if it is opened.
+      %END REM
+      Class DBHandle
+      	Public handle As Long
+      	api As CAPI
+      	
+      	Sub New(ByVal serv$, ByVal path$)
+      		Dim iStatus%
+      		Set api = GetCAPI ' keep refctr from dropping to zero before we're done with this obj.
+      		iStatus = api.NSFDbOpen(api.PathNetConstruct(0, serv, path), handle)
+      		If iStatus Then
+      			handle = 0
+      			Error iStatus
+      		End If
+      	End Sub
+      	
+      	Sub Close
+      		Dim iStatus%
+      		If handle Then
+      			iStatus = API.NSFDbClose(handle)
+      			If iStatus Then
+      				Error iStatus
+      			End If
+      			handle = 0
+      		End If
+      	End Sub
+      
+      	Sub Delete
+      		On Error Resume Next
+      		me.Close
+      	End Sub
+      	
+      	Function CreateNote As NoteHandle
+      		Dim shn As New NoteHandle(Me, 0, 0)
+      		Dim hNote As Long
+      		Call api.NSFNoteCreate(handle, hNote)
+      		shn.Assign hNote
+      		Set CreateNote = shn
+      	End Function
+      End Class
+      %REM
+      	Class NoteHandle
+      	Description: Maintain a self-closing handle to a note -- delete event prevents leaving note open on exit.
+      %END REM
+      Class NoteHandle
+      	Public handle As Long
+      	api As CAPI
+      	
+      	Sub New(shdb As DBHandle, ByVal noteId As Long, ByVal options%)
+      		Dim iStatus%
+      		Set api = GetCAPI ' keep refctr from dropping to zero before we're done with this obj.
+      		If noteid <> 0 Then
+      			iStatus = api.NSFNoteOpen(shdb.handle, noteid, options, handle)
+      			If iStatus Then
+      				handle = 0
+      				Error iStatus
+      			End If
+      		End If
+      	End Sub
+      	
+      	%REM
+      		Sub Assign
+      		Description: Assign the object a handle we got elsewhere.
+      	%END REM
+      	Sub Assign(ByVal newHandle As Long)
+      		me.Close
+      		handle = newHandle
+      	End Sub
+      	
+      	Sub Close
+      		Dim iStatus%
+      		If handle Then
+      			iStatus = API.NSFNoteClose(handle)
+      			If iStatus Then
+      				Error iStatus
+      			End If
+      			handle = 0
+      		End If
+      	End Sub
+      
+      	Sub Delete
+      		On Error Resume Next
+      		me.Close
+      	End Sub
+      End Class
+      Class CPOINTER	' a pointer value for 32 or 64-bit systems.
+      	Public val32 As Long
+      	Public val64 As Double
+      	
+      	Public Property Get IsNull As Boolean
+      		me.IsNull = val32 = 0 And val64 = 0
+      	End Property
+      	
+      End Class
+      Class ReplicationHistory
+      	api As CAPI
+      	hDb As DBHandle
+      	hResult As Long
+      	bLocked As Boolean
+      	Public nEntries As Long
+      	Public Entries() As ReplHistEntry
+      	
+      	Sub New(shdb As DBHandle)
+      		Set api = GetCAPI ' prevent it from going out scope before we're done with it.
+      		Set hDb = shdb
+      	End Sub
+      	
+      	%REM
+      		Sub Load
+      		Description: Fetch back the summary. Use REPLHIST_xxx flags.
+      	%END REM
+      	Sub Load(flags%)
+      		Dim stat%, i&, serv$, filepath$, servPos As CPOINTER, ptr As CPOINTER, filepos As CPOINTER, curRecPos As CPOINTER
+      		On Error GoTo oops
+      		stat = api.NSFDbGetReplHistorySummary(Hdb.handle, Flags, hResult, nEntries)
+      		If stat = 578 Then ' special database cannot be located -- the database hasn't replicated yet.
+      			nEntries = 0
+      			Exit Sub
+      		End If
+      		If stat Then
+      			Error stat, "Error from NSFDbGetReplHistorySummary"
+      		End If
+      		If nEntries = 0 Then Exit Sub
+      		ReDim Entries(0 To nEntries-1)
+      		Dim rec As REPLHIST_SUMMARY, ent As ReplHistEntry
+      		Set ptr = api.OSLock(hResult)
+      		bLocked = True
+      		Set curRecPos = api.CPClone(ptr)
+      		Dim fpath$
+      		For i = 0 To nEntries - 1
+      			Set ent = New ReplHistEntry
+      			Set curRecPos = api.LoadReplHist(curRecPos, rec)
+      			Set servpos = api.CPPlus(ptr, rec.ServerNameOffset)
+      			Set filepos = api.CPPlus(ptr, rec.ServerNameOffset+rec.ServerNameLength+2) ' there's a !! after server name we want to skip over.
+      			ent.direction = rec.Direction
+      			ent.server = api.PointerToStringN(servpos, rec.ServerNameLength)
+      			ent.filepath = api.PointerToStringN(filepos, rec.FileNameLength)
+      			fpath = api.PathNetConstruct(0, ent.server, ent.filepath)
+      			Dim readflags%
+      			readflags = RETURN_OTHER_DBID
+      			api.setBSAFE ent.rec.Digest, "BA-DB-AD-BA-DB-AD-BA-DB-AD-BA-DB-AD-BA-DB-AD-BA"
+      			Select Case rec.direction
+      			Case 0 ' never
+      				stat = 0
+      			Case 2 ' receive
+      				stat = api.NSFDbReadReplHistory(hdb.handle, fpath, ent.rec, readflags)
+      			Case 1 ' send
+      				stat = api.NSFDbReadReplHistory(hdb.handle, fpath, ent.rec, STORE_IN_SOURCE+readflags)
+      			End Select
+      			If stat <> 0 And stat <> 547 Then
+      				Error stat
+      			End If
+      			Set entries(i) = ent
+      		Next
+      		me.Unlock
+      		Exit Sub
+      oops:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Function isDateABeforeB
+      		Description: Return True if the SearchedUntil time of entry A is earlier than that of entry B.
+      	%END REM
+      	Private Function isDateAAfterB(a As ReplHistEntry, b As ReplHistEntry) As Boolean
+      		If b.rec.SearchedUntil.Innards0 = 0 And b.rec.SearchedUntil.Innards1 = 0 Then
+      			Exit Function ' return False - treat null dates as very old.
+      		End If
+      		If a.rec.SearchedUntil.Innards0 = 0 And a.rec.SearchedUntil.Innards1 = 0 Then
+      			isDateAAfterB = True
+      		Else
+      			Dim dif As Long
+      			dif = api.TimeDateDifference(a.rec.SearchedUntil, b.rec.SearchedUntil)
+      			isDateAAfterB = (dif < 0)
+      		End If
+      	End Function
+      	
+      	%REM
+      		Sub SortByTime
+      		Description: Sort entries by "since" time.
+      	%END REM
+      	Sub SortByTime
+      		Dim i%, k%, tmp As ReplHistEntry
+      		For i = 0 To nEntries-2
+      			Set tmp = entries(i)
+      			For k = i+1 To nEntries-1
+      				If isDateAAfterB(tmp, entries(k)) Then
+      					Set entries(i) = entries(k)
+      					Set entries(k) = tmp
+      					Set tmp = entries(i)
+      				End If
+      			Next
+      		Next
+      	End Sub
+      	
+      	Sub Unlock
+      		If hResult Then
+      			If bLocked Then
+      				api.OSUnlock hResult
+      				bLocked = False
+      			End If
+      			api.OSMemFree hResult
+      			hResult = 0
+      		End If
+      	End Sub
+      	
+      	Sub Delete
+      		On Error Resume Next
+      		me.Unlock
+      		ForAll ent In me.Entries
+      			If Not (ent Is Nothing) Then
+      				Delete ent
+      			End If
+      		End ForAll
+      	End Sub
+      	
+      	%REM
+      		Property Get isDirty
+      		Description: Returns True if there are unsaved changes to the replication history
+      	%END REM
+      	Public Property Get isDirty As Boolean
+      		Dim i%
+      		For i = 0 To nentries-1
+      			If entries(i).dirty Then
+      				isDirty = True
+      				Exit Property
+      			End If
+      		Next
+      	End Property
+      	
+      	%REM
+      		Function Save
+      		Description: Save changes to any "dirty" entries, and return True if any saves were done.
+      	%END REM
+      	Function Save(ByVal bIgnoreErrors As Boolean) As Boolean
+      		Dim i%, stat%, ent As ReplHistEntry, miscInfo%
+      		For i = 0 To nentries-1
+      			If entries(i).dirty Then
+      				Set ent = entries(i)
+      				Save = True
+      				If ent.direction = RHE_DIREC_SEND Then
+      					miscInfo = STORE_IN_SOURCE
+      				End If
+      				stat = api.NSFDbWriteReplHistory(hdb.handle, ent.server & "!!" & ent.filepath, ent.rec, Miscinfo)
+      				If stat <> 0 And Not bIgnoreErrors Then
+      					Error stat
+      				End If
+      				ent.dirty = False
+      			End If
+      		Next
+      	End Function
+      End Class
+      Class ReplHistEntry
+      	Public direction As Integer ' RHE_DIREC_xxx
+      	Public server As String
+      	Public filepath As String
+      	Public rec As REPLHISTORY_INFO
+      	
+      	Public dirty As Boolean
+      	
+      	Property Get moreInfo As Integer
+      		moreInfo = rec.MoreInfo
+      	End Property
+      End Class
+      %REM
+      	Class MemHandle
+      	Description: Takes charge of a memory handle to make sure it gets freed when done.
+      %END REM
+      Class MemHandle
+      	z_handle As Long
+      	z_bLocked As Boolean
+      	z_pointer As CPOINTER
+      	z_api As CAPI
+      	
+      	%REM
+      		Sub New
+      		Description: If you don't have the handle yet you can use 0 for the argument, then set Handle property later.
+      	%END REM
+      	Sub New(ByVal handle As Long)
+      		z_handle = handle
+      		Set z_api = GetCAPI
+      	End Sub
+      	
+      	%REM
+      		Property Get isValid
+      		Description: tells whether this is a valid (non-zero) handle.
+      	%END REM
+      	Public Property Get isValid As Boolean
+      		isValid = z_handle <> 0
+      	End Property
+      	
+      	%REM
+      		Property Get isLocked
+      		Description: Tells whether the handle is locked.
+      	%END REM
+      	Public Property Get isLocked As Boolean
+      		isLocked = z_bLocked
+      	End Property
+      	
+      	%REM
+      		Property Get handle
+      		Description: Will throw error if you get handle value before setting and locking it. Use isValid and isLocked to test whether this was done.
+      	%END REM
+      	Public Property Get handle As Long
+      		If z_handle = 0 Then Error 5899, "Null handle in DBHandle (use isValid to test)."
+      		If Not z_bLocked Then Error 5898, "Lock handle before use (in DBHandle)."
+      		handle = z_handle
+      	End Property
+      	
+      	Public Property Set handle As Long
+      		If z_handle Then Free
+      		z_handle = handle
+      	End Property
+      	
+      	%REM
+      		Function Lock
+      		Description: Return a pointer to the memory.
+      	%END REM
+      	Function Lock As CPOINTER
+      		Dim stat%
+      		If Not z_bLocked Then
+      			If z_handle = 0 Then Error 5899, "Null handle in DBHandle (use isValid to test)."
+      			Set z_pointer = z_API.OSLock(z_handle)
+      			z_bLocked = True
+      		End If
+      		Set me.Lock = z_pointer
+      	End Function
+      	
+      	Sub Unlock
+      		If z_bLocked Then
+      			z_api.OSUnlock(z_handle) ' if this fails there's nothing to be done.
+      			z_bLocked = False
+      		End If
+      	End Sub
+      	
+      	Sub Free
+      		If z_handle Then
+      			me.Unlock
+      			z_api.OSMemFree z_handle
+      			z_handle = 0
+      		End If
+      	End Sub
+      
+      	Sub Delete
+      		On Error Resume Next
+      		Free
+      	End Sub
+      End Class
+      %REM
+      	Class CAPI
+      	Description: Various C API calls done from LotusScript.
+      %END REM
+      Class CAPI
+      	Public buffer(0 To 255) As Byte	' buffer for fetching stuff.
+      	Public bufPtr As CPOINTER
+      	z_bAlignDwords As Boolean ' whether the current OS requires extra padding to DWORD boundaries.
+      	Public isWindows As Boolean
+      	Public is64 As Boolean
+      	Public pathDelimiter As String
+      	Private NullPtr As CPOINTER
+      	z_timeformat As TFMT
+      	
+      	Sub New
+      		isWindows = True
+      		pathDelimiter = {\}
+      		Set NullPtr = New CPOINTER
+      		SetTimeFormat TDFMT_FULL4, TTFMT_FULL, TZFMT_NEVER, TSFMT_DATETIME
+      	End Sub
+      	
+      	%REM
+      		Property UseDoubleAsPointer   get, set
+      		Description: Get and set the new session property to use double values if a pointer is needed.
+      	%END REM
+      	Public Property Set UseDoubleAsPointer As Boolean
+      		On Error GoTo oops
+      		Dim ses ' use untyped variable to allow editing with pre 12.0.1 client
+      		Set ses = New NotesSession
+      		ses.UseDoubleAsPointer = UseDoubleAsPointer
+      		Exit Property
+      oops: ' property not implemented in this version, check INI setting.
+      		If Not is64 Then Exit Property ' we only care about this on 64bit systems
+      		Dim ival$, curval$
+      		If UseDoubleAsPointer Then ival = "1"
+      		curval = ses.getenvironmentstring(INI_DAP, True)
+      		If curval <> ival Then
+      			If curval = "" Then curval = {""}
+      			Error 20993, Replace(DAP_ERROR, "{0}", INI_DAP & "=" & curval)
+      		End If
+      		Exit Property
+      	End Property
+      	Public Property Get UseDoubleAsPointer As Boolean
+      		On Error GoTo oops
+      		Dim ses
+      		Set ses = New NotesSession
+      		UseDoubleAsPointer = ses.UseDoubleAsPointer
+      		Exit Property
+      oops:
+      		UseDoubleAsPointer = ses.Getenvironmentstring(INI_DAP, True) = "1"
+      		Exit Property
+      	End Property
+      	
+      	Function NSFDbOpen(ByVal sDbName As String, hDb As Long) As Integer
+      		NSFDbOpen = w_NSFDbOpen(sDbName, hDb)
+      	End Function
+      	
+      	Function NSFDbClose(ByVal hDb As Long) As Integer
+      		NSFDbClose = w_NSFDbClose(hDb)
+      	End Function
+      	
+      	Function NSFDbIDGet(hdb As Long, retval As TIMEDATE) As Integer
+      		NSFDbIDGet = w_NSFDbIDGet(hdb, retval)
+      	End Function
+      	
+      	Function NSFDbGetInfoAccess(ByVal hDB As Long, acr As ACCESS_RIGHTS) As Integer
+      		NSFDbGetInfoAccess = w_NSFDbGetInfoAccess(hDB, acr)
+      	End Function
+      	
+      	Function OSLock(ByVal handle As Long) As CPOINTER
+      		Set OSLock = New CPOINTER
+      		OSLock.val32 = w_OSLock(handle)
+      	End Function
+      	
+      	Function OSUnlock(ByVal handle As Long) As Integer
+      		OSUnlock = w_OSUnlock(handle)
+      	End Function
+      	
+      	Function OSMemFree(ByVal handle As Long) As Integer
+      		OSMemFree = w_OSMemFree(handle)
+      	End Function
+      	
+      	Private Function OSGetSystemTempDirectory(retBuffer As String, ByVal bufLen As Integer) As Integer
+      		OSGetSystemTempDirectory = w_OSGetSystemTempDirectory(retBuffer, bufLen)
+      	End Function
+      	
+      	%REM
+      		Function OSDiskFreeSpaceFromDir
+      		Description: Don't call directly -- use GetFreeSpace.
+      	%END REM
+      	Function OSDiskFreeSpaceFromDir(ByVal PathName As String, result As Double) As Integer
+      		If is64 Then UseDoubleAsPointer = False ' rare occasion we really need a double.
+      		OSDiskFreeSpaceFromDir = w_OSDiskFreeSpaceFromDir(PathName, result)
+      	End Function
+      	
+      	Sub OSGetExecutableDirectory(pathName$)
+      		Call w_osgetexecutabledirectory(pathName)
+      	End Sub
+      	
+      	Function ConvertTIMEDATEToText(IntlFormat As CPOINTER, TimeFormat As TFMT, _
+      		InputTime As TIMEDATE, retTextBuffer As String, ByVal TextBufferLength As Integer, _
+      		retTextLength As Integer) As Integer
+      		ConvertTIMEDATEToText = w_ConvertTimeDateToText32(IntlFormat.val32, TimeFormat, InputTime, retTextBuffer, TextBufferLength, retTextLength)
+      	End Function
+      	
+      	Sub OSCurrentTIMEDATE(td As TIMEDATE)
+      		w_OSCurrentTIMEDATE td
+      	End Sub
+      	
+      	Function NSFNoteOpen(ByVal hDB As Long, ByVal noteid As Long, ByVal options%, hNT As Long) As Integer
+      		NSFNoteOpen = w_NSFNoteOpen(hDB, noteid, options, hNT)
+      	End Function
+      	
+      	Function NSFNoteClose(ByVal hNT As Long) As Integer
+      		NSFNoteClose = w_NSFNoteClose(hNT)
+      	End Function
+      	
+      	Function NSFNoteCreate(ByVal hDB As Long, nhRet As Long) As Integer
+      		NSFNoteCreate = w_NSFNoteCreate(hDB, nhRet)
+      	End Function
+      	
+      	Function NSFNoteDelete(ByVal hDb As Long, ByVal noteid As Long, ByVal options%) As Integer
+      		NSFNoteDelete = w_NSFNoteDelete(hDb, noteid, options)
+      	End Function
+      	
+      	Sub NSFNoteSetInfo_Word(ByVal hNote As Long, ByVal id As Integer, ByVal newval As Integer)
+      		Call w_NSFNoteSetInfo(hNote, id, newval)
+      	End Sub
+      	
+      	Sub NSFNoteGetInfo_Int(ByVal hNT As Long, ByVal note_member As Integer, info As Integer)
+      		Call w_NSFNoteGetInfo(hNT, note_member, info)
+      	End Sub
+      	
+      	Sub NSFNoteGetInfo_Long(ByVal hNote As Long, ByVal id As Integer, retval As Long)
+      		Call w_NSFNoteGetInfo(hNote, id, retval)
+      	End Sub
+      	
+      	Sub NSFNoteGetInfo_Date(ByVal hNT As Long, ByVal note_member As Integer, td As TIMEDATE)
+      		Call w_NSFNoteGetInfo(hNT, note_member, td)
+      	End Sub
+      	
+      	Function NSFNoteGetInfo_OID(ByVal hNT As Long, zoid As OID) As Integer
+      		Call w_NSFNoteGetInfo(hNT, NOTEINFO_OID, zoid)
+      	End Function
+      	
+      	Function NSFItemGetTime (ByVal mhNote As Long, ByVal itemname As String, td As TIMEDATE) As Boolean
+      		NSFItemGetTime = w_NSFItemGetTime(mhNote, itemname, td) <> 0
+      	End Function
+      
+      	Function NSFNoteUpdate(ByVal hNote As Long, ByVal updateFlags%) As Integer
+      		NSFNoteUpdate = w_NSFNoteUpdate(hNote, updateflags)
+      	End Function
+      	
+      	Function NSFDbGetReplHistorySummary(ByVal hDb As Long, ByVal Flags As Long, hSummary As Long, lNumEntries As Long) As Integer
+      		NSFDbGetReplHistorySummary = w_NSFDbGetReplHistorySummary(hDB, Flags, hSummary, lNumEntries)
+      	End Function
+      	
+      	Function NSFDbReadReplHistory(ByVal hDb As Long, ByVal FilePath As String, replinfo As REPLHISTORY_INFO, ByVal MiscInfo As Integer) As Integer
+      		copyRHToBuffer replinfo
+      		NSFDbReadReplHistory = w_NSFDbReadReplHistory(hDB, Filepath, buffer(0), MiscInfo, 0)
+      		copyBufferToRH replinfo
+      	End Function
+      	
+      	Function NSFDbWriteReplHistory(ByVal hDb As Long, ByVal FilePath As String, replinfo As REPLHISTORY_INFO, ByVal MiscInfo As Integer) As Integer
+      		copyRHToBuffer replinfo
+      		NSFDbWriteReplHistory = w_NSFDbWriteReplHistory(hDb, FilePath, buffer(0), MiscInfo)
+      	End Function
+      	
+      	Function NSFDbReplicaInfoGet(ByVal hDB As Long, R As DBReplicaInfo) As Integer
+      		NSFDbReplicaInfoGet = w_NSFDbReplicaInfoGet(hDB, R)
+      	End Function
+      	
+      	Function NSFDbReplicaInfoSet(ByVal hDB As Long, R As DBReplicaInfo) As Integer
+      		NSFDbReplicaInfoSet = w_NSFDbReplicaInfoSet(hDB, R)
+      	End Function
+      	
+      	Function NSFDbGetUserActivity(ByVal hDb As Long, retActivity As DBACTIVITY, hRetUserInfo As Long, retUserCount As Integer) As Integer
+      		NSFDbGetUserActivity = w_NSFDbGetUserActivity(hDB, 0, retActivity, hRetUserInfo, retUserCount)
+      	End Function
+      	
+      	Function TimeDateDifference(time1 As TIMEDATE, time2 As TIMEDATE) As Long
+      		TimeDateDifference = w_timedatedifference(time1, time2)
+      	End Function
+      	
+      	Function TimeDateAdjust(td As TIMEDATE, ByVal secs%, ByVal mins%, ByVal hrs%, ByVal days%, ByVal months%, ByVal years%) As Integer
+      		TimeDateAdjust = w_TimeDateAdjust(td, secs, mins, hrs, days, months, years)
+      	End Function
+      	
+      	Function NSFItemCreateTextList(ByVal hNote As Long, itemName$, itemValue$)
+      		' we are cheating here to get the length, by assuming the strings contain only ASCII chars.
+      		NSFItemCreateTextList = w_NSFItemCreateTextList(hNote, itemName, itemValue, Len(itemValue))
+      	End Function
+      	
+      	Function NSFItemSetText(ByVal hNote As Long, ByVal itemName As String, ByVal itemText As String) As Integer
+      		' we are cheating here to get the length, by assuming the strings contain only ASCII chars.
+      		NSFItemSetText = w_NSFItemSetText(hNote, itemName, itemText, Len(itemText))
+      	End Function
+      
+      	Function NSFFormulaCompile(ByVal formulaName As String, _
+      		ByVal formulaText As String, retH As Long, retLen As Long, errCode As Integer, errLine As Integer, _
+      		errCol As Integer, errOffset As Integer, errLen As Integer) As Integer
+      		If Formulatext = "" Then
+      			NSFFormulaCompile = w_NullFormulaCompile(0, 0, 0, 0, retH, retLen, errCode, errLine, _
+      			errCol, errOffset, errLen)
+      		Else
+      			NSFFormulaCompile = w_NSFFormulaCompile(formulaName, Len(formulaName), formulaText, Len(formulaText), retH, retLen, errCode, errLine, _
+      			errCol, errOffset, errLen)	
+      		End If
+      	End Function
+      	
+      	Function NSGetServerClusterMates(ByVal servName As String, ByVal flags As Long, retHandle As Long) As Integer
+      		NSGetServerClusterMates = w_nsgetserverclustermates(servname, flags, retHandle)
+      	End Function
+      	
+      	Function NIFFindDesignNote(ByVal hDb As Long, ByVal elemName As String, ByVal noteclass%, noteId As Long)
+      		NIFFindDesignNote = w_NIFFindDesignNote(hDb, elemName, noteclass, noteId)
+      	End Function
+      	
+      	Function RegGetIDInfo(ByVal fpath$, ByVal itype%, buff$, ByVal blen%, actLen%) As Integer
+      		RegGetIDInfo = w_RegGetIDInfo(fpath, Itype, buff, blen, actLen)
+      	End Function
+      	
+      	Function NSFDbLocalSecInfoGet(ByVal hDb As Long, state As Byte, strength As Byte) As Integer
+      		NSFDbLocalSecInfoGet = w_NSFDbLocalSecInfoGet(hDb, state, strength)
+      	End Function
+      	
+      	%REM
+      		Function NSFDbLocalSecInfoSet
+      		Description: Set whether DB is encrypted and to what level
+      		Arguments:
+      			username, use "" for current user.
+      		Return value: Notes return status, maybe 902 to mean DB needs compaction to complete encryption.
+      	%END REM
+      	Function NSFDbLocalSecInfoSet(ByVal hDb As Long, ByVal optionn%, ByVal encrType As Byte, ByVal username$) As Integer
+      		NSFDbLocalSecInfoSet = w_NSFDbLocalSecInfoSet(hDb, optionn, encrType, username)
+      	End Function
+      	
+      	Private Function NAMEGetAddressBooks(ByVal server As String, ByVal wOptions%, count As Integer, _
+      		length As Integer, hRet As Long) As Integer
+      		NAMEGetAddressBooks = w_NAMEGetAddressBooks(server, wOptions, count, length, hRet)
+      	End Function
+      
+      	' functions which care whether we're 32 or 64-bit
+      	
+      	%REM
+      		Function ByteGetAddr
+      		Description: Find the pointer address of a byte
+      	%END REM
+      	Function ByteGetAddr(b As Byte) As CPOINTER
+      		Set ByteGetAddr = New CPOINTER
+      		Dim tmp As Byte
+      		tmp = b
+      		ByteGetAddr.val32 = w_CmovmemFOTO(tmp, b, 1) - 1
+      	End Function
+      	
+      	%REM
+      		Sub CPIncrement
+      		Description: Increment (decrement) the value of a CPOINTER
+      	%END REM
+      	Sub CPIncrement(ptr As CPOINTER, ByVal delta As Long)	
+      		ptr.val32 = ptr.val32 + delta
+      	End Sub
+      	
+      	Sub MemGetBytes(addr As CPOINTER, dest As Byte, ByVal cBytes%)
+      		w_CmovmemFPTO addr.val32, dest, cBytes
+      		CPIncrement addr, cBytes
+      	End Sub
+      	
+      	Sub MemGetWord(addr As CPOINTER, dest As Integer, ByVal ctr%)
+      		w_CmovmemFPTO addr.val32, dest, ctr+ctr
+      		CPIncrement addr, ctr+ctr
+      	End Sub
+      	
+      	Sub MemGetDWord(addr As CPOINTER, dest As Long)
+      		w_CmovmemFPTO addr.val32, dest, 4
+      		CPIncrement addr, 4
+      	End Sub
+      	
+      	Sub MemPutBytes(addr As CPOINTER, src As Byte, ByVal cBytes%)
+      		addr.val32 = w_CmovmemFOTP(src, addr.val32, cBytes)
+      	End Sub
+      	
+      	Sub MemPutWord(addr As CPOINTER, src As Integer, ByVal ctr%)
+      		addr.val32 = w_CmovmemFOTP(src, addr.val32, ctr+ctr)
+      	End Sub
+      	
+      	Sub MemPutDWord(addr As CPOINTER, src As Long)
+      		addr.val32 = w_CmovmemFOTP(src, addr.val32, 4)
+      	End Sub
+      	
+      	Sub CstrncpyACB(szBuffer As String, szFrom As CPOINTER, ByVal limit As Long)
+      		w_cstrncpyacb szBuffer, szFrom.val32, limit
+      	End Sub
+      	
+      	Sub CmovmemActivityEntry(srcPtr As CPOINTER, dest As DBACTIVITY_ENTRY)
+      		srcPtr.val32 = w_CmovmemFPTO(srcPtr.val32, buffer(0), 16)
+      		copyBufferToAE dest
+      	End Sub
+      
+      	Function NSFItemAppend(ByVal hNote As Long, ByVal flags As Integer, ByVal itemName$, _
+      		ByVal itemType As Integer, pValue As CPOINTER, ByVal valueLen As Long) As Integer
+      		NSFItemAppend = w_NSFItemAppend(hNote, flags, itemName, Len(itemName), itemType, pValue.val32, valueLen)
+      	End Function
+      	
+      	Function ListToText(pList As CPOINTER, ByVal fromItem As Boolean, ByVal delim As String, ByVal buflen As Long, buffer As String) As Long
+      		ListToText = w_listtotext(pList.val32, fromItem, delim, buflen, buffer)
+      	End Function
+      	
+      	Function NSFDbGetNoteInfoByUNID(ByVal hDB As Long, unid As UNIVERSALNOTEID, _
+      		noteid As Long, tdMod As TIMEDATE, noteclass As Integer) As Integer
+      		NSFDbGetNoteInfoByUNID = w_NSFDbGetNoteInfoByUNID(hDB, unid, noteid, nullptr.val32, tdMod, noteclass)
+      	End Function
+      	
+      	
+      	' OS-neutral functions
+      
+      	%REM
+      		Function CPClone
+      		Description: Make a copy of a CPOINTER
+      	%END REM
+      	Function CPClone(ptr As CPOINTER) As CPOINTER
+      		Set CPClone = New CPOINTER
+      		CPClone.val32 = ptr.val32
+      		CPClone.val64 = ptr.val64
+      	End Function
+      
+      	%REM
+      		Function CPPlus
+      		Description: Make a new CPOINTER by adding an offset to another CPOINTER, without affecting the value of the original
+      	%END REM
+      	Function CPPlus(ptr As CPOINTER, ByVal delta As Long) As CPOINTER
+      		Set CPPlus = cpClone(ptr)
+      		CPIncrement CPPlus, delta
+      	End Function
+      	
+      	Sub MemGetTime(addr As CPOINTER, dest As TIMEDATE)
+      		MemGetDword addr, dest.Innards0
+      		MemGetDWord addr, dest.Innards1
+      	End Sub
+      
+      	Sub MemPutTime(addr As CPOINTER, src As TIMEDATE)
+      		MemPutDWord addr, src.Innards0
+      		MemPutDWord addr, src.Innards1
+      	End Sub
+      	
+      	%REM
+      		Sub setBSAFE
+      		Description: Assign the contents of a BSAFE digest
+      	%END REM
+      	Sub setBSAFE(digest As BSAFE_DIGEST, ByVal newValue$)
+      		Dim aByt As Byte, aHex$, i%
+      		newValue = FullTrim(Replace(newvalue, "-", " "))
+      		For i = 0 To 15
+      			If Len(newValue) = 0 Then Exit Sub
+      			If InStr(newValue, " ") Then
+      				aHex = StrLeft(newValue, " ")
+      			ElseIf InStr(newValue, "-") Then
+      				aHex = StrLeft(newValue, "-")
+      			Else
+      				aHex = Mid$(newValue, 1, 2)
+      			End If
+      			newValue = LTrim(Mid$(newValue, Len(aHex)+1))
+      			digest.md(i) = CByte("&h" & aHex)
+      		Next
+      	End Sub
+      	
+      	%REM
+      		Sub SetTimeFormat
+      		Description: Update the default time formatting for converting a TIMEDATE to text.
+      	%END REM
+      	Sub SetTimeFormat(ByVal bDate As Byte, ByVal bTime As Byte, ByVal bZone As Byte, ByVal bStruc As Byte)
+      		z_timeformat.bDate = bDate
+      		z_timeformat.bTime = bTime
+      		z_timeformat.bZone = bZone
+      		z_timeformat.bStructure = bStruc
+      	End Sub
+      	
+      	%REM
+      		Sub LoadReplHist
+      		Description: given a pointer to a REPLHIST_SUMMARY return that repl entry.
+      	%END REM
+      	Function LoadReplHist(pReplHist As CPOINTER, rhs As REPLHIST_SUMMARY) As CPOINTER
+      		Dim pRec As CPOINTER
+      		Set pRec = CPClone(pReplHist)
+      		MemGetTime pRec, rhs.ReplicationTime
+      		MemGetWord pRec, rhs.AccessLevel, 1
+      		MemGetWord pRec, rhs.AccessFlags, 1
+      		MemGetWord pRec, rhs.Direction, 1
+      		If z_bAlignDwords Then CPIncrement pRec, 2 ' skip alignment word
+      		MemGetDWord pRec, rhs.ServerNameOffset
+      		MemGetWord pRec, rhs.ServerNameLength, 1
+      		MemGetWord pRec, rhs.FileNameLength, 1
+      		MemGetWord pRec, rhs.MoreInfo, 1
+      		CPIncrement pRec, 6 ' skip spare fields at end.
+      		Set LoadReplHist = pRec
+      	End Function
+      	
+      	%REM
+      		Sub copyBufferToRH
+      		Description: Copy the byte buffer into a REPLHISTORY_INFO structure
+      	%END REM
+      	Private Sub copyBufferToRH(rh As REPLHISTORY_INFO)
+      		Dim ptr As CPOINTER
+      		Set ptr = ByteGetAddr(buffer(0))
+      		MemGetTime ptr, rh.DBID
+      		MemGetTime ptr, rh.Cutoff
+      		MemGetWord ptr, rh.AccessRights.ReadR, 5
+      		If z_bAlignDwords Then CPIncrement Ptr, 2	' skip alignment bytes
+      		MemGetTime ptr, rh.SearchedUntil
+      		MemGetBytes ptr, rh.Digest.md(0), 16
+      		MemGetWord ptr, rh.MoreInfo, 1
+      	End Sub
+      	
+      	Private Sub copyRHToBuffer(rh As REPLHISTORY_INFO)
+      		Dim ptr As CPOINTER, iTmp As Integer
+      		Set ptr = ByteGetAddr(buffer(0))
+      		MemPutTime ptr, rh.DBID
+      		MemPutTime ptr, rh.Cutoff
+      		MemPutWord ptr, rh.AccessRights.ReadR, 5
+      		If z_bAlignDwords Then MemPutWord ptr, iTmp, 1 
+      		MemPutTime ptr, rh.SearchedUntil
+      		MemPutBytes ptr, rh.Digest.md(0), 16
+      		MemPutWord ptr, rh.MoreInfo, 1
+      	End Sub
+      	
+      	%REM
+      		Function PathNetConstruct
+      		Description: Return a string which is the network path of a Notes database,
+      			e.g. "Ratsky!!names.nsf"
+      	%END REM
+      	Function PathNetConstruct(ByVal iPort As Integer, ByVal sServerName As String, ByVal sFileName As String) As String
+      		If Len(Sservername) Then
+      			PathNetConstruct = Sservername & {!!} & Sfilename
+      		Else
+      			PathNetConstruct = Sfilename
+      		End If
+      	End Function
+      	
+      	%REM
+      		Sub TDDelta
+      		Description: Increment/decrement a TIMEDATE (double-dword) by a given amount. Needed for long pointer manipulation.
+      	%END REM
+      	Sub TDDelta(td As TIMEDATE, delta As Long)
+      		If delta = 0 Then Exit Sub
+      		Dim nuVal As TIMEDATE
+      		If delta > 0 Then
+      			On Error 6 GoTo overflowPlus
+      			nuval.Innards0 = td.Innards0 + delta
+      			If td.Innards0 < 0 And nuval.Innards0 >= 0 Then
+      				' flipped the high bit to zero -- carry 1
+      				nuval.Innards1 = td.Innards1 + 1
+      			Else
+      opnext:
+      				nuval.Innards1 = td.Innards1
+      			End If
+      		Else
+      			On Error 6 GoTo overflowMinus
+      			nuval.Innards0 = td.Innards0 + delta
+      			If td.Innards0 >= 0 And nuval.Innards0 < 0 Then
+      				' flipped the high bit -- carry -1
+      				nuval.Innards1 = td.Innards1 - 1
+      			Else
+      omnext:
+      				nuval.Innards1 = td.Innards1
+      			End If
+      		End If
+      		td = nuval
+      		Exit Sub
+      		
+      overflowPlus:
+      		' attempt to add +delta pushed value from positive to negative. No problem; just have to get the same result in a way that doesn't cause error.
+      		nuval.Innards0 = ((td.Innards0 - &h80000000) + delta) Or &h80000000
+      		Resume opnext
+      		
+      overflowMinus:
+      		' attempt to add -delta pushed value from negative to positive. Need same result in a way that doesn't cause error.
+      		nuval.Innards0 = ((td.Innards0 + &h80000000) + delta) And &h7FFFFFFF
+      		Resume omnext
+      		
+      	End Sub
+      	
+      	%REM
+      		Function PointerToStringN
+      		Description: Given a pointer to a LMBCS string in memory, and a length in bytes, retrieve the string. 
+      	%END REM
+      	Function PointerToStringN(ptr As CPOINTER, ByVal cbytes As Integer) As String
+      		If cBytes = 0 Then Exit Function
+      		Dim tmp As String*255
+      		tmp = String(255, 32)
+      		Call CstrncpyACB(tmp, ptr, cbytes)
+      		PointerToStringN = StrToken(RTrim(tmp), Chr$(0), 1) ' we don't know length of string in characters.
+      	End Function
+      	
+      	%REM
+      		Function SystemTempDirectory
+      		Description: Returns the terminated folder path of the Notes temporary directory.
+      			Use this instead of the system temp directory because if there are multiple
+      			Notes instances running (e.g. on a partitioned server) there is less chance of
+      			filename conflicts. 
+      	%END REM
+      	Function SystemTempDirectory() As String
+      		Dim sBuffer		As String * MAXPATH
+      		Dim iBufLen		As Integer
+      		Dim iStatus		As Integer
+      		Dim tmp$
+      		
+      		iBufLen = Len(sBuffer)-1
+      		
+      		iStatus = OSGetSystemTempDirectory(sBuffer, iBufLen)
+      		SystemTempDirectory = TerminatePath(Left$(sBuffer, iStatus))
+      	End Function
+      	
+      	%REM
+      		Function TerminatePath
+      		Description: Add a pathname delimiter (\ or / depending on OS) to a folder path.
+      	%END REM
+      	Function TerminatePath(ByVal sPath$) As String
+      		If pathDelimiter = "/" Then spath = Replace(spath, "\", "/") Else spath = Replace(spath, "/", "\")
+      		If Right$(sPath, 1) = pathDelimiter Then TerminatePath = sPath Else TerminatePath = sPath & pathDelimiter
+      	End Function
+      	
+      	Function UnTerminatePath(sPath As String) As String
+      		'this function returns an un-terminated path (removes the last path separator)
+      		If sPath Like "*[/\]" Then
+      			UnTerminatePath = Left(sPath, Len(spath)-1)
+      		Else
+      			UnTerminatePath = sPath
+      		End If
+      	End Function
+      	
+      	%REM
+      		Function GetFolderPath
+      		Description: Given a filepath, figure out the folder path that contains the file.
+      	%END REM
+      	Function GetFolderPath(ByVal filepath$) As String
+      		filePath = unterminatePath(NormalizePath(filePath))
+      		GetFolderPath = StrLeftBack(filePath, pathDelimiter) + pathDelimiter
+      	End Function
+      	
+      	%REM
+      		Function NormalizePath
+      		Description: normalizes a path with the OS's native path separator
+      			"folder\subfolder\" on OSX or UNIX becomes "folder/subfolder/"
+      			"folder\subfolder\" on WIN stays as "folder\subfolder\"
+      	%END REM
+      	Function NormalizePath(ByVal sPath As String) As String
+      		If (pathDelimiter = "\") Then
+      			NormalizePath = Replace(sPath, "/", "\")
+      		Else
+      			NormalizePath = Replace(sPath, "\", "/")
+      		End If
+      	End Function
+      	
+      	%REM
+      		Function TimedateToHex
+      		Description: Convert a TIMEDATE value to a hex string.
+      	%END REM
+      	Function TimedateToHex(td As TIMEDATE) As String
+      		Dim part1$, part2$
+      		part1 = Hex(td.Innards0)
+      		part2 = Hex(td.Innards1)
+      		TimedateToHex = Right("0000000" & part2, 8) & Right("0000000" & part1, 8)
+      	End Function
+      	
+      	%REM
+      		Function ProgramDirectory
+      		Description: Return the Notes program directory.
+      	%END REM
+      	Function DataDirectory
+      		Dim ses As New NotesSession
+      		DataDirectory = terminatePath(ses.Getenvironmentstring({DIRECTORY}, True))
+      	End Function
+      	
+      	Function ExecutableDirectory() As String
+      		Dim sBuffer		As String * MAXPATH
+      		Dim iBufLen		As Integer
+      		Dim iStatus		As Integer
+      		Dim tmp$
+      		
+      		OSGetExecutableDirectory sBuffer
+      		ExecutableDirectory = TerminatePath(Trim(StrLeft(sbuffer, Chr$(0))))
+      	End Function
+      	
+      	%REM
+      		Function IDFileUsername
+      		Description: Return the username from an ID file on disk (string of the form CN=...)
+      	%END REM
+      	Function IDFileUsername(fname$) As String
+      		Dim stat%, buff As String*256, actLen%
+      		stat = RegGetIDInfo(fname, 7, buff, 256, actLen)
+      		If stat = 0 Then
+      			IDFileUsername = StrLeft(buff, Chr$(0))
+      		End If
+      	End Function
+      	
+      	%REM
+      		Function GetFreeSpace
+      		Description: Find out how many bytes free space is available on local disk.
+      	%END REM
+      	Function GetFreeSpace(directoryPath$) As Double
+      		Dim bi As Double, stat%
+      		stat = OSDiskFreeSpaceFromDir(directoryPath, bi)
+      		If stat = 0 Then
+      			GetFreeSpace = bi
+      		End If
+      	End Function
+      
+      	%REM
+      		Function IDFileKey
+      		Description: Return the key value
+    signed: true
+    nonsummary: true
+  - name: $ScriptLib
+    type: text
+    data: |
+      from an ID file on disk
+      	%END REM
+      	Function IDFileKey(fname$, ByVal bPublic As Boolean) As String
+      		Dim stat%, buff As String*1024, actLen%, iType%
+      		If bPublic Then iType = 10 Else iType = 9
+      		stat = RegGetIDInfo(fname, iType, buff, 1024, actLen)
+      		If stat = 0 Then
+      			IDFileKey = StrLeft(buff, Chr$(0))
+      		End If
+      	End Function
+      	
+      	%REM
+      		Function OSGetEncryptionStatus
+      		Description: Return the "flags" value of the local security property, which
+      			contains 0 if the db is not encrypted now and isn't set to be encrypted on
+      			next compact. 
+      	%END REM
+      	Function OSGetEncryptionStatus(db As DBHANDLE) As Integer
+      		Dim status%
+      		OSGetEncryptionStatus = -1
+      		Dim flags As Byte, strength As Byte
+      		status = NSFDbLocalSecInfoGet(db.handle, flags, strength)
+      		If status Then Error status
+      		OSGetEncryptionStatus = flags
+      	End Function
+      
+      	%REM
+      		Function TimeDateToText
+      		Description: Convert a TIMEDATE structure to a text string using default formatting.
+      	%END REM
+      	Function TimeDateToText(td As TIMEDATE) As String
+      		Dim iStatus As Integer, retTextLength As Integer
+      		Dim retTextBuffer As String*81 ' MAXALPHATIMEDATE+1
+      		iStatus = ConvertTimeDateToText(NullPtr, z_timeformat, td, retTextBuffer, MAXALPHATIMEDATE, retTextLength)
+      		If iStatus Then
+      			TimeDateToText = "!" & TimedateToHex(td)
+      		Else
+      			TimeDateToText = StrLeft$(retTextBuffer, Chr$(0))
+      			If TimeDateToText = "" Then
+      				TimeDateToText = "!" & TimedateToHex(td)
+      			End If
+      		End If
+      	End Function
+      	%REM
+      		Function TimeDateToTextFmt
+      		Description: Convert a TIMEDATE value to the best text representation in the local TZ. If there's an error doing the conversion,
+      			return "!" followed by the hex value.
+      	%END REM
+      	Function TimeDateToTextFmt(td As TIMEDATE, ByVal fmtstr$) As String
+      		Dim tmp$
+      		tmp = TimeDateToText(td)
+      		TimeDateToTextFmt = tmp
+      		On Error Resume Next
+      		If Not (tmp Like "!*") Then TimeDateToTextFmt = Format(CDat(tmp), fmtstr)
+      	End Function
+      	
+      	%REM
+      		Function RelativePath
+      		Description: Return the path of a database relative to the Notes data directory.
+      	%END REM
+      	Function RelativePath(db As NotesDatabase) As String
+      		If db.server = "" Then
+      			Dim ppath$, datadir$
+      			ppath = db.Filepath
+      			datadir = DataDirectory
+      			If Left(ppath, Len(datadir)) = datadir Then
+      				ppath = Mid$(ppath, Len(datadir)+1)
+      			End If
+      			RelativePath = ppath
+      		Else
+      			RelativePath = db.Filepath
+      		End If
+      	End Function
+      	
+      	%REM
+      		Function clusterMates
+      		Description: return the cluster mates of a specified server as an array. EMPTY means no cluster mates were found.
+      			Flags = CLUSTER_LOOKUP_NOCACHE (1) - forces lookup to server, or CLUSTER_LOOKUP_CACHEONLY (2), or 0.
+      		Returns: variant array of string, or EMPTY if no cluster mates.
+      	%END REM
+      	Function clusterMates(ByVal servName$, ByVal flags As Long) As Variant
+      		Dim stat%, hList As Long, retv$
+      		stat = NSGetServerClusterMates(Servname, Flags, hList)
+      		If stat = 0 Then
+      			retv = me.Join(hList, ",", False)
+      			OSMemFree hList
+      			If Len(retv) Then clusterMates = Split(retv, ",")
+      		End If
+      	End Function
+      	
+      	%REM
+      		Function Join
+      		Description: Given a string-list handle and delimiter, "join" the list into a delimited string.
+      		Parameters:
+      			hList: the list handle. Don't forget to call OSMemFree!
+      			delim: delimiter, e.g. ","
+      			fromItem: True if the list is an item value. 
+      	%END REM
+      	Function Join(ByVal hList As Long, ByVal delim$, ByVal fromItem As Boolean) As String
+      		Dim pList As CPOINTER, rlen As Long, sbuf As String*MAX_LIST_TO_STRING
+      		Set pList = OSLock(hList)
+      		rlen = ListToText(Plist, Fromitem, Delim, MAX_LIST_TO_STRING, sbuf)
+      		OSUnlock hList
+      		me.Join = StrLeft$(sbuf, Chr$(0))
+      	End Function
+      	
+      	%REM
+      		Sub StrToUnid
+      		Description: Convert a UNID in string form, into the structure used in system calls.
+      		Arguments;
+      			unid: value to convert
+      			uid (output): structure to write data into.
+      	%END REM
+      	Sub StrToUnid(ByVal unid$, uid As UNIVERSALNOTEID)
+      		uid.DBID.Innards1 = CLng("&h" & Left$(unid, 8))
+      		uid.DBID.Innards0 = CLng("&h" & Mid$(unid, 9, 8))
+      		uid.TD.Innards1 = CLng("&h" & Mid$(unid, 17, 8))
+      		uid.TD.Innards0 = CLng("&h" & Right$(unid, 8))
+      	End Sub
+      	
+      	%REM
+      		Sub copyBufferToAE
+      		Description: While scanning a C structure in memory, return the DB Activity entry that's at the current pointer location.
+      	%END REM
+      	Private Sub copyBufferToAE(ae As DBACTIVITY_ENTRY)
+      		Dim ptr As CPOINTER
+      		Set ptr = BufPtr
+      		MemGetTime ptr, ae.Time
+      		MemGetWord ptr, ae.Reads, 2
+      		MemGetDWord ptr, ae.UserNameOffset
+      	End Sub
+      	
+      	%REM
+      		Function GetNullTermString
+      		Description: Retrieve a null-terminated string from a memory address (not memory handle!)
+      	%END REM
+      	Function GetNullTermString(ptr As CPOINTER) As String
+      		Dim szBuf As String*256
+      		Call CstrncpyACB(szBuf, ptr, 255)
+      		GetNullTermString = StrLeft(szBuf, Chr$(0))
+      	End Function
+      	
+      	%REM
+      		Function getAddressBookPath
+      		Description: Get the path of the primary address book on a server -- usually "names.nsf"
+      		Returns: filepath, e.g. "names.nsf", or "" if it was not possible to determine.
+      	%END REM
+      	Function getAddressBookPath(ByVal ServName$) As String
+      		On Error GoTo ERROR_HANDLER
+      		
+      		Const MAX_STRING 	= 256
+      		Const ERR_MASK		= &H3fff
+      		
+      		Dim buffer		As String * MAX_STRING
+      		Dim hList As Long, count As Integer, length As Integer, stat As Integer
+      		Dim ptrList As CPOINTER
+      		
+      		stat = NAMEGetAddressBooks(SERVNAME, NAME_GET_AB_FIRSTONLY, count, length, hList)
+      		If stat = 0 Then
+      			' NAMEGetAddressBooks is documented to return a list, but in fact if there's
+      			' just one item, it simply returns a string (and since we asked for "first only"
+      			' we only ever have one item here). 
+      			Set ptrList = OSLock(hList)				' actually a 'char *'
+      			CstrncpyACB buffer, ptrList, length ' copy the returned string into our buffer.
+      			OSUnlock hList
+      			OSMemFree hList
+      		End If
+      		
+      		getAddressBookPath = StrLeft(buffer, Chr$(0))
+      		Exit Function
+      		
+      ERROR_HANDLER:
+      		
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      		
+      	End Function
+      	%REM
+      		Function GetAddressBook
+      		Description: Locate the main address book for a specified server.
+      		Returns: NotesDatabase of address book on the specified server, or Nothing if it was not possible to locate.
+      	%END REM
+      	Public Function GetAddressBook(ByVal servName$) As NotesDatabase
+      		On Error GoTo ERROR_HANDLER
+      		Dim nabPath$
+      		nabPath = getAddressBookPath(Servname)
+      		If nabPath <> "" Then
+      			Set GetAddressBook = New NotesDatabase(servName, nabPath)
+      		End If
+      		
+      		Exit Function
+      		
+      ERROR_HANDLER:
+      		
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      
+      	%REM
+      		Function NoteClass
+      		Description: Return the "note class" of a NotesDocument (NOTE_CLASS_xxx in the API toolkit)
+      	%END REM
+      	Function NoteClass(doc As NotesDocument) As Integer
+      		Dim h As Long, res%
+      		h = doc.Handle
+      		Call NSFNoteGetInfo_Int(h, NOTEINFO_CLASS, res)
+      		NoteClass = res 
+      	End Function
+      End Class
+      %REM
+      	Class CAPILUX
+      	Description: C API for Linux clients.
+      %END REM
+      Class CAPILUX As CAPI
+      	Sub New
+      		z_bAlignDwords = True
+      		isWindows = False
+      		pathDelimiter = {/}
+      	End Sub
+      
+      	Function NSFDbOpen(ByVal sDbName As String, hDb As Long) As Integer
+      		NSFDbOpen = l_NSFDbOpen(sDbName, hDb)
+      	End Function
+      	
+      	Function NSFDbClose(ByVal hDb As Long) As Integer
+      		NSFDbClose = l_NSFDbClose(hDb)
+      	End Function
+      	
+      	Function NSFDbIDGet(hdb As Long, retval As TIMEDATE) As Integer
+      		NSFDbIDGet = l_NSFDbIDGet(hdb, retval)
+      	End Function
+      	
+      	Function NSFDbGetInfoAccess(ByVal hDB As Long, acr As ACCESS_RIGHTS) As Integer
+      		NSFDbGetInfoAccess = l_NSFDbGetInfoAccess(hDB, acr)
+      	End Function
+      	
+      	Function OSLock(ByVal handle As Long) As CPOINTER
+      		Set OSLock = New CPOINTER
+      		OSLock.val32 = l_OSLock(handle)
+      	End Function
+      	
+      	Function OSUnlock(ByVal handle As Long) As Integer
+      		OSUnlock = l_OSUnlock(handle)
+      	End Function
+      	
+      	Function OSMemFree(ByVal handle As Long) As Integer
+      		OSMemFree = l_OSMemFree(handle)
+      	End Function
+      	
+      	Private Function OSGetSystemTempDirectory(retBuffer As String, ByVal bufLen As Integer) As Integer
+      		OSGetSystemTempDirectory = l_OSGetSystemTempDirectory(retBuffer, bufLen)
+      	End Function
+      	
+      	Function OSDiskFreeSpaceFromDir(ByVal PathName As String, result As Double) As Integer
+      		If is64 Then UseDoubleAsPointer = False
+      		OSDiskFreeSpaceFromDir = l_OSDiskFreeSpaceFromDir(PathName, result)
+      	End Function
+      	
+      	Sub OSGetExecutableDirectory(pathName$)
+      		Call l_osgetexecutabledirectory(pathName)
+      	End Sub
+      	
+      	Function ConvertTIMEDATEToText(IntlFormat As CPOINTER, TimeFormat As TFMT, _
+      		InputTime As TIMEDATE, retTextBuffer As String, ByVal TextBufferLength As Integer, _
+      		retTextLength As Integer) As Integer
+      		ConvertTIMEDATEToText = l_ConvertTimeDateToText32(IntlFormat.val32, TimeFormat, InputTime, retTextBuffer, TextBufferLength, retTextLength)
+      	End Function
+      	
+      	Sub OSCurrentTIMEDATE(td As TIMEDATE)
+      		l_OSCurrentTIMEDATE td
+      	End Sub
+      	
+      	Function NSFNoteOpen(ByVal hDB As Long, ByVal noteid As Long, ByVal options%, hNT As Long) As Integer
+      		NSFNoteOpen = l_NSFNoteOpen(hDB, noteid, options, hNT)
+      	End Function
+      	
+      	Function NSFNoteClose(ByVal hNT As Long) As Integer
+      		NSFNoteClose = l_NSFNoteClose(hNT)
+      	End Function
+      	
+      	Function NSFNoteCreate(ByVal hDB As Long, nhRet As Long) As Integer
+      		NSFNoteCreate = l_NSFNoteCreate(hDB, nhRet)
+      	End Function
+      	
+      	Function NSFNoteDelete(ByVal hDb As Long, ByVal noteid As Long, ByVal options%) As Integer
+      		NSFNoteDelete = l_NSFNoteDelete(hDb, noteid, options)
+      	End Function
+      	
+      	Sub NSFNoteSetInfo_Word(ByVal hNote As Long, ByVal id As Integer, ByVal newval As Integer)
+      		Call l_NSFNoteSetInfo(hNote, id, newval)
+      	End Sub
+      	
+      	Sub NSFNoteGetInfo_Int(ByVal hNT As Long, ByVal note_member As Integer, info As Integer)
+      		Call l_NSFNoteGetInfo(hNT, note_member, info)
+      	End Sub
+      	
+      	Sub NSFNoteGetInfo_Long(ByVal hNote As Long, ByVal id As Integer, retval As Long)
+      		Call l_NSFNoteGetInfo(hNote, id, retval)
+      	End Sub
+      
+      	Sub NSFNoteGetInfo_Date(ByVal hNT As Long, ByVal note_member As Integer, td As TIMEDATE)
+      		Call l_NSFNoteGetInfo(hNT, note_member, td)
+      	End Sub
+      	
+      	Function NSFNoteGetInfo_OID(ByVal hNT As Long, zoid As OID) As Integer
+      		Call l_NSFNoteGetInfo(hNT, NOTEINFO_OID, zoid)
+      	End Function
+      	
+      	Function NSFItemGetTime (ByVal mhNote As Long, ByVal itemname As String, td As TIMEDATE) As Boolean
+      		NSFItemGetTime = l_NSFItemGetTime(mhNote, itemname, td) <> 0
+      	End Function
+      	
+      	Function NSFNoteUpdate(ByVal hNote As Long, ByVal updateFlags%) As Integer
+      		NSFNoteUpdate = l_NSFNoteUpdate(hNote, updateflags)
+      	End Function
+      	
+      	Function NSFDbGetReplHistorySummary(ByVal hDb As Long, ByVal Flags As Long, hSummary As Long, lNumEntries As Long) As Integer
+      		NSFDbGetReplHistorySummary = l_NSFDbGetReplHistorySummary(hDB, Flags, hSummary, lNumEntries)
+      	End Function
+      	
+      	Function NSFDbReadReplHistory(ByVal hDb As Long, ByVal FilePath As String, replinfo As REPLHISTORY_INFO, ByVal MiscInfo As Integer) As Integer
+      		copyRHToBuffer replinfo
+      		NSFDbReadReplHistory = l_NSFDbReadReplHistory(hDB, Filepath, buffer(0), MiscInfo, 0)
+      		copyBufferToRH replinfo
+      	End Function
+      	
+      	Function NSFDbWriteReplHistory(ByVal hDb As Long, ByVal FilePath As String, replinfo As REPLHISTORY_INFO, ByVal MiscInfo As Integer) As Integer
+      		copyRHToBuffer replinfo
+      		NSFDbWriteReplHistory = l_NSFDbWriteReplHistory(hDb, FilePath, buffer(0), MiscInfo)
+      	End Function
+      	
+      	Function NSFDbReplicaInfoGet(ByVal hDB As Long, R As DBReplicaInfo) As Integer
+      		NSFDbReplicaInfoGet = l_NSFDbReplicaInfoGet(hDB, R)
+      	End Function
+      	
+      	Function NSFDbReplicaInfoSet(ByVal hDB As Long, R As DBReplicaInfo) As Integer
+      		NSFDbReplicaInfoSet = l_NSFDbReplicaInfoSet(hDB, R)
+      	End Function
+      	
+      	Function NSFDbGetUserActivity(ByVal hDb As Long, retActivity As DBACTIVITY, hRetUserInfo As Long, retUserCount As Integer) As Integer
+      		NSFDbGetUserActivity = l_NSFDbGetUserActivity(hDB, 0, retActivity, hRetUserInfo, retUserCount)
+      	End Function
+      	
+      	Function TimeDateDifference(time1 As TIMEDATE, time2 As TIMEDATE) As Long
+      		TimeDateDifference = l_timedatedifference(time1, time2)
+      	End Function
+      	
+      	Function TimeDateAdjust(td As TIMEDATE, ByVal secs%, ByVal mins%, ByVal hrs%, ByVal days%, ByVal months%, ByVal years%) As Integer
+      		TimeDateAdjust = l_TimeDateAdjust(td, secs, mins, hrs, days, months, years)
+      	End Function
+      	
+      	Function NSFItemCreateTextList(ByVal hNote As Long, itemName$, itemValue$)
+      		' we are cheating here to get the length, by assuming the strings contain only ASCII chars.
+      		NSFItemCreateTextList = l_NSFItemCreateTextList(hNote, itemName, itemValue, Len(itemValue))
+      	End Function
+      	
+      	Function NSFItemSetText(ByVal hNote As Long, ByVal itemName As String, ByVal itemText As String) As Integer
+      		' we are cheating here to get the length, by assuming the strings contain only ASCII chars.
+      		NSFItemSetText = l_NSFItemSetText(hNote, itemName, itemText, Len(itemText))
+      	End Function
+      
+      	Function NSFFormulaCompile(ByVal formulaName As String, _
+      		ByVal formulaText As String, retH As Long, retLen As Long, errCode As Integer, errLine As Integer, _
+      		errCol As Integer, errOffset As Integer, errLen As Integer) As Integer
+      		NSFFormulaCompile = l_NSFFormulaCompile(formulaName, Len(formulaName), formulaText, Len(formulaText), retH, retLen, errCode, errLine, _
+      		errCol, errOffset, errLen)
+      	End Function
+      	
+      	Function NSGetServerClusterMates(ByVal servName As String, ByVal flags As Long, retHandle As Long) As Integer
+      		NSGetServerClusterMates = l_nsgetserverclustermates(servname, flags, retHandle)
+      	End Function
+      	
+      	Function NIFFindDesignNote(ByVal hDb As Long, ByVal elemName As String, ByVal noteclass%, noteId As Long)
+      		NIFFindDesignNote = l_NIFFindDesignNote(hDb, elemName, noteclass, noteId)
+      	End Function
+      	
+      	Function RegGetIDInfo(ByVal fpath$, ByVal itype%, buff$, ByVal blen%, actLen%) As Integer
+      		RegGetIDInfo = l_RegGetIDInfo(fpath, Itype, buff, blen, actLen)
+      	End Function
+      	
+      	Function NSFDbLocalSecInfoGet(ByVal hDb As Long, flags As Byte, strength As Byte) As Integer
+      		NSFDbLocalSecInfoGet = l_NSFDbLocalSecInfoGet(hDb, flags, strength)
+      	End Function
+      	
+      	Function NSFDbLocalSecInfoSet(ByVal hDb As Long, ByVal optionn%, ByVal encrType As Byte, ByVal username$) As Integer
+      		NSFDbLocalSecInfoSet = l_NSFDbLocalSecInfoSet(hDb, optionn, encrType, username)
+      	End Function
+      	
+      	Private Function NAMEGetAddressBooks(ByVal server As String, ByVal wOptions%, count As Integer, _
+      		length As Integer, hRet As Long) As Integer
+      		NAMEGetAddressBooks = l_NAMEGetAddressBooks(server, wOptions, count, length, hRet)
+      	End Function
+      	
+      	' functions which care whether we're 32 or 64-bit
+      	
+      	%REM
+      		Function ByteGetAddr
+      		Description: Find the pointer address of a byte
+      	%END REM
+      	Function ByteGetAddr(b As Byte) As CPOINTER
+      		Set ByteGetAddr = New CPOINTER
+      		Dim tmp As Byte
+      		tmp = b
+      		ByteGetAddr.val32 = l_CmovmemFOTO(tmp, b, 1) - 1
+      	End Function
+      
+      	%REM
+      		Sub CPIncrement
+      		Description: Increment (decrement) the value of a CPOINTER
+      	%END REM
+      	Sub CPIncrement(ptr As CPOINTER, ByVal delta As Long)	
+      		ptr.val32 = ptr.val32 + delta
+      	End Sub
+      	
+      	Sub MemGetBytes(addr As CPOINTER, dest As Byte, ByVal cBytes%)
+      		l_CmovmemFPTO addr.val32, dest, cBytes
+      		CPIncrement addr, cBytes
+      	End Sub
+      	
+      	Sub MemGetWord(addr As CPOINTER, dest As Integer, ByVal ctr%)
+      		l_CmovmemFPTO addr.val32, dest, ctr+ctr
+      		CPIncrement addr, ctr+ctr
+      	End Sub
+      	
+      	Sub MemGetDWord(addr As CPOINTER, dest As Long)
+      		l_CmovmemFPTO addr.val32, dest, 4
+      		CPIncrement addr, 4
+      	End Sub
+      	
+      	Sub MemPutBytes(addr As CPOINTER, src As Byte, ByVal cBytes%)
+      		addr.val32 = l_CmovmemFOTP(src, addr.val32, cBytes)
+      	End Sub
+      	
+      	Sub MemPutWord(addr As CPOINTER, src As Integer, ByVal ctr%)
+      		addr.val32 = l_CmovmemFOTP(src, addr.val32, ctr+ctr)
+      	End Sub
+      	
+      	Sub MemPutDWord(addr As CPOINTER, src As Long)
+      		addr.val32 = l_CmovmemFOTP(src, addr.val32, 4)
+      	End Sub
+      	
+      	Sub CstrncpyACB(szBuffer As String, szFrom As CPOINTER, ByVal limit As Long)
+      		l_cstrncpyacb szBuffer, szFrom.val32, limit
+      	End Sub
+      	
+      	Sub CmovmemActivityEntry(srcPtr As CPOINTER, dest As DBACTIVITY_ENTRY)
+      		srcPtr.val32 = l_CmovmemFPTO(srcPtr.val32, buffer(0), 16)
+      		copyBufferToAE dest
+      	End Sub
+      
+      	Function NSFItemAppend(ByVal hNote As Long, ByVal flags As Integer, ByVal itemName$, _
+      		ByVal itemType As Integer, pValue As CPOINTER, ByVal valueLen As Long) As Integer
+      		NSFItemAppend = l_NSFItemAppend(hNote, flags, itemName, Len(itemName), itemType, pValue.val32, valueLen)
+      	End Function
+      	
+      	Function ListToText(pList As CPOINTER, ByVal fromItem As Boolean, ByVal delim As String, ByVal buflen As Long, buffer As String) As Long
+      		ListToText = l_listtotext(pList.val32, fromItem, delim, buflen, buffer)
+      	End Function
+      	
+      	Function NSFDbGetNoteInfoByUNID(ByVal hDB As Long, unid As UNIVERSALNOTEID, _
+      		noteid As Long, tdMod As TIMEDATE, noteclass As Integer) As Integer
+      		NSFDbGetNoteInfoByUNID = l_NSFDbGetNoteInfoByUNID(hDB, unid, noteid, nullptr.val32, tdMod, noteclass)
+      	End Function
+      End Class
+      %REM
+      	Class CAPIMAC
+      	Description: Mac implementations of C API calling functions
+      %END REM
+      Class CAPIMAC As CAPI
+      	Sub New
+      		z_bAlignDwords = True
+      		isWindows = False
+      		pathDelimiter = {/}
+      	End Sub
+      
+      	Function NSFDbOpen(ByVal sDbName As String, hDb As Long) As Integer
+      		NSFDbOpen = m_NSFDbOpen(sDbName, hDb)
+      	End Function
+      	
+      	Function NSFDbClose(ByVal hDb As Long) As Integer
+      		NSFDbClose = m_NSFDbClose(hDb)
+      	End Function
+      	
+      	Function NSFDbIDGet(hdb As Long, retval As TIMEDATE) As Integer
+      		NSFDbIDGet = m_NSFDbIDGet(hdb, retval)
+      	End Function
+      	
+      	Function NSFDbGetInfoAccess(ByVal hDB As Long, acr As ACCESS_RIGHTS) As Integer
+      		NSFDbGetInfoAccess = m_NSFDbGetInfoAccess(hDB, acr)
+      	End Function
+      	
+      	Function OSLock(ByVal handle As Long) As CPOINTER
+      		Set OSLock = New CPOINTER
+      		OSLock.val32 = m_OSLock(handle)
+      	End Function
+      	
+      	Function OSUnlock(ByVal handle As Long) As Integer
+      		OSUnlock = m_OSUnlock(handle)
+      	End Function
+      	
+      	Function OSMemFree(ByVal handle As Long) As Integer
+      		OSMemFree = m_OSMemFree(handle)
+      	End Function
+      	
+      	Private Function OSGetSystemTempDirectory(retBuffer As String, ByVal bufLen As Integer) As Integer
+      		OSGetSystemTempDirectory = m_OSGetSystemTempDirectory(retBuffer, bufLen)
+      	End Function
+      	
+      	Sub OSGetExecutableDirectory(pathName$)
+      		Call m_osgetexecutabledirectory(pathName)
+      	End Sub
+      	
+      	Function ConvertTIMEDATEToText(IntlFormat As CPOINTER, TimeFormat As TFMT, _
+      		InputTime As TIMEDATE, retTextBuffer As String, ByVal TextBufferLength As Integer, _
+      		retTextLength As Integer) As Integer
+      		ConvertTIMEDATEToText = m_ConvertTimeDateToText32(IntlFormat.val32, TimeFormat, InputTime, retTextBuffer, TextBufferLength, retTextLength)
+      	End Function
+      	
+      	Function OSDiskFreeSpaceFromDir(ByVal PathName As String, result As Double) As Integer
+      		If is64 Then UseDoubleAsPointer = False
+      		OSDiskFreeSpaceFromDir = m_OSDiskFreeSpaceFromDir(PathName, result)
+      	End Function
+      
+      	Sub OSCurrentTIMEDATE(td As TIMEDATE)
+      		m_OSCurrentTIMEDATE td
+      	End Sub
+      	
+      	Function NSFNoteOpen(ByVal hDB As Long, ByVal noteid As Long, ByVal options%, hNT As Long) As Integer
+      		NSFNoteOpen = m_NSFNoteOpen(hDB, noteid, options, hNT)
+      	End Function
+      	
+      	Function NSFNoteClose(ByVal hNT As Long) As Integer
+      		NSFNoteClose = m_NSFNoteClose(hNT)
+      	End Function
+      	
+      	Function NSFNoteCreate(ByVal hDB As Long, nhRet As Long) As Integer
+      		NSFNoteCreate = m_NSFNoteCreate(hDB, nhRet)
+      	End Function
+      	
+      	Function NSFNoteDelete(ByVal hDb As Long, ByVal noteid As Long, ByVal options%) As Integer
+      		NSFNoteDelete = m_NSFNoteDelete(hDb, noteid, options)
+      	End Function
+      	
+      	Sub NSFNoteSetInfo_Word(ByVal hNote As Long, ByVal id As Integer, ByVal newval As Integer)
+      		Call m_NSFNoteSetInfo(hNote, id, newval)
+      	End Sub
+      	
+      	Sub NSFNoteGetInfo_Int(ByVal hNT As Long, ByVal note_member As Integer, info As Integer)
+      		Call m_NSFNoteGetInfo(hNT, note_member, info)
+      	End Sub
+      	
+      	Sub NSFNoteGetInfo_Long(ByVal hNote As Long, ByVal id As Integer, retval As Long)
+      		Call m_NSFNoteGetInfo(hNote, id, retval)
+      	End Sub
+      	
+      	Sub NSFNoteGetInfo_Date(ByVal hNT As Long, ByVal note_member As Integer, td As TIMEDATE)
+      		Call m_NSFNoteGetInfo(hNT, note_member, td)
+      	End Sub
+      	
+      	Function NSFNoteGetInfo_OID(ByVal hNT As Long, zoid As OID) As Integer
+      		Call m_NSFNoteGetInfo(hNT, NOTEINFO_OID, zoid)
+      	End Function
+      
+      	Function NSFItemGetTime (ByVal mhNote As Long, ByVal itemname As String, td As TIMEDATE) As Boolean
+      		NSFItemGetTime = m_NSFItemGetTime(mhNote, itemname, td) <> 0
+      	End Function
+      	
+      	Function NSFNoteUpdate(ByVal hNote As Long, ByVal updateFlags%) As Integer
+      		NSFNoteUpdate = m_NSFNoteUpdate(hNote, updateflags)
+      	End Function
+      	
+      	Function NSFDbGetReplHistorySummary(ByVal hDb As Long, ByVal Flags As Long, hSummary As Long, lNumEntries As Long) As Integer
+      		NSFDbGetReplHistorySummary = m_NSFDbGetReplHistorySummary(hDB, Flags, hSummary, lNumEntries)
+      	End Function
+      	
+      	Function NSFDbReadReplHistory(ByVal hDb As Long, ByVal FilePath As String, replinfo As REPLHISTORY_INFO, ByVal MiscInfo As Integer) As Integer
+      		copyRHToBuffer replinfo
+      		NSFDbReadReplHistory = m_NSFDbReadReplHistory(hDB, Filepath, buffer(0), MiscInfo, 0)
+      		copyBufferToRH replinfo
+      	End Function
+      	
+      	Function NSFDbWriteReplHistory(ByVal hDb As Long, ByVal FilePath As String, replinfo As REPLHISTORY_INFO, ByVal MiscInfo As Integer) As Integer
+      		copyRHToBuffer replinfo
+      		NSFDbWriteReplHistory = m_NSFDbWriteReplHistory(hDb, FilePath, buffer(0), MiscInfo)
+      	End Function
+      	
+      	Function NSFDbReplicaInfoGet(ByVal hDB As Long, R As DBReplicaInfo) As Integer
+      		NSFDbReplicaInfoGet = m_NSFDbReplicaInfoGet(hDB, R)
+      	End Function
+      	
+      	Function NSFDbReplicaInfoSet(ByVal hDB As Long, R As DBReplicaInfo) As Integer
+      		NSFDbReplicaInfoSet = m_NSFDbReplicaInfoSet(hDB, R)
+      	End Function
+      	
+      	Function NSFDbGetUserActivity(ByVal hDb As Long, retActivity As DBACTIVITY, hRetUserInfo As Long, retUserCount As Integer) As Integer
+      		NSFDbGetUserActivity = m_NSFDbGetUserActivity(hDB, 0, retActivity, hRetUserInfo, retUserCount)
+      	End Function
+      	
+      	Function TimeDateDifference(time1 As TIMEDATE, time2 As TIMEDATE) As Long
+      		TimeDateDifference = m_timedatedifference(time1, time2)
+      	End Function
+      	
+      	Function TimeDateAdjust(td As TIMEDATE, ByVal secs%, ByVal mins%, ByVal hrs%, ByVal days%, ByVal months%, ByVal years%) As Integer
+      		TimeDateAdjust = m_TimeDateAdjust(td, secs, mins, hrs, days, months, years)
+      	End Function
+      	
+      	Function NSFItemCreateTextList(ByVal hNote As Long, itemName$, itemValue$)
+      		' we are cheating here to get the length, by assuming the strings contain only ASCII chars.
+      		NSFItemCreateTextList = m_NSFItemCreateTextList(hNote, itemName, itemValue, Len(itemValue))
+      	End Function
+      	
+      	Function NSFItemSetText(ByVal hNote As Long, ByVal itemName As String, ByVal itemText As String) As Integer
+      		' we are cheating here to get the length, by assuming the strings contain only ASCII chars.
+      		NSFItemSetText = m_NSFItemSetText(hNote, itemName, itemText, Len(itemText))
+      	End Function
+      
+      	Function NSFFormulaCompile(ByVal formulaName As String, _
+      		ByVal formulaText As String, retH As Long, retLen As Long, errCode As Integer, errLine As Integer, _
+      		errCol As Integer, errOffset As Integer, errLen As Integer) As Integer
+      		NSFFormulaCompile = m_NSFFormulaCompile(formulaName, Len(formulaName), formulaText, Len(formulaText), retH, retLen, errCode, errLine, _
+      		errCol, errOffset, errLen)
+      	End Function
+      	
+      	Function NSGetServerClusterMates(ByVal servName As String, ByVal flags As Long, retHandle As Long) As Integer
+      		NSGetServerClusterMates = m_nsgetserverclustermates(servname, flags, retHandle)
+      	End Function
+      	
+      	Function NIFFindDesignNote(ByVal hDb As Long, ByVal elemName As String, ByVal noteclass%, noteId As Long)
+      		NIFFindDesignNote = m_NIFFindDesignNote(hDb, elemName, noteclass, noteId)
+      	End Function
+      	
+      	Function RegGetIDInfo(ByVal fpath$, ByVal itype%, buff$, ByVal blen%, actLen%) As Integer
+      		RegGetIDInfo = m_RegGetIDInfo(fpath, Itype, buff, blen, actLen)
+      	End Function
+      	
+      	Function NSFDbLocalSecInfoGet(ByVal hDb As Long, flags As Byte, strength As Byte) As Integer
+      		NSFDbLocalSecInfoGet = m_NSFDbLocalSecInfoGet(hDb, flags, strength)
+      	End Function
+      	
+      	Function NSFDbLocalSecInfoSet(ByVal hDb As Long, ByVal optionn%, ByVal encrType As Byte, ByVal username$) As Integer
+      		NSFDbLocalSecInfoSet = m_NSFDbLocalSecInfoSet(hDb, optionn, encrType, username)
+      	End Function
+      	
+      	Private Function NAMEGetAddressBooks(ByVal server As String, ByVal wOptions%, count As Integer, _
+      		length As Integer, hRet As Long) As Integer
+      		NAMEGetAddressBooks = m_NAMEGetAddressBooks(server, wOptions, count, length, hRet)
+      	End Function
+      	
+      	' functions which care whether we're 32 or 64-bit
+      	
+      	%REM
+      		Function ByteGetAddr
+      		Description: Find the pointer address of a byte
+      	%END REM
+      	Function ByteGetAddr(b As Byte) As CPOINTER
+      		Set ByteGetAddr = New CPOINTER
+      		Dim tmp As Byte
+      		tmp = b
+      		ByteGetAddr.val32 = m_CmovmemFOTO(tmp, b, 1) - 1
+      	End Function
+      
+      	%REM
+      		Sub CPIncrement
+      		Description: Increment (decrement) the value of a CPOINTER
+      	%END REM
+      	Sub CPIncrement(ptr As CPOINTER, ByVal delta As Long)	
+      		ptr.val32 = ptr.val32 + delta
+      	End Sub
+      	
+      	Sub MemGetBytes(addr As CPOINTER, dest As Byte, ByVal cBytes%)
+      		m_CmovmemFPTO addr.val32, dest, cBytes
+      		CPIncrement addr, cBytes
+      	End Sub
+      	
+      	Sub MemGetWord(addr As CPOINTER, dest As Integer, ByVal ctr%)
+      		m_CmovmemFPTO addr.val32, dest, ctr+ctr
+      		CPIncrement addr, ctr+ctr
+      	End Sub
+      	
+      	Sub MemGetDWord(addr As CPOINTER, dest As Long)
+      		m_CmovmemFPTO addr.val32, dest, 4
+      		CPIncrement addr, 4
+      	End Sub
+      	
+      	Sub MemPutBytes(addr As CPOINTER, src As Byte, ByVal cBytes%)
+      		addr.val32 = m_CmovmemFOTP(src, addr.val32, cBytes)
+      	End Sub
+      	
+      	Sub MemPutWord(addr As CPOINTER, src As Integer, ByVal ctr%)
+      		addr.val32 = m_CmovmemFOTP(src, addr.val32, ctr+ctr)
+      	End Sub
+      	
+      	Sub MemPutDWord(addr As CPOINTER, src As Long)
+      		addr.val32 = m_CmovmemFOTP(src, addr.val32, 4)
+      	End Sub
+      	
+      	Sub CstrncpyACB(szBuffer As String, szFrom As CPOINTER, ByVal limit As Long)
+      		m_cstrncpyacb szBuffer, szFrom.val32, limit
+      	End Sub
+      	
+      	Sub CmovmemActivityEntry(srcPtr As CPOINTER, dest As DBACTIVITY_ENTRY)
+      		srcPtr.val32 = m_CmovmemFPTO(srcPtr.val32, buffer(0), 16)
+      		copyBufferToAE dest
+      	End Sub
+      	
+      	Function NSFItemAppend(ByVal hNote As Long, ByVal flags As Integer, ByVal itemName$, _
+      		ByVal itemType As Integer, pValue As CPOINTER, ByVal valueLen As Long) As Integer
+      		NSFItemAppend = m_NSFItemAppend(hNote, flags, itemName, Len(itemName), itemType, pValue.val32, valueLen)
+      	End Function
+      	
+      	Function ListToText(pList As CPOINTER, ByVal fromItem As Boolean, ByVal delim As String, ByVal buflen As Long, buffer As String) As Long
+      		ListToText = m_listtotext(pList.val32, fromItem, delim, buflen, buffer)
+      	End Function
+      	
+      	Function NSFDbGetNoteInfoByUNID(ByVal hDB As Long, unid As UNIVERSALNOTEID, _
+      		noteid As Long, tdMod As TIMEDATE, noteclass As Integer) As Integer
+      		NSFDbGetNoteInfoByUNID = m_NSFDbGetNoteInfoByUNID(hDB, unid, noteid, nullptr.val32, tdMod, noteclass)
+      	End Function
+      End Class
+      Class CAPILUX64 As CAPILUX
+      	' functions which care whether we're 32 or 64-bit
+      	
+      	%REM
+      		Function ByteGetAddr
+      		Description: Find the pointer address of a byte
+      	%END REM
+      	Function ByteGetAddr(b As Byte) As CPOINTER
+      		Set ByteGetAddr = New CPOINTER
+      		Dim tmp As Byte
+      		tmp = b
+      		UseDoubleAsPointer = True
+      		ByteGetAddr.val64 = l64_CmovmemFOTO(tmp, b, 1)
+      		CPIncrement ByteGetAddr, -1
+      	End Function
+      
+      	Function OSLock(ByVal handle As Long) As CPOINTER
+      		Set OSLock = New CPOINTER
+      		UseDoubleAsPointer = True
+      		OSLock.val64 = l64_OSLock(handle)
+      	End Function
+      	
+      	%REM
+      		Sub CPIncrement
+      		Description: Increment (decrement) the value of a CPOINTER
+      	%END REM
+      	Sub CPIncrement(ptr As CPOINTER, ByVal delta As Long)
+      		If delta = 0 Then Exit Sub	
+      		Dim td As TIMEDATE
+      		l64_CmovmemFOTO ptr.val64, td, 8
+      		TDDelta td, delta
+      		l64_CmovmemFOTO td, ptr.val64, 8
+      	End Sub
+      	
+      	Sub MemGetBytes(addr As CPOINTER, dest As Byte, ByVal cBytes%)
+      		l64_CmovmemFPTO addr.val64, dest, cBytes
+      		CPIncrement addr, cBytes
+      	End Sub
+      	
+      	Sub MemGetWord(addr As CPOINTER, dest As Integer, ByVal ctr%)
+      		l64_CmovmemFPTO addr.val64, dest, ctr+ctr
+      		CPIncrement addr, ctr+ctr
+      	End Sub
+      	
+      	Sub MemGetDWord(addr As CPOINTER, dest As Long)
+      		l64_CmovmemFPTO addr.val64, dest, 4
+      		CPIncrement addr, 4
+      	End Sub
+      	
+      	Sub MemPutBytes(addr As CPOINTER, src As Byte, ByVal cBytes%)
+      		addr.val64 = l64_CmovmemFOTP(src, addr.val64, cBytes)
+      	End Sub
+      	
+      	Sub MemPutWord(addr As CPOINTER, src As Integer, ByVal ctr%)
+      		addr.val64 = l64_CmovmemFOTP(src, addr.val64, ctr+ctr)
+      	End Sub
+      	
+      	Sub MemPutDWord(addr As CPOINTER, src As Long)
+      		addr.val64 = l64_CmovmemFOTP(src, addr.val64, 4)
+      	End Sub
+      	
+      	Sub CstrncpyACB(szBuffer As String, szFrom As CPOINTER, ByVal limit As Long)
+      		l64_cstrncpyacb szBuffer, szFrom.val64, limit
+      	End Sub
+      	
+      	Sub CmovmemActivityEntry(srcPtr As CPOINTER, dest As DBACTIVITY_ENTRY)
+      		srcPtr.val64 = l64_CmovmemFPTO(srcPtr.val64, buffer(0), 16)
+      		copyBufferToAE dest
+      	End Sub
+      	
+      	Function NSFItemAppend(ByVal hNote As Long, ByVal flags As Integer, ByVal itemName$, _
+      		ByVal itemType As Integer, pValue As CPOINTER, ByVal valueLen As Long) As Integer
+      		NSFItemAppend = l64_NSFItemAppend(hNote, flags, itemName, Len(itemName), itemType, _
+      		pValue.val64, valueLen)
+      	End Function
+      	
+      	Function ConvertTIMEDATEToText(IntlFormat As CPOINTER, TimeFormat As TFMT, _
+      		InputTime As TIMEDATE, retTextBuffer As String, ByVal TextBufferLength As Integer, _
+      		retTextLength As Integer) As Integer
+      		UseDoubleAsPointer = True
+      		ConvertTIMEDATEToText = l64_ConvertTimeDateToText(IntlFormat.val64, TimeFormat, InputTime, retTextBuffer, TextBufferLength, retTextLength)
+      	End Function
+      	
+      	Function ListToText(pList As CPOINTER, ByVal fromItem As Boolean, ByVal delim As String, ByVal buflen As Long, buffer As String) As Long
+      		ListToText = l64_listtotext(pList.val64, fromItem, delim, buflen, buffer)
+      	End Function
+      	
+      	Function NSFDbGetNoteInfoByUNID(ByVal hDB As Long, unid As UNIVERSALNOTEID, _
+      		noteid As Long, tdMod As TIMEDATE, noteclass As Integer) As Integer
+      		UseDoubleAsPointer = True
+      		NSFDbGetNoteInfoByUNID = l64_NSFDbGetNoteInfoByUNID(hDB, unid, noteid, nullptr.val64, tdMod, noteclass)
+      	End Function
+      End Class
+      %REM
+      	Class CAPIMAC64
+      	Description: Comments for Class
+      %END REM
+      Class CAPIMAC64 As CAPIMAC
+      	
+      	' functions which care whether we're 32 or 64-bit
+      	
+      	%REM
+      		Function ByteGetAddr
+      		Description: Find the pointer address of a byte
+      	%END REM
+      	Function ByteGetAddr(b As Byte) As CPOINTER
+      		Set ByteGetAddr = New CPOINTER
+      		Dim tmp As Byte
+      		tmp = b
+      		UseDoubleAsPointer = True
+      		ByteGetAddr.val64 = m64_CmovmemFOTO(tmp, b, 1)
+      		CPIncrement ByteGetAddr, -1
+      	End Function
+      
+      	Function OSLock(ByVal handle As Long) As CPOINTER
+      		Set OSLock = New CPOINTER
+      		UseDoubleAsPointer = True
+      		OSLock.val64 = m64_OSLock(handle)
+      	End Function
+      	
+      	%REM
+      		Sub CPIncrement
+      		Description: Increment (decrement) the value of a CPOINTER
+      	%END REM
+      	Sub CPIncrement(ptr As CPOINTER, ByVal delta As Long)
+      		If delta = 0 Then Exit Sub	
+      		Dim td As TIMEDATE
+      		m64_CmovmemFOTO ptr.val64, td, 8
+      		TDDelta td, delta
+      		m64_CmovmemFOTO td, ptr.val64, 8
+      	End Sub
+      	
+      	Sub MemGetBytes(addr As CPOINTER, dest As Byte, ByVal cBytes%)
+      		m64_CmovmemFPTO addr.val64, dest, cBytes
+      		CPIncrement addr, cBytes
+      	End Sub
+      	
+      	Sub MemGetWord(addr As CPOINTER, dest As Integer, ByVal ctr%)
+      		m64_CmovmemFPTO addr.val64, dest, ctr+ctr
+      		CPIncrement addr, ctr+ctr
+      	End Sub
+      	
+      	Sub MemGetDWord(addr As CPOINTER, dest As Long)
+      		m64_CmovmemFPTO addr.val64, dest, 4
+      		CPIncrement addr, 4
+      	End Sub
+      	
+      	Sub MemPutBytes(addr As CPOINTER, src As Byte, ByVal cBytes%)
+      		addr.val64 = m64_CmovmemFOTP(src, addr.val64, cBytes)
+      	End Sub
+      	
+      	Sub MemPutWord(addr As CPOINTER, src As Integer, ByVal ctr%)
+      		addr.val64 = m64_CmovmemFOTP(src, addr.val64, ctr+ctr)
+      	End Sub
+      	
+      	Sub MemPutDWord(addr As CPOINTER, src As Long)
+      		addr.val64 = m64_CmovmemFOTP(src, addr.val64, 4)
+      	End Sub
+      	
+      	Sub CstrncpyACB(szBuffer As String, szFrom As CPOINTER, ByVal limit As Long)
+      		m64_cstrncpyacb szBuffer, szFrom.val64, limit
+      	End Sub
+      	
+      	Sub CmovmemActivityEntry(srcPtr As CPOINTER, dest As DBACTIVITY_ENTRY)
+      		srcPtr.val64 = m64_CmovmemFPTO(srcPtr.val64, buffer(0), 16)
+      		copyBufferToAE dest
+      	End Sub
+      
+      	Function NSFItemAppend(ByVal hNote As Long, ByVal flags As Integer, ByVal itemName$, _
+      		ByVal itemType As Integer, pValue As CPOINTER, ByVal valueLen As Long) As Integer
+      		NSFItemAppend = m64_NSFItemAppend(hNote, flags, itemName, Len(itemName), itemType, pValue.val64, valueLen)
+      	End Function
+      	
+      	Function ConvertTIMEDATEToText(IntlFormat As CPOINTER, TimeFormat As TFMT, _
+      		InputTime As TIMEDATE, retTextBuffer As String, ByVal TextBufferLength As Integer, _
+      		retTextLength As Integer) As Integer
+      		UseDoubleAsPointer = True
+      		ConvertTIMEDATEToText = m64_ConvertTimeDateToText(IntlFormat.val64, TimeFormat, InputTime, retTextBuffer, TextBufferLength, retTextLength)
+      	End Function
+      	
+      	Function ListToText(pList As CPOINTER, ByVal fromItem As Boolean, ByVal delim As String, ByVal buflen As Long, buffer As String) As Long
+      		ListToText = m64_listtotext(pList.val64, fromItem, delim, buflen, buffer)
+      	End Function
+      	
+      	Function NSFDbGetNoteInfoByUNID(ByVal hDB As Long, unid As UNIVERSALNOTEID, _
+      		noteid As Long, tdMod As TIMEDATE, noteclass As Integer) As Integer
+      		UseDoubleAsPointer = True
+      		NSFDbGetNoteInfoByUNID = m64_NSFDbGetNoteInfoByUNID(hDB, unid, noteid, nullptr.val64, tdMod, noteclass)
+      	End Function
+      End Class
+      %REM
+      	Class CAPIWIN64
+      	Description: 64-bit windows C API functions
+      %END REM
+      Class CAPIWIN64 As CAPI
+      	' functions which care whether we're 32 or 64-bit
+      	
+      	%REM
+      		Function ByteGetAddr
+      		Description: Find the pointer address of a byte
+      	%END REM
+      	Function ByteGetAddr(b As Byte) As CPOINTER
+      		Set ByteGetAddr = New CPOINTER
+      		Dim tmp As Byte
+      		tmp = b
+      		UseDoubleAsPointer = True
+      		ByteGetAddr.val64 = w64_CmovmemFOTO(tmp, b, 1)
+      		CPIncrement ByteGetAddr, -1
+      	End Function
+      
+      	Function OSLock(ByVal handle As Long) As CPOINTER
+      		Set OSLock = New CPOINTER
+      		UseDoubleAsPointer = True
+      		OSLock.val64 = w64_OSLock(handle)
+      	End Function
+      	
+      	%REM
+      		Sub CPIncrement
+      		Description: Increment (decrement) the value of a CPOINTER
+      	%END REM
+      	Sub CPIncrement(ptr As CPOINTER, ByVal delta As Long)
+      		If delta = 0 Then Exit Sub	
+      		Dim td As TIMEDATE
+      		w64_CmovmemFOTO ptr.val64, td, 8
+      		TDDelta td, delta
+      		w64_CmovmemFOTO td, ptr.val64, 8
+      	End Sub
+      	
+      	Sub MemGetBytes(addr As CPOINTER, dest As Byte, ByVal cBytes%)
+      		w64_CmovmemFPTO addr.val64, dest, cBytes
+      		CPIncrement addr, cBytes
+      	End Sub
+      	
+      	Sub MemGetWord(addr As CPOINTER, dest As Integer, ByVal ctr%)
+      		w64_CmovmemFPTO addr.val64, dest, ctr+ctr
+      		CPIncrement addr, ctr+ctr
+      	End Sub
+      	
+      	Sub MemGetDWord(addr As CPOINTER, dest As Long)
+      		w64_CmovmemFPTO addr.val64, dest, 4
+      		CPIncrement addr, 4
+      	End Sub
+      	
+      	Sub MemPutBytes(addr As CPOINTER, src As Byte, ByVal cBytes%)
+      		addr.val64 = w64_CmovmemFOTP(src, addr.val64, cBytes)
+      	End Sub
+      	
+      	Sub MemPutWord(addr As CPOINTER, src As Integer, ByVal ctr%)
+      		addr.val64 = w64_CmovmemFOTP(src, addr.val64, ctr+ctr)
+      	End Sub
+      	
+      	Sub MemPutDWord(addr As CPOINTER, src As Long)
+      		addr.val64 = w64_CmovmemFOTP(src, addr.val64, 4)
+      	End Sub
+      	
+      	Sub CstrncpyACB(szBuffer As String, szFrom As CPOINTER, ByVal limit As Long)
+      		w64_cstrncpyacb szBuffer, szFrom.val64, limit
+      	End Sub
+      	
+      	Sub CmovmemActivityEntry(srcPtr As CPOINTER, dest As DBACTIVITY_ENTRY)
+      		srcPtr.val64 = w64_CmovmemFPTO(srcPtr.val64, buffer(0), 16)
+      		copyBufferToAE dest
+      	End Sub
+      	
+      	Function NSFItemAppend(ByVal hNote As Long, ByVal flags As Integer, ByVal itemName$, _
+      		ByVal itemType As Integer, pValue As CPOINTER, ByVal valueLen As Long) As Integer
+      		NSFItemAppend = w64_NSFItemAppend(hNote, flags, itemName, Len(itemName), itemType, pValue.val64, valueLen)
+      	End Function
+      	
+      	Function ConvertTIMEDATEToText(IntlFormat As CPOINTER, TimeFormat As TFMT, _
+      		InputTime As TIMEDATE, retTextBuffer As String, ByVal TextBufferLength As Integer, _
+      		retTextLength As Integer) As Integer
+      		UseDoubleAsPointer = True
+      		ConvertTIMEDATEToText = w64_ConvertTimeDateToText(IntlFormat.val64, TimeFormat, InputTime, retTextBuffer, TextBufferLength, retTextLength)
+      	End Function
+      	
+      	Function ListToText(pList As CPOINTER, ByVal fromItem As Boolean, ByVal delim As String, ByVal buflen As Long, buffer As String) As Long
+      		ListToText = w64_listtotext(pList.val64, fromItem, delim, buflen, buffer)
+      	End Function
+      	
+      	Function NSFDbGetNoteInfoByUNID(ByVal hDB As Long, unid As UNIVERSALNOTEID, _
+      		noteid As Long, tdMod As TIMEDATE, noteclass As Integer) As Integer
+      		UseDoubleAsPointer = True
+      		NSFDbGetNoteInfoByUNID = w64_NSFDbGetNoteInfoByUNID(hDB, unid, noteid, nullptr.val64, tdMod, noteclass)
+      	End Function
+      End Class
+      '++LotusScript Development Environment:2:1:GetCAPI:5:8
+      %REM
+      	Function GetCAPI
+      	Description: Get the C-API calling class that's appropriate to the OS.
+      %END REM
+      Function GetCAPI As CAPI
+      	Const OS_WIN = 0
+      	Const OS_MAC = 1
+      	Const OS_LINUX = 2
+      	Const OS_64 = 4
+      	Const OS_WIN64 = OS_WIN+OS_64
+      	Const OS_MAC64 = OS_MAC+OS_64
+      	Const OS_LINUX64 = OS_LINUX+OS_64
+      	Static SCAPI As CAPI
+      	If SCAPI Is Nothing Then
+      		Dim plat$, ses As New NotesSession, b64 As Boolean, os$, osNum%
+      		plat = ses.Platform
+      		os = StrToken(plat, "/", 1)
+      		b64 = plat Like "*/64*"
+      		Select Case os
+      		Case "Windows"
+      			osNum = OS_WIN
+      		Case "Macintosh"
+      			osNum = OS_MAC
+      		Case Else
+      			osNum = OS_LINUX
+      		End Select
+      		If b64 Then osNum = osNum + OS_64
+      		Select Case osNum
+      		Case OS_WIN
+      			Set SCAPI = New CAPI
+      		Case OS_WIN64
+      			Set SCAPI = New CAPIWIN64
+      		Case OS_MAC
+      			Set SCAPI = New CAPIMAC
+      		Case OS_MAC64
+      			Set SCAPI = New CAPIMAC64
+      		Case OS_LINUX
+      			Set SCAPI = New CAPILUX
+      		Case OS_LINUX64
+      			Set SCAPI = New CAPILUX64
+      		End Select
+      		SCAPI.is64 = b64
+      	End If
+      	Set GetCAPI = SCAPI
+      End Function
+    signed: true
+    nonsummary: true
+  - name: $TITLE
+    type: text
+    data: CAPI
+    signed: true
+remaining: []

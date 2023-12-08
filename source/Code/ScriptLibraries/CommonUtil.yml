@@ -1,0 +1,958 @@
+---
+class: 512
+flags: 0x2000
+unid: OF596A545B74528DDB-ON007ADDAE862586DB
+items:
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: 34Qs
+  - name: $PublicAccess
+    type: text
+    data: "1"
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-09-16T11:58:05.59-05:00"
+        dst: true
+      - data: "2021-09-16T11:58:05.61-05:00"
+        dst: true
+      - data: "2021-09-16T12:02:35.71-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:55.24-05:00"
+        dst: true
+      - data: "2021-09-27T20:07:06.21-05:00"
+        dst: true
+      - data: "2021-09-27T20:07:06.23-05:00"
+        dst: true
+      - data: "2021-09-27T22:33:21.86-05:00"
+        dst: true
+      - data: "2021-11-18T08:09:28.24-06:00"
+      - data: "2021-11-18T08:09:28.27-06:00"
+      - data: "2021-11-29T13:19:14.75-05:00"
+      - data: "2021-11-29T13:19:14.77-05:00"
+      - data: "2021-11-29T13:49:18.66-05:00"
+  - name: $ScriptLib
+    type: text
+    data: |
+      '++LotusScript Development Environment:2:5:(Options):0:74
+      %REM
+      	Library CommonUtil
+      	Description: General utility functions, most in a class, intended to be used like static methods if this language supported such a thing.
+      	© Copyright HCL Software. 2021
+      %END REM
+      Option Public
+      Option Declare
+      Option Compare Binary ' needed for toHTML method
+      Use "lsconst"
+      
+      '++LotusScript Development Environment:2:5:(Forward):0:1
+      Declare Class CommonUtil
+      Declare Sub Initialize
+      Declare Function nameCommon(ByVal aName$) As String
+      Declare Function Max(x, y)
+      Declare Function MacroQuote(ByVal strIn As String) As String
+      Declare Public Function nameabbr(ByVal aname$) As String
+      Declare Function Fletcher32(strdat$) As Long
+      Declare Function Min(x, y)
+      Declare Public Function nameCanon(ByVal aname$) As String
+      Declare Function Fletcher32BARR(vdat) As Long
+      Declare Function DebugStr(vel As Variant) As Variant
+      
+      '++LotusScript Development Environment:2:5:(Declarations):0:10
+      
+      'Begin DNT
+      Private Const WHITESPACE_MATCH = {[ 	
+      ]}
+      Const NONBLANK_MATCH = {*[! 	
+      ]*}
+      Const STD_FMT_DATE = "dd mmm yyyy h:mm a/p" ' use with Format function to dispay dates in a standard way.
+      
+      ' strings used to mark the start and end of potentially translatable strings.
+      Const QFLAGSTART = {╵╷}
+      Const QFLAGEND =   {╷╵}
+      Dim GCU As CommonUtil
+      
+      Const FLD_WPRO_EXEMPTDIRS = {DontModify}
+      %REM
+      	Class CommonUtil
+      	Description: A class containing no public properties but just a bunch of utility functions which would
+      		be "static" methods if LotusScript supported that.
+      %END REM
+      Class CommonUtil
+      	Private datadir As String
+      	Private html_ffrom As Variant
+      	Private html_tto As Variant	
+      	Private trim_ffrom As Variant
+      	Private trim_tto As Variant
+      	Private z_ses As NotesSession
+      	Private z_dbThis As NotesDatabase
+      	Private z_docProWk As NotesDocument
+      	
+      	Sub New
+      		Set z_ses = New NotesSession
+      	End Sub
+      
+      	%REM
+      		Property Database   get
+      		Description: Return the current database.
+      	%END REM
+      	Public Property Get Database As NotesDatabase
+      		If z_dbThis Is Nothing Then Set z_dbThis = z_ses.Currentdatabase
+      		Set Database = z_dbThis
+      	End Property
+      
+      	%REM
+      		Function getWorkstationProfile
+      		Description: Return the profile document specific to this user and workstation.
+      		Return value: the profile document specific to this user on this workstation.
+      	%END REM
+      	Function getWorkstationProfile As NotesDocument
+      		If z_docProWk Is Nothing Then
+      			Dim profileID$
+      			profileID = z_ses.Getenvironmentstring({CDBWKSTN}) ' the notes.ini contains a unique workstation ID
+      			If profileID = "" Then
+      				' if it doesn't, assign one now.
+      				Dim tmp
+      				tmp = Evaluate({@Unique})
+      				profileID = tmp(0)
+      				z_ses.Setenvironmentvar {CDBWKSTN}, profileID
+      			End If
+      			Set Z_docproWk = Database.getprofiledocument(profileID, z_ses.username)
+      		End If
+      		Set getWorkstationProfile = z_docProWk
+      	End Function
+      
+      	%REM
+      		Sub SimpleSort
+      		Description: Sort an array in ascending order using a simple exchange sort. Suitable for very small arrays.
+      			When sorting strings this uses a binary comparison (so "Z" < "a" for instance). See also SimpleSortStrings.
+      	%END REM
+      	Sub SimpleSort(arr)
+      		Dim i%, k%, tmp
+      		On Error GoTo ERRHANDLE
+      		For i = LBound(arr) To UBound(arr) - 1
+      			For k = i+1 To UBound(arr)
+      				If arr(i) > arr(k) Then
+      					tmp = arr(i)
+      					arr(i) = arr(k)
+      					arr(k) = tmp
+      				End If
+      			Next
+      		Next
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & GetThreadInfo(1) & {:} & Erl
+      	End Sub
+      	
+      	%REM
+      		Sub SimpleSortStrings
+      		Description: Sort an array of strings in ascending order using a simple exchange sort. Suitable for very small arrays.
+      		Arguments:
+      			arr: array to sort.
+      			flags: string comparison flags ("or" of 1 for case insensitive, 4 for pitch insensitive).
+      	%END REM
+      	Sub SimpleSortStrings(arr, ByVal flags%)
+      		Dim i%, k%, tmp
+      		On Error GoTo ERRHANDLE
+      		For i = LBound(arr) To UBound(arr) - 1
+      			For k = i+1 To UBound(arr)
+      				If StrComp(arr(i), arr(k)) > 0 Then
+      					tmp = arr(i)
+      					arr(i) = arr(k)
+      					arr(k) = tmp
+      				End If
+      			Next
+      		Next
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & GetThreadInfo(1) & {:} & Erl
+      	End Sub
+      	
+      	%REM
+      		Function countLines
+      		Description: Count the number of lines in a piece of text.
+      	%END REM
+      	Function countLines(szIn$) As Long
+      		Dim initVal&
+      		On Error GoTo ERRHANDLE
+      		initVal = countOccurrences(Szin, NEWLINE)
+      		If Len(szIn) > 0 And Right$(szIn, 1) <> NEWLINE Then
+      			' no terminal newline, but not blank, means there's one more line than there are newlines.
+      			initVal = initVal + 1
+      		End If
+      		countLines = initVal
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & GetThreadInfo(1) & {:} & Erl
+      	End Function
+      	
+      	%REM
+      		Function countOccurrences
+      		Description: Return the number of substring ch that occur in szIn (non-overlapping).
+      			This may seem like an inefficient implementation compared to looping using Instr,
+      			but in the current version Instr is very slow.
+      	%END REM
+      	Function countOccurrences(szIn$, ch$) As Long
+      		On Error GoTo ERRHANDLE
+      		If Len(ch) Then
+      			countOccurrences = Len(szIn) - Len(Replace(szIn, ch, ""))/Len(ch)
+      		End If
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & GetThreadInfo(1) & {:} & Erl
+      	End Function
+      	
+      	%REM
+      		Function firstNLines
+      		Description: Return the first N lines of a piece of text, including the final NL.
+      	%END REM
+      	Function firstNLines(ofWhat$, ByVal n&) As String
+      		Dim chunk$, chunkLC&, pos&
+      		On Error GoTo ERRHANDLE
+      		For pos = 1 To Len(ofWhat) Step 1024
+      			chunk = Mid$(ofWhat, pos, 1024)
+      			Chunklc = countOccurrences(chunk, NEWLINE)
+      			If chunkLC < n Then
+      				firstNLines = firstNLines & chunk
+      				n = n - Chunklc
+      			Else
+      				' the chunk contains enough lines to fulfill the request.
+      				While n > 0 And Len(chunk) > 0
+      					firstNLines = firstNLines & StrLeft(chunk, NEWLINE) & NEWLINE
+      					chunk = StrRight(chunk, NEWLINE)
+      					n = n - 1
+      				Wend
+      				If n > 0 Then ' if there's an unterminated line at the end and more lines were wanted, include it too.
+      					firstNLines = firstNLines & chunk
+      				End If
+      			End If
+      		Next
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & GetThreadInfo(1) & {:} & Erl
+      	End Function
+      	
+      	%REM
+      		Function pathDelim
+      		Return value: the delimiter character used for filepaths on this system: \ or /
+      	%END REM
+      	z_pathdelim As String
+      	Function pathDelim
+      		If z_pathDelim = "" Then
+      			If z_ses.platform Like "Win*" Then
+      				z_pathDelim = "\"
+      			Else
+      				z_pathDelim = "/"
+      			End If
+      		End If
+      		pathDelim = z_pathDelim
+      	End Function
+      	
+      	%REM
+      		Function terminatePath
+      		Description: Return the input argument, but if it doesn't end with a filepath terminator,
+      			add the appropriate one for the current OS.
+      		Arguments: e.g. "C:\foo"
+      		Return value: e.g. "C"\foo\"
+      	%END REM
+      	Function terminatePath(ByVal folderpath$) As String
+      		If Len(folderpath) Then
+      			If Right$(Folderpath, 1) <> PATHDELIM Then
+      				If Right$(folderpath, 1) Like {[\/]} Then
+      					terminatePath = Left$(folderpath, Len(folderpath)-1) & PATHDELIM
+      				Else
+      					terminatePath = folderpath & PATHDELIM
+      				End If
+      			Else
+      				terminatePath = folderpath
+      			End If
+      		End If
+      	End Function
+      	
+      	%REM
+      		Function getDataDir
+      		Description: Return the local path of the Notes data directory, ending with the
+      			appropriate filepath terminator for this OS.
+      	%END REM
+      	Function getDataDir As String
+      		If datadir = "" Then 
+      			datadir = terminatePath(z_ses.GetEnvironmentString("DIRECTORY", True))
+      		End If
+      		getDataDir = dataDir
+      	End Function
+      	
+      	%REM
+      		Function dataRelativePath
+      		Description: Remove the first part of a filepath if the file is in the Notes data directory.
+      			If the path isn't in the data directory return the input value.
+      		Arguments:
+      			path: a filepath which may be absolute, or relative to the data directory.
+      		Returns: Same path, but if the input started with the data directory path, that is removed, e.g. 
+      			"C:\Notes\data\dox\zarquod.nsf" -> "dox\zarquod.nsf"
+      	%END REM
+      	Function dataRelativePath(ByVal path$) As String
+      		Dim datadir$
+      		datadir = me.getDataDir
+      		If StrComp(datadir, Left$(path, Len(datadir)), 1) = 0 Then
+      			path = Mid$(path, 1+Len(datadir))
+      		End If
+      		dataRelativePath = path
+      	End Function
+      	
+      	%REM
+      		Function isRelativePath
+      		Description: tell whether a filepath is relative or absolute.
+      		Return value: TRUE if path is relative.
+      	%END REM
+      	Function isRelativePath(ByVal filepath$) As Boolean
+      		filepath = LCase(filepath) 
+      		If filepath Like "[a-z]:*" Then Exit Function ' returning false
+      		If filepath Like "[\/]*" Then Exit Function ' returning false
+      		isRelativePath = True
+      	End Function
+      	
+      	%REM
+      		Function dataFullPath
+      		Description: If a path is relative, assume it's relative to the local Notes data
+      			directory and return the full filepath.
+      	%END REM
+      	Function dataFullPath(ByVal path$) As String
+      		If isRelativePath(path) Then
+      			dataFullPath = getDataDir & path
+      		Else
+      			dataFullPath = path
+      		End If
+      	End Function
+      	
+      	%REM
+      		Function dateTimeToISO8601
+      		Description: Convert a date/time variant or NotesDataTime object to a string in ISO8601 format.
+      	%END REM
+      	Function dateTimeToISO8601( vDT As Variant ) As String
+      		Dim dt As NotesDateTime
+      		If TypeName(vDT) = "NOTESDATETIME" Then
+      			Set dt = vDT
+      		Else
+      			Set dt = New NotesDateTime(vDT)
+      		End If
+      		Dim strDTPart As String
+      		Dim strTZPart As String
+      		If dt.dateonly Then
+      			strDTPart = Format( dt.LSLocalTime, {YYYY-MM-DD} )
+      		Else
+      			If dt.timeonly Then
+      				strDTPart = Format( dt.LSLocalTime, {Thh:mm:ss} )
+      			Else
+      				strDTPart = Format( dt.LSLocalTime, {YYYY-MM-DDThh:mm:ss} )
+      			End If
+      			Dim timeZone As Integer
+      			timeZone = - dt.Timezone
+      
+      			strTZPart = Format( timeZone, "00" ) & ":00"
+      			If timeZone >= 0 Then
+      				strTZpart = "+" & strTZpart
+      			End If
+      		End If
+      		dateTimeToISO8601 = strDTPart & strTZPart
+      	End Function
+      	
+      	%REM
+      		Sub DeleteFile
+      		Description: Delete a file, ignoring any error. Useful in cases where you're not sure whether the file exists but if it does, get rid of it.
+      	%END REM
+      	Sub deleteFile(ByVal path$)
+      		On Error Resume Next
+      		Kill path
+      	End Sub
+      	
+      	%REM
+      		Function existsFile
+      		Description: return True if a file exists (and is a file, not a folder).
+      	%END REM
+      	Function existsFile(ByVal filepath$) As Boolean
+      		On Error GoTo nope
+      		Dim fnam$
+      		fnam = Dir$(filepath, 6) ' include hidden and system files but not directories
+      		existsFile = (fnam <> "")
+      nope:
+      		Exit Function
+      	End Function
+      	
+      	
+      	%REM
+      		Function existsFolder
+      		Description: Return True if a folder exists (and is really a folder, not a file)
+      	%END REM
+      	Function existsFolder(ByVal folderPath$) As Boolean
+      		On Error GoTo nope
+      		existsFolder = (GetFileAttr(folderPath) And 16) <> 0
+      nope:
+      		Exit Function
+      	End Function
+      	
+      	%REM
+      		Function FindDelim
+      		Description: In a string, find the first delimiter character from a list of delimiters, and return its position (1-based)
+      		Arguments:
+      			szIn: the string to search for delimiters.
+      			szDelims: a string listing the characters you consider delimiters, e.g. ",;" to treat comma and semicolon as dividers.
+      	%END REM
+      	Function FindDelim(szIn$, szDelims$) As Long
+      		Dim i%, ch$, pos&
+      		For i = 1 To Len(szDelims)
+      			ch = Mid$(szDelims, i, 1)
+      			pos = InStr(szIn, ch)
+      			If pos Then
+      				If FindDelim = 0 Then
+      					FindDelim = pos
+      				ElseIf pos < FindDelim Then
+      					FindDelim = pos
+      				End If
+      			End If
+      		Next
+      	End Function
+      	
+      	%REM
+      		Function isEqualFieldVal
+      		Description: Take two values read from fields, and determine whether they are identical. An array is considered equal to another array
+      			if they are the same length and each element is the same type and value. An array is considered equal to a scalar if the array contains
+      			one element and that element is the same type and value as the scalar.
+      		Arguments: a, b: the values to compare.
+      		Return value: TRUE if they are equal.
+      	%END REM
+      	Function isEqualFieldVal(a, b) As Boolean
+      		If IsArray(a) And IsArray(b) Then
+      			If UBound(a) = UBound(b) Then
+      				If DataType(a(0)) = DataType(b(0)) Then
+      					Dim i%
+      					For i = 0 To UBound(a)
+      						If a(i) <> b(i) Then
+      							Exit Function ' = false
+      						End If
+      					Next
+      					isEqualFieldVal = True
+      				End If
+      			End If
+      		ElseIf IsArray(a) Then
+      			If UBound(a) = 0 Then
+      				isEqualFieldVal = isEqualFieldVal(a(0), b)
+      			End If
+      		ElseIf IsArray(b) Then
+      			If UBound(b) = 0 Then
+      				isEqualFieldVal = isEqualFieldVal(a, b(0))
+      			End If
+      		ElseIf DataType(a) = DataType(b) Then
+      			isEqualFieldVal = (a = b)
+      		End If
+      	End Function
+      	
+      	%REM
+      		Function listTags
+      		Description: Given a list, return the tags of the list elements as an array. Assumes the tags don't
+      			contain DOTT character.
+      		Arguments:
+      			aList - a list of any type, passed by reference.
+      		Returns: array of strings with each element containing a list tag
+      	%END REM
+      	Function listTags(aList As Variant) As Variant
+      		Dim szTags$
+      		ForAll thing In aList
+      			szTags = szTags & DOTT & ListTag(thing)
+      		End ForAll
+      		listTags = Split(Mid$(szTags, 2), DOTT)
+      	End Function
+      	
+      	%REM
+      		Function TotalTrim
+      		Description: Trim function that treats newlines and tabs as whitespace, and that can handle arrays.
+      	%END REM
+      	Function TotalTrim(valu) As Variant
+      		TotalTrim = FullTrim(Replace(Replace(valu, TABB, " "), NEWLINE, " "))
+      	End Function
+      	
+      	%REM
+      		Function TotalTrimField
+      		Description: Trim a field value of excess whitespace and return the trimmed value.
+      			Also update the field contents to contain the trimmed value.
+      		Return value: An array containing the field value with all leading and trailing
+      			whitespace removed, and consecutive whitespace characters changed to a single space.
+      			Empty entries are removed if the field is multivalued. If the field contains no
+      			text the return value is an array with one blank element.
+      	%END REM
+      	Function TotalTrimField(doc As NotesDocument, ByVal itemname$) As Variant
+      		Dim valu
+      		valu = doc.Getitemvalue(itemname)
+      		TotalTrimField = TotalTrim(valu)
+      		If Join(valu, DOTT) <> Join(TotalTrimField, DOTT) Then
+      			Call doc.Replaceitemvalue(Itemname, TotalTrimField)
+      		End If
+      	End Function
+      	
+      	%REM
+      		Function SuperTrim
+      		Description: Trim function that treats newlines and tabs as whitespace, with control over
+      			left-trim, right-trim, interior.
+      		Argument flags is bit flags: 1 to trim left, 2 to trim right, 4 to trim interior consecutive whitespace to
+      			one whitespace character, 8 to change all tabs to spaces, 16 to change all newlines to spaces. 
+      	%END REM
+      	Function SuperTrim(ByVal szIn$, ByVal flags%) As String
+      		Dim i%
+      		Const SP = { }
+      		On Error GoTo ERRHANDLE
+      		If IsEmpty(trim_ffrom) Then
+      			trim_ffrom = Split(SP & SP & {-} & SP & NEWLINE & {-} & NEWLINE & SP & {-} & NEWLINE & NEWLINE & {-} , {-})
+      			trim_tto = Split(" ", ",")
+      		End If
+      		If flags And 8 Then
+      			szIn = Replace(szIn, TABB, SP)
+      		End If
+      		If flags And 16 Then
+      			szIn = Replace(szIn, NEWLINE, SP)
+      		End If
+      		If (flags And (8+16)) = (8+16) Then
+      			If flags And 7 = 7 Then
+      				SuperTrim = FullTrim(szIn)
+      			Else
+      				If flags And 1 Then
+      					szIn = LTrim(szIn)
+      				End If
+      				If flags And 2 Then
+      					szIn = RTrim(szIn)
+      				End If
+      				If 0 <> (flags And 4) And 0 <> Len(szIn) Then
+      					szIn = Replace(szIn, Trim(szIn), FullTrim(szIn))
+      				End If
+      				SuperTrim = szIn
+      			End If
+      		Else
+      			' preserving tabs and/or newlines
+      			If flags And 1 Then
+      				Do While Left$(szIn, 1) Like WHITESPACE_MATCH
+      					szIn = Mid$(szIn, 2)
+      				Loop
+      			End If
+      			If flags And 2 Then
+      				Do While Right$(szIn, 1) Like WHITESPACE_MATCH
+      					szIn = Left$(szIn, Len(szIn)-1)
+      				Loop
+      			End If
+      			If flags And 4 Then
+      				If flags And 8 Then szIn = Replace(szIn, TABB, SP)
+      				If flags And 16 Then szIn = Replace(szIn, NEWLINE, SP)
+      				Dim prevlen&
+      				Do
+      					prevlen = Len(szIn)
+      					szIn = Replace(szin, trim_ffrom, trim_tto)
+      				Loop Until Len(szIn) = prevlen
+      			End If
+      		End If
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & GetThreadInfo(1) & {:} & Erl
+      	End Function
+      	
+      	%REM
+      		Function toHTML
+      		Description: Convert a string to HTML by escaping special characters.
+      		Arguments:
+      			sz: string to encode
+      			bASCII: if True, also encode non-ascii characters as &%xxxx; sequences. 
+      		Return value:
+      	%END REM
+      	Function toHTML(ByVal sz$, bASCII) As String
+      		If IsEmpty(html_ffrom) Then
+      			html_ffrom = Split(|& < > ' " | & NEWLINE, | |)
+      			html_tto = Split(|&amp; &lt; &gt; &apos; &quot; <br>|, | |)
+      		End If
+      		sz = Replace(sz, html_ffrom, html_tto)
+      		If bASCII Then
+      			' also escape characters > 127
+      			If sz Like |*[! -~]*| Then
+      				Dim ch$, i%, un%
+      				For i = 1 To Len(sz)
+      					ch = Mid(sz, i, 1)
+      					un = Uni(ch)
+      					If un And &hff80 Then
+      						toHTML = toHTML & "&#" & un & ";"
+      					Else
+      						toHTML = toHTML & ch
+      					End If
+      				Next
+      				Exit Function
+      			End If
+      		End If
+      		toHTML = sz
+      	End Function
+      	
+      	%REM
+      		Function URLEncode
+      		Description: URL encode a string for use as a query parameter.
+      	%END REM
+      	Function URLEncode(ByVal x$) As String
+      		If Len(x) Then
+      			Dim doc As NotesDocument
+      			Set doc = Database.createdocument
+      			Call doc.Replaceitemvalue("x", x)
+      			Dim tmp
+      			tmp = Evaluate({@URLEncode("Domino"; x)}, doc)
+      		End If
+      	End Function
+      	
+      	%REM
+      		Function synopsis
+      		Description: For debugging, generate a synopsis of a string with ellipsis to reduce
+      			to useful length, and changing newline to ~ and tab to \t
+      	%END REM
+      	Function synopsis(x$, ByVal start&, ByVal llen&, ByVal sylen&) As String
+      		On Error GoTo ERRHANDLE
+      		If llen > sylen Then
+      			Dim bir%, eir%
+      			bir = (sylen - 3) \ 2
+      			eir = sylen - 3 - bir
+      			synopsis = Mid$(x, start, bir) & "..." & Mid$(x, start + llen - eir, eir)
+      		Else
+      			synopsis = Mid(x, start, llen)
+      		End If
+      		If start > 1 Then
+      			synopsis = "[" & Mid$(x, start-1, 1) & "]" & synopsis
+      		End If
+      		synopsis = Replace(Replace(synopsis, NEWLINE, "~"), "	", "\t")
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & GetThreadInfo(1) & {:} & Erl
+      	End Function
+      	
+      	%REM
+      		Function fieldValsCompare
+      		Description: given two field values, compare them for which is greater. This treats a one-element array as equivalent to
+      			a scalar.
+      		Arguments:
+      			val1 & val2: values to compare.
+      			flags: string comparison flags for Strcomp -- ignored if the values aren't strings.
+      		Return value: 0 if equal, 1 if val1 is greater, -1 if val2 is greater. 1 also can mean the values are
+      			of different types or are arrays of different size.
+      	%END REM
+      	Function fieldValsCompare(val1, val2, ByVal flags%) As Integer
+      		On Error GoTo oops
+      		fieldValsCompare = 1
+      		If IsArray(val1) Then
+      			If IsArray(val2) Then
+      				If UBound(val1) = UBound(val2) Then
+      					If DataType(val1(0)) = DataType(val2(0)) Then
+      						Dim i%, tmp%
+      						If DataType(val1(0)) = 8 Then
+      							For i = 0 To UBound(val1)
+      								tmp = StrComp(val1(i), val2(i), flags)
+      								If tmp <> 0 Then Exit For
+      							Next
+      						Else
+      							For i = 0 To UBound(val1)
+      								tmp = Sgn(val1(i)-val2(i))
+      								If tmp <> 0 Then Exit For
+      							Next
+      						End If
+      						fieldValsCompare = tmp
+      					End If
+      				End If
+      			End If
+      		Else
+      			If Not IsArray(val2) Then
+      				If DataType(val1) = DataType(val2) Then
+      					If DataType(val1) = 8 Then
+      						fieldValsCompare = StrCompare(val1, val2, flags)
+      					Else
+      						fieldValsCompare = Sgn(val1-val2)
+      					End If
+      				End If
+      			End If
+      		End If
+      oops:
+      		Exit Function ' returning not-equal
+      	End Function
+      	
+      	%REM
+      		Function NowWithZone
+      		Description: The current time, with zone, in the "standard" date format (e.g. "12 Mar 2021 3:45 pm CST").
+      	%END REM
+      	Function NowWithZone As String
+      		Dim tmp$, ttim As New NotesDateTime("")
+      		ttim.setnow
+      		tmp = ttim.Zonetime
+      		NowWithZone = Format(ttim.Lslocaltime, STD_FMT_DATE) & " " & StrToken(tmp, " ", -1)
+      	End Function
+      	
+      	%REM
+      	Function LmbcsLen
+      	Description: Return the number of bytes in a string if expressed in LMBCS character set.
+      		Strings in LotusScript are in Unicode, but are converted to LMBCS when stored
+      		in items or passed to C API functions.
+      	%END REM
+      	Function LmbcsLen(x$) As Long
+      		Dim session As New NotesSession, db As NotesDatabase, docTmp As NotesDocument
+      		Dim mime As NotesMIMEEntity, streamIn As NotesStream, streamOut As NotesStream
+      		Set db = session.CurrentDatabase
+      		Set docTmp = db.CreateDocument
+      		Set mime = docTmp.CreateMIMEEntity("Body")
+      		Set streamIn = session.CreateStream
+      		streamIn.WriteText x
+      		streamIn.Position = 0
+      		Call mime.SetContentFromText(streamIn, "text/plain;charset=LMBCS", ENC_NONE)
+      		Set streamOut = session.CreateStream
+      		mime.getContentAsBytes streamOut, False
+      		LmbcsLen = streamOut.Bytes
+      	End Function
+      End Class
+      '++LotusScript Development Environment:2:2:Initialize:1:10
+      Sub Initialize
+      	Set GCU = New CommonUtil
+      End Sub
+      
+      '++LotusScript Development Environment:2:1:nameCommon:7:8
+      %REM
+      	Function nameCommon
+      	Description: %TODO
+      	Arguments:
+      	Return value:
+      %END REM
+      Function nameCommon(ByVal aName$) As String
+      	On Error GoTo ERRHANDLE
+      	Dim nn As New NotesName(aName)
+      	nameCommon = nn.Common
+      	Exit Function
+      ERRHANDLE:
+      	Error Err, Error & { //} & GetThreadInfo(1) & {:} & Erl
+      End Function
+      
+      '++LotusScript Development Environment:2:1:Max:6:8
+      
+      %REM
+      	Function Max
+      	Description: Return the larger of two values.
+      %END REM
+      Function Max(x, y)
+      	On Error GoTo ERRHANDLE
+      	If x > y Then Max = x Else Max = y
+      	Exit Function
+      ERRHANDLE:
+      	Error Err, Error & { //} & GetThreadInfo(1) & {:} & Erl
+      End Function
+      
+      '++LotusScript Development Environment:2:1:MacroQuote:10:8
+      
+      %REM
+      	Function MacroQuote
+      	Description: Take a string and convert it to a constant expression
+      		in macro language source code.
+      	Parameters:
+      		strIn: The string to enquote.
+      	Returns: A string that starts and ends with double quote, strIn between, and \ and " escaped with \
+      %END REM
+      Function MacroQuote(ByVal strIn As String) As String
+      	Static fromArr(0 To 1) As String, toArr(0 To 1) As String
+      	On Error GoTo ERRHANDLE
+      	If fromArr(0) = "" Then
+      		fromArr(0) = {\}
+      		fromArr(1) = {"}
+      		toArr(0) = {\\}
+      		toArr(1) = {\"}
+      	End If
+      	
+      	MacroQuote = {"} & Replace(strIn, fromArr, toArr) & {"}
+      	Exit Function
+      ERRHANDLE:
+      	Error Err, Error & { //} & GetThreadInfo(1) & {:} & Erl
+      End Function
+      
+      '++LotusScript Development Environment:2:1:nameabbr:6:8
+      %REM
+      	Function nameabbr
+      	Description: Convert a Notes name to its abbreviated form.
+      %END REM
+      
+      Public Function nameabbr(ByVal aname$) As String
+      	On Error GoTo ERRHANDLE
+      	Dim nn As New NotesName(aName)
+      	nameabbr = nn.Abbreviated
+      	Exit Function
+      ERRHANDLE:
+      	Error Err, Error & { //} & GetThreadInfo(1) & {:} & Erl
+      End Function
+      
+      '++LotusScript Development Environment:2:1:Fletcher32:7:8
+      %REM
+      	Function Fletcher32
+      	Description: Compute a position-dependent checksum or hash code of a string of unicode text.
+      		Fletcher is a common checksum algorithm, adapted here into LotusScript and treating each
+      		character as a word.
+      %END REM
+      Function Fletcher32(strdat$) As Long
+      	Dim ind%, limit As Long, sum1 As Long, sum2 As Long, pos As Long, tlen%
+      	On Error GoTo ERRHANDLE
+      	limit = Len(strdat)
+      	sum1 = &hffff&
+      	sum2 = &hffff&
+      	While limit > 0
+      		If limit > 359 Then tlen = 359 Else tlen = limit
+      		limit = limit - tlen
+      		For ind = 1 To tlen
+      			sum1 = sum1 + Uni(Mid$(strdat, pos+ind, 1))
+      			sum2 = sum2 + sum1
+      		Next
+      		sum1 = (sum1 And &hffff&) + (sum1 \ &h10000)
+      		sum2 = (sum2 And &hffff&) + (sum2 \ &h10000)
+      	Wend
+      	Fletcher32 = CLng("&h" & Right(Hex(sum2), 4) & "0000") Or sum1
+      	Exit Function
+      ERRHANDLE:
+      	Error Err, Error & { //} & GetThreadInfo(1) & {:} & Erl
+      End Function
+      
+      '++LotusScript Development Environment:2:1:Min:6:8
+      
+      %REM
+      	Function Min
+      	Description: Return the smaller of two values. 
+      %END REM
+      Function Min(x, y)
+      	On Error GoTo ERRHANDLE
+      	If x < y Then Min = x Else min = y
+      	Exit Function
+      ERRHANDLE:
+      	Error Err, Error & { //} & GetThreadInfo(1) & {:} & Erl
+      End Function
+      
+      '++LotusScript Development Environment:2:1:nameCanon:1:8
+      Public Function nameCanon(ByVal aname$) As String
+      	On Error GoTo ERRHANDLE
+      	Dim nn As New NotesName(aName)
+      	nameCanon = nn.Canonical
+      	Exit Function
+      ERRHANDLE:
+      	Error Err, Error & { //} & GetThreadInfo(1) & {:} & Erl
+      End Function
+      
+      '++LotusScript Development Environment:2:1:Fletcher32BARR:9:8
+      
+      	
+      %REM
+      	Function Fletcher32BARR
+      	Description: Compute a position-dependent checksum of a byte array using a standard algorithm.
+      	Arguments:
+      	Return value:
+      %END REM
+      Function Fletcher32BARR(vdat) As Long
+      	Dim ind%, limit As Long, sum1 As Long, sum2 As Long, pos As Long, tlen%
+      	On Error GoTo ERRHANDLE
+      	limit = UBound(vdat)
+      	sum1 = &hffff&
+      	sum2 = &hffff&
+      	While limit > 0
+      		If limit > 359 Then tlen = 359 Else tlen = limit
+      		limit = limit - tlen
+      		For ind = 0 To tlen
+      			sum1 = sum1 + vdat(pos+ind)
+      			sum2 = sum2 + sum1
+      		Next
+      		sum1 = (sum1 And &hffff&) + (sum1 \ &h10000)
+      		sum2 = (sum2 And &hffff&) + (sum2 \ &h10000)
+      		pos = pos + tlen
+      	Wend
+      	Fletcher32BARR = CLng("&h" & Right(Hex(sum2), 4) & "0000") Or sum1
+      	Exit Function
+      ERRHANDLE:
+      	Error Err, Error & { //} & GetThreadInfo(1) & {:} & Erl
+      End Function
+      
+      '++LotusScript Development Environment:2:1:DebugStr:1:8
+      Function DebugStr(vel As Variant) As Variant
+      	' This function takes any variant or object and returns a string describing its value.
+      	' E.g. a string type is converted to a string enclosed in quotes, a date or number is
+      	' simply converted to its default string representation, and there are special notations
+      	' for arrays and lists. For any object, the type name of the object is shown.
+      	Dim result$, cc$
+      	Dim i%
+      	On Error GoTo ERRHANDLE
+      	If IsArray(vel) Then
+      		ForAll values In vel
+      			result$ = result$ & ", " & DebugStr(values)
+      		End ForAll
+      		DebugStr= "(" + Mid$(result$, 3) + ")"
+      	ElseIf IsList(vel) Then
+      		ForAll lvalues In vel
+      			result$ = result$ + ", " + ListTag(lvalues) + "|" + DebugStr(lvalues)
+      		End ForAll
+      		DebugStr= "{" + Mid$(result$, 3) + "}"
+      	Else
+      		Select Case DataType(vel)
+      		Case 0 ' EMPTY
+      			DebugStr= "EMPTY"
+      		Case 1 ' NULL
+      			DebugStr= "NULL"
+      		Case 2, 3, 4, 5, 6, 7 ' any number or date
+      			DebugStr= CStr(vel)
+      		Case 17
+      			If vel >= 32 And vel < 128 Then
+      				DebugStr = {'} & Chr$(vel) & {'}
+      			Else
+      				DebugStr = CStr(vel)
+      			End If
+      		Case 8 ' String
+      			DebugStr= """"
+      			For i% = 1 To Len(vel)
+      				cc$ = Mid$(vel, i%, 1)
+      				Select Case cc$
+      				Case """", "\"
+      					DebugStr = DebugStr & "\" & cc$
+      				Case "a" To "z", "A" To "Z", "0" To "9"
+      					DebugStr = DebugStr & cc$
+      				Case Else
+      					If InStr(".,`~/?;:'|{}[]<>=+-_)(*&^%$# @!", cc$) Then
+      						DebugStr = DebugStr + cc$
+      					Else
+      						DebugStr = DebugStr & "\" & Uni(cc$) & "."
+      					End If
+      			End Select
+      			Next
+      			DebugStr = DebugStr + """"
+      		Case 9 ' OLE object or NOTHING
+      			If vel Is Nothing Then
+      				DebugStr= "NOTHING"
+      			Else
+      				DebugStr= "OLE Object"
+      			End If
+      		Case 10 ' OLE error
+      			DebugStr= "OLE Error"
+      		Case 11 ' Boolean
+      			If vel Then
+      				DebugStr= "True"
+      			Else
+      				DebugStr= "False"
+      			End If
+      		Case Else
+      			DebugStr= TypeName(vel)
+      			Select Case TypeName(vel)
+      			Case "NOTESDOCUMENT"
+      				DebugStr = DebugStr & " noteID=" & vel.noteid
+      			Case "NOTESVIEW"
+      				DebugStr = DebugStr & {(} & vel.name & {)}
+      			Case "NOTESDOCUMENTCOLLECTION"
+      				DebugStr = DebugStr & {(} & vel.count & {)}
+      		End Select
+      	End Select
+      	End If
+      	Exit Function
+      ERRHANDLE:
+      	Error Err, Error & { //} & GetThreadInfo(1) & {:} & Erl
+      End Function
+    signed: true
+    nonsummary: true
+  - name: $TITLE
+    type: text
+    data: CommonUtil
+    signed: true
+remaining: []

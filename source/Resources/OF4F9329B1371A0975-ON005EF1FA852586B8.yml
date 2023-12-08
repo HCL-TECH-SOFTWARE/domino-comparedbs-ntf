@@ -1,0 +1,33 @@
+---
+class: 1
+flags: 0x0100
+unid: OF4F9329B1371A0975-ON005EF1FA852586B8
+items:
+  - name: AdminAccess
+    type: text
+    data: "[Administrator]"
+    authors: true
+    names: true
+    protected: true
+  - name: Form
+    type: text
+    data: AppProfile
+  - name: GitFormula
+    type: formula
+    data: " \"\""
+    opaque: FgAAAAoAAQAAAAMABwAKAAQACUwxUw==
+  - name: SCCSNames
+    type: text
+    data:
+      - git.cwp.pnp-hcl.com
+      - jira.cwp.pnp-hcl.com
+  - name: TaskMatchFormula
+    type: formula
+    data: " \"\""
+    opaque: FgAAAAoAAQAAAAMABwAKAAQACUwxUw==
+  - name: $Fonts
+    nonsummary: true
+    type: opaque
+    type_num: 1
+    opaque: i/8oAAEABSJIZWx2ZXRpY2EgTmV1ZQAAAAAAAAAAAAAAAAAAAAAAAA==
+remaining: []

@@ -1,0 +1,79 @@
+---
+class: 4
+flags: 0x0000
+unid: OF5B494BE1F3B5FF01-ON003B84E4852586E8
+items:
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: 34CiQv
+  - name: $FlagsExt
+    type: text
+    data: D
+    signed: true
+  - name: $ImageNames
+    type: text
+    data: newbutton.png
+    signed: true
+  - name: $ImagesColorize
+    type: number
+    data: 0
+    signed: true
+  - name: $ImagesHigh
+    type: number
+    data: 1
+    signed: true
+  - name: $ImagesWide
+    type: number
+    data: 2
+    signed: true
+  - name: $MimeType
+    type: text
+    data: image/png
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-06-02T06:50:06.54-04:00"
+        dst: true
+      - data: "2021-06-02T06:51:45.55-04:00"
+        dst: true
+  - name: $TITLE
+    type: text
+    data: newbutton.png
+  - name: $WebBrowserCompatible
+    type: number
+    data: 1
+    signed: true
+  - name: $ImageData
+    type: composite
+    signed: true
+    nonsummary: true
+  - name: $ImageData0000
+    signed: true
+    nonsummary: true
+    type: opaque
+    type_num: 1
+    opaque: |
+      mQAcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAH0AHAAAAAgAAAAAABoBAAABAAAAAAAAAAAAAAB8ACQB
+      AAAaARoBiVBORw0KGgoAAAANSUhEUgAAAMAAAAAYCAYAAACssfJFAAAA4UlEQVR4nO3Ty40CMRAA0bJF
+      Lp4L8Ww8pEFieGJBwntAIyH+Hwtku97J7kOrLxVyzgVpUAEg51xSSr++Rfq6CJRpmsI8z7++Rfq6WEoB
+      I9CgIoARaFRxeRiBRhRPP0ag0cTzgRFoJBcBgBFoHFcDACPQGG4GAEag/t0NAIxAfXsYABiB+vVUAGAE
+      6tPTAYARqD8vBQBGoL68HAAYgfrxVgBgBOrD2wGAEah9HwUARqC2fRwAnEawNgI1pUoAsESwLykljECt
+      qBYAHCMIIWAEasWq9sIlgt3fNs4bDrX3SzX9A7KBntU7EsFIAAAAAElFTkSuQmCC
+  - name: $ImageData0001
+    signed: true
+    nonsummary: true
+    type: opaque
+    type_num: 1
+    opaque: |
+      mQAcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAH0AHAAAAAgAAAAAAPsAAAABAAAAAAAAAAAAAAB8AAUB
+      AAD7APwAiVBORw0KGgoAAAANSUhEUgAAAMAAAAAYCAYAAACssfJFAAAAwklEQVR4nO3cOw7DIBAA0YHL
+      4PufxrchRWTJysfxrwi786oFUe60FJ46UkJlNffe7UC51Hmel60vpZTNx1I0tbWGESirCmAEyqougxEo
+      o7o+GIGyqa8XRqBM3gIAI1AeHwMAI1AOXwMAI1B8mwGAESi2nwGAESiuXQGAESim3QGAESieQwGAESiW
+      wwGAESiOUwGAESiG0wGAEWh8lwIAI9DYLgcARqBx3RIAGIHGdFsAYAQaT1kt7K2maVq2368m9Lcetw1d
+      swz27W4AAAAASUVORK5CYIIA
+remaining: []

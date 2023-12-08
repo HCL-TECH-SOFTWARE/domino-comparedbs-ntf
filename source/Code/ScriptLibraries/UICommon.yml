@@ -1,0 +1,467 @@
+---
+class: 512
+flags: 0x2000
+unid: OF7E4156F332E1CD77-ON004BEA42862586E0
+items:
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: s34Q
+  - name: $POID
+    type: time
+    data: "2020-11-02T13:54:38.78-06:00"
+  - name: $PublicAccess
+    type: text
+    data: "1"
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-06-22T07:22:57.03-05:00"
+        dst: true
+      - data: "2021-06-22T07:22:57.04-05:00"
+        dst: true
+      - data: "2021-06-22T07:24:25.94-05:00"
+        dst: true
+      - data: "2021-06-22T07:24:25.95-05:00"
+        dst: true
+      - data: "2021-06-30T18:17:27.47-05:00"
+        dst: true
+      - data: "2021-06-30T18:17:27.51-05:00"
+        dst: true
+      - data: "2021-06-30T21:57:33.78-05:00"
+        dst: true
+      - data: "2021-07-09T08:59:45.18-04:00"
+        dst: true
+      - data: "2021-07-09T09:01:59.33-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:05.77-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:47.84-04:00"
+        dst: true
+      - data: "2021-07-09T09:21:12.96-04:00"
+        dst: true
+      - data: "2021-08-17T13:55:03.88-05:00"
+        dst: true
+      - data: "2021-09-16T12:02:37.66-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:57.17-05:00"
+        dst: true
+  - name: $ScriptLib
+    type: text
+    data: |
+      '++LotusScript Development Environment:2:5:(Options):0:74
+      %REM
+      	Library UICommon
+      	by Andre Guirard
+      	Description: Commonly used user interface functions
+      	© Copyright HCL Software. 2021
+      %END REM
+      Option Declare
+      Use "Resources"
+      Use "CommonUtil"
+      Use "CAPI"
+      Use "zprintf"
+      
+      '++LotusScript Development Environment:2:5:(Forward):0:1
+      Declare Public Class UICommon
+      
+      '++LotusScript Development Environment:2:5:(Declarations):0:10
+      Const MSG_USE_SERVER_REPLICA = {You must use a server replica for this operation.}
+      Const DLGTITLE_PASTELINK = "Paste Link"
+      Const MSG_LINK_DB_NOT_FOUND = "Can't locate doclink database."
+      Const MSG_CLIPBOARD_NOT_LINK = "The clipboard isn't a Notes link."
+      Const MSG_PASTE_WHICH = |Replicas were found on "Local" and server "{0:servername}". Use local replica?|
+      
+      'Begin DNT
+      Const DLG_COPYABLE_MESSAGE = {dialogCopyableMessage}
+      Const DLG_COPYABLE_MESSAGE_FIXED = {dialogCopyableMessageCW}
+      Const DLG_MB_DONTASK = {dialogDismissMsgbox}
+      Const DLG_PROMPT_DONTASK = {dialogDismissPrompt}
+      
+      Const VIEW_NAB_SERVER_PICK = |Servers|
+      Public Const ERR_NO_REPLY = 30100
+      
+      Const FLD_UPRO_DONOTSHOW = "DoNotShow"
+      
+      Const FLD_MSGBOX_MESSAGE = "Message"
+      Const FLD_MSGBOX_ICON = "Icon"
+      %REM
+      	Class UICommon
+      	Description: Commonly used user interface functions, would have all static methods if that were a thing in LotusScript
+      	Constructor: no arguments
+      %END REM
+      Public Class UICommon
+      	z_ses As NotesSession
+      	z_wksp As NotesUIWorkspace
+      	z_uidoc As NotesUIDocument
+      	z_dbThis As NotesDatabase
+      	
+      	Sub New
+      		Set z_ses = New NotesSession
+      	End Sub
+      
+      	%REM
+      		Property ThisDoc   get
+      		Description: Return the NotesDocument object of the document on screen.
+      		Arguments:
+      	%END REM
+      	Public Property Get ThisDoc As NotesDocument
+      		Dim uidoc As NotesUIDocument
+      		Set uidoc = ThisUIDoc
+      		If Not (uidoc Is Nothing) Then Set ThisDoc = uidoc.Document
+      	End Property
+      	
+      	%REM
+      		Property wksp   get
+      		Description: The NotesUIWorkspace object
+      		Arguments:
+      	%END REM
+      	Public Property Get wksp As NotesUIWorkspace
+      		If z_wksp Is Nothing Then Set z_wksp = New NotesUIWorkspace
+      		Set wksp = z_wksp
+      	End Property
+      	
+      	%REM
+      		Property ThisUIDoc   get
+      		Description: Return the NotesUIDocument currently displayed.
+      		Arguments:
+      	%END REM
+      	Public Property Get ThisUIDoc As NotesUIDocument
+      		If z_uidoc Is Nothing Then Set z_uidoc = wksp.Currentdocument
+      		Set ThisUIDoc = z_uidoc
+      	End Property
+      	
+      	%REM
+      		Property dbThis   get
+      		Description: Return the current database.
+      	%END REM
+      	Public Property Get dbThis As NotesDatabase
+      		If (dbThis Is Nothing) Then
+      			Set z_dbThis = z_ses.Currentdatabase
+      		End If
+      		Set dbThis = z_dbThis
+      	End Property
+      	
+      	%REM
+      		Property userProfile   get
+      		Description: Return the profile used to store the end user's UI preferences and history.
+      	%END REM
+      	Public Property Get userProfile As NotesDocument
+      		Set userProfile = dbThis.Getprofiledocument("UIPrefs", z_ses.Username)
+      	End Property
+      
+      	%REM
+      		Function selectServer
+      		Description: Prompt the user to select a server from those in the current domain.
+      		Arguments:
+      			prompt: To display to user.
+      			title: title of dialog box.
+      			fromServer: which server's address book we are to offer choices from.
+      			multipleSelection: whether to allow selection of more than one server.
+      		Return value: server name -- if multiple servers they are delimited with newline.
+      	%END REM
+      	Function selectServer(ByVal prompt$, ByVal title$, ByVal fromServer$, ByVal multipleSelection As Boolean) As String
+      		On Error GoTo ERRHANDLE
+      		If fromServer = "" Then
+      			On Error GoTo 0
+      			Error 20010, MSG_USE_SERVER_REPLICA
+      		End If
+      		Dim nsfName$
+      		nsfName = serverAddressBookName(fromServer)
+      		Dim db As New NotesDatabase(fromServer, nsfName)
+      		Dim wksp As New NotesUIWorkspace
+      		Dim result As Variant
+      		Do
+      			result = wksp.Pickliststrings(PICKLIST_CUSTOM, multipleSelection, fromServer, nsfName, VIEW_NAB_SERVER_PICK, title, Prompt, 3)
+      			If IsEmpty(result) Then Exit Function ' returning ""
+      			Forall thing In result
+      				thing = namecanon(thing)
+      			End Forall
+      			selectServer = Join(result, NEWLINE)
+      		Loop While selectServer = ""
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //}& GetThreadInfo(1) & {:} & Erl
+      	End Function
+      	
+      	%REM
+      		Sub dismissableClear
+      		Description: If a user has asked to never see a particular dialog, clear that. They'll start seeing it again.
+      		Arguments:
+      			situation: which dialog you want to undismiss. "*" unblocks all dialogs.
+      		Return value:
+      	%END REM
+      	Sub dismissableClear(ByVal situation$)
+      		Dim docPro As NotesDocument, sits, bMod As Boolean
+      		Set docPro = userProfile
+      		sits = docPro.Getitemvalue(FLD_UPRO_DONOTSHOW)
+      		If situation = "*" Then
+      			If sits(0) <> "" Then
+      				sits = ""
+      				bMod = True
+      			End If
+      		Else
+      			ForAll thing In sits
+      				If Mid$(StrLeft(thing, DOTT), 2) = situation Then
+      					thing = ""
+      					bMod = True
+      				End If
+      			End ForAll
+      		End If
+      		If bMod Then
+      			Call docPro.Replaceitemvalue(FLD_UPRO_DONOTSHOW, FullTrim(sits))
+      			docPro.Save True, False, True
+      		End If
+      	End Sub
+      	
+      	%REM
+      		Function dismissablePrompt
+      		Description: Like NotesUIWorkspace.Prompt, but adds a checkbox where the user can ask to never
+      			see this message again. If they check this box, whatever they answer will be their answer forever.
+      		Arguments:
+      			situation: if the user asks not to see this dialog, it will block future calls that use the
+      				same "situation" value.
+      			prtype: PROMPT_xxx value. PASSWORD not supported.
+      			prompt: text to display in dialog.
+      			icon: MB_ICON... constant.
+      			title: dialog title
+      				  
+      		Return value:
+      	%END REM
+      	Function dismissablePrompt(ByVal situation$, ByVal prtype%, ByVal title$, ByVal prompt$, default, choices) As Variant
+      		Dim db As NotesDatabase, docPro As NotesDocument
+      		
+      	End Function
+      	
+      	%REM
+      		Function dismissableMsgbox
+      		Description: Just like Messagebox function except it adds a checkbox to "don't show me this again".
+      			If there's a choice of buttons and the user says don't ask, whatever they answer then will
+      			be their answer automatically thereafter. System Modal mode is not supported.
+      		Arguments:
+      			situation: identity of the dialog so we can tell whether this is one they asked not to see.
+      			message: Text of message
+      			flags: bitwise "or" of MB_ constants.
+      			title: title of dialog.
+      		Return value:
+      	%END REM
+      	Function dismissableMsgbox(ByVal situation$, ByVal message$, ByVal flags%, ByVal title$)
+      		Dim db As NotesDatabase, docPro As NotesDocument, docDlg As NotesDocument
+      		Dim defButton%, history, result%, doNotShow$, buttonset%
+      		situation = "M" & situation ' because it's a messagebox as opposed to prompt
+      		Set db = dbThis
+      		Set docPro = userProfile
+      		history = docPro.Getitemvalue(FLD_UPRO_DONOTSHOW)
+      		ForAll thing In history
+      			If StrLeft(thing, DOTT) = situation Then
+      				dismissableMsgbox = CInt("0" & StrToken(thing, DOTT, 2))
+      				Exit Function
+      			End If
+      		End ForAll
+      		Set docDlg = db.Createdocument
+      		docDlg.Replaceitemvalue FLD_MSGBOX_MESSAGE, message
+      		docDlg.Replaceitemvalue FLD_MSGBOX_ICON, flags And (16+32+64)
+      		buttonset = flags And 7
+      		docDlg.Replaceitemvalue "Buttonset", buttonset
+      		docDLG.Replaceitemvalue "Result", 0
+      		If flags And Mb_defbutton3 Then
+      			defbutton = 3
+      		ElseIf flags And Mb_defbutton2 Then
+      			defbutton = 2
+      		Else
+      			defbutton = 1
+      		End If
+      		docDlg.Replaceitemvalue "DefButton", defButton
+      retry:
+      		If wksp.Dialogbox(DLG_MB_DONTASK, true, true, true, false, false, false, Title, docDlg, true, true) Then
+      			result = docDlg.getitemvalue("Result")(0)
+      		ElseIf buttonset = 0 Then
+      			result = IDOK
+      		ElseIf (buttonset And 1) = 0 Then ' they canceled, but cancel wasn't one of the choices.
+      			GoTo retry
+      		Else
+      			result = IDCANCEL
+      		End If
+      		If docDlg.Getitemvalue("doNotShow")(0) <> "" Then
+      			history = FullTrim(ArrayAppend(history, situation & DOTT & result))
+      			docPro.Replaceitemvalue FLD_UPRO_DONOTSHOW, history
+      			docPro.save True, False, True
+      		End If
+      		dismissableMsgbox = result
+      	End Function
+      	
+      	%REM
+      		Function serverAddressBookName
+      		Description: Name of main server address book (probably names.nsf)
+      		Arguments:
+      		Return value:
+      	%END REM
+      	Function serverAddressBookName(server$) As String
+      		Dim nsfName$, api As CAPI
+      		Set api = GetCAPI
+      		On Error GoTo ERRHANDLE
+      		nsfName = api.getAddressBookPath(server)
+      		If nsfName = "" Then nsfName = {names.nsf}
+      		serverAddressBookName = nsfName
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Sub PromptCopyOK
+      		Description: Display a message large enough to read easily and with a "copy" button as well as OK to close without copying.
+      			This requires the presence of a couple of subforms, declared above.
+      		Arguments:
+      			message: the message text, which may be copied to the clipboard.
+      			title: title bar text of dialog.
+      			fixedWidth: if TRUE use a fixed-width font (useful for code etc).
+      	%END REM
+      	Sub PromptCopyOK(message$, title$, ByVal fixedWidth As Boolean)
+      		Dim ses As New NotesSession, wksp As New NotesUIWorkspace, db As NotesDatabase, docDlg As NotesDocument, tmp
+      		Dim form$
+      		Set db = ses.currentdatabase
+      		Set docDlg = New NotesDocument(db)
+      		Call docDlg.Replaceitemvalue({message}, message)
+      		If Fixedwidth Then form = DLG_COPYABLE_MESSAGE_FIXED Else form = DLG_COPYABLE_MESSAGE
+      		tmp = wksp.Dialogbox(form, True, True, True, True, True, False, Title, docDlg, True, True)
+      	End Sub
+      	
+      	%REM
+      		Sub PasteLink
+      		Description: Given fieldnames of fields containing the server name and the filepath,
+      			fill in these fields with data from the clipboard (an application link, doc link,
+      			or view link).
+      		Arguments:
+      			servFld, pathFld: names of form fields in which to store the server name and filepath.
+      			useLocal: 0 to use the server "hint" is in the link to determine server, 1 to
+      				look for and use a local replica if available, 2 to prompt. 
+      	%END REM
+      	Sub PasteLink(ByVal servFld$, ByVal pathFld$, ByVal useLocal As Integer)
+      		Dim session As New NotesSession
+      		On Error GoTo ERRHANDLE
+      		Dim wksp As New NotesUIWorkspace
+      		Dim uidoc As NotesUIDocument
+      		Set uidoc = wksp.CurrentDocument
+      		Dim result, aRes$, server$, path$
+      		
+      		result = GetLinkFromClipboard(pathFld)
+      		If Not IsEmpty(result) Then
+      			Dim ind%
+      			If Uselocal = 0 Then
+      				ind = UBound(result)
+      			ElseIf uselocal = 2 And UBound(result) > 0 Then
+      				server = StrLeft(result(UBound(result)), "!!")
+      				If MsgBox(zprintf1(MSG_PASTE_WHICH, nameCommon(server)), Mb_iconquestion+Mb_yesno+Mb_defbutton1, DLGTITLE_PASTELINK) = IDNO Then
+      					ind = UBound(result)
+      				End If
+      			End If
+      			aRes = result(ind)
+      			If InStr(aRes, "!!") Then
+      				server = StrLeft(aRes, "!!")
+      				path = StrRight(aRes, "!!")
+      			Else
+      				server = SERVER_LOCAL
+      				path = aRes
+      			End If
+      			uidoc.fieldsettext ServFld, server
+      			uidoc.fieldsettext PathFld, path
+      		End If
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & GetThreadInfo(1) & {:} & Erl
+      	End Sub
+      	
+      	%REM
+      		Function getLinkFromClipboard
+      		Description: 
+      		Arguments:
+      			fldname: the field in which to paste the clipboard contents, which we expect to be a database, view or document link.
+      		Return value: EMPTY, or an array of "server!!filepath" for whatever replicas are found (for local replica, just filepath).
+      	%END REM
+      	Function getLinkFromClipboard(ByVal fldName$) As Variant
+      		Dim session As New NotesSession
+      		On Error GoTo ERRHANDLE
+      		Dim wksp As New NotesUIWorkspace
+      		Dim uidoc As NotesUIDocument
+      		Set uidoc = wksp.CurrentDocument
+      		uidoc.GotoField fldName
+      		Dim strOldPath$, replicaID$, server$, filepath$, clipboard, aLine$, i%
+      		strOldPath = uidoc.FieldGetText(fldName)
+      		On Error Resume Next ' ignore error from select all in empty field.
+      		uidoc.SelectAll
+      		On Error GoTo ERRHANDLE
+      		uidoc.Paste
+      		clipboard = Split(Replace(uidoc.fieldgettext(fldName), Chr$(13), ""), NEWLINE)
+      		uidoc.Fieldsettext fldname, strOldPath ' restore previous field contents
+      		Dim linkFound As Boolean
+      		
+      		For i = LBound(clipboard) To UBound(clipboard)
+      			aline = clipboard(i)
+      			If aline = "<NDL>" Then
+      				linkFound = True
+      			ElseIf aline = "</NDL>" Then
+      				Exit For
+      			Else
+      				If Left$(aline, 9) = "<REPLICA " Then
+      					replicaID = Mid$(aline, 10, Len(aline) - 10)
+      					If Len(replicaID) = 17 Then replicaID = Left$(replicaID, 8) & Right$(replicaID, 8)
+      				ElseIf Left$(aline, 6) = "<HINT>" Then ' may be a server name
+      					server = FullTrim(Mid$(aline, 7, Len(aline) - 13)) ' remove </HINT> at end.
+      					If server Like {*/} Then server = Left$(server, Len(server)-1) ' Remove trailing /
+      				End If
+      			End If
+      		Next
+      		
+      		If linkFound Then ' there was a link in the paste data
+      			Dim db As New NotesDatabase("", ""), res$
+      			Dim bOpen As Boolean
+      			' first try for a local replica.
+      			bOpen = db.openbyreplicaid("", replicaid)
+      			If bOpen Then res = GCU.dataRelativePath(db.Filepath)
+      			If server <> "" Then
+      				' there was a server hint -- look for that one also.
+      				Set db = New NotesDatabase("", "")
+      				bOpen = db.Openbyreplicaid(Server, Replicaid)
+      				If bOpen Then
+      					res = res & NEWLINE & db.Server & "!!" & db.Filepath
+      				End If
+      			End If
+      			If res <> "" Then
+      				getLinkFromClipboard = FullTrim(Split(res, NEWLINE))
+      			Else
+      				MessageBox MSG_LINK_DB_NOT_FOUND, MB_ICONSTOP, DLGTITLE_PASTELINK
+      			End If
+      		Else
+      			MessageBox MSG_CLIPBOARD_NOT_LINK, MB_ICONSTOP, DLGTITLE_PASTELINK
+      		End If
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & GetThreadInfo(1) & {:} & Erl
+      	End Function
+      	
+      	%REM
+      		Function serverDisplayName
+      		Description: Convert a server name to a name we can display to the end user (abbreviated, and say "Local" if
+      			it's their workstation)
+      		Arguments: servername: a Domino server name in any format or "" for workstation
+      	%END REM
+      	Function serverDisplayName(ByVal servername$) As String
+      		If servername = "" Then
+      			serverDisplayName = SERVER_LOCAL
+      		Else
+      			serverDisplayName = nameabbr(servername)
+      		End If
+      	End Function
+      End Class
+    signed: true
+    nonsummary: true
+  - name: $TITLE
+    type: text
+    data: UICommon
+    signed: true
+remaining: []

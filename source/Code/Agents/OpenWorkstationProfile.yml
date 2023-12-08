@@ -1,0 +1,162 @@
+---
+class: 512
+flags: 0x0000
+unid: OF2BF18C6048CF9BBC-ON005CB762852586E0
+items:
+  - name: $AssistAction
+    type: action
+    code_type: 65413
+    data: |
+      '++LotusScript Development Environment:2:5:(Options):0:74
+      %REM
+      	Agent OpenWorkstationProfile
+      	Created May 25, 2021 by Scott O'Keefe
+      	Description: Comments for Agent
+      %END REM
+      Option Public
+      Option Declare
+      
+      Use "UIUtils"
+      
+      '++LotusScript Development Environment:2:5:(Forward):0:1
+      Declare Sub Initialize
+      
+      '++LotusScript Development Environment:2:5:(Declarations):0:2
+      
+      '++LotusScript Development Environment:2:2:Initialize:1:10
+      Sub Initialize
+      	Call LaunchProfile({WorkstationProfile})
+      End Sub
+    dwFlags: 0x00000000
+    signed: true
+    nonsummary: true
+  - name: $AssistDocCount
+    type: number
+    data: 0
+    signed: true
+  - name: $AssistFlags
+    type: text
+    data: Es
+    signed: true
+  - name: $AssistInfo
+    type_num: 17
+    type: opaque
+    opaque: |
+      AQAEAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+      AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+    signed: true
+    nonsummary: true
+  - name: $AssistLastRun
+    type: time
+    signed: true
+  - name: $AssistQuery
+    type_num: 15
+    type: opaque
+    opaque: gQYAAAAA
+    signed: true
+    nonsummary: true
+  - name: $AssistRunInfo
+    type: object
+    obj_type: 0x0008
+    obj_class: 0x0200
+    obj_privs: 0x0000
+    opaque: |
+      AAAAAAUAAAAwAAAAAAAAAAAAAAAAAAAAqgAAAAAAAAAAAAAAAAAAABAAAAAAAAAAHG1LAAaHJYUAAAAA
+      abVcAAWHJYVNdksABIclhQAAAAAAAAAAAAAAAAAAAAAAAAAAU3RhcnRlZCBydW5uaW5nIGFnZW50ICdP
+      cGVuV29ya3N0YXRpb25Qcm9maWxlJyBvbiAwNy8wMi8yMDIxIDA5OjQzOjQ2IEFNDQpSYW4gTG90dXNT
+      Y3JpcHQgY29kZQ0KRG9uZSBydW5uaW5nIGFnZW50ICdPcGVuV29ya3N0YXRpb25Qcm9maWxlJyBvbiAw
+      Ny8wMi8yMDIxIDA5OjQzOjUxIEFNDQoADQoZ9n9MkIXbYmnRcQAEhyWGqqqqqqqqqqqqqqqqqqqqqqqq
+      qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+      qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+      qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+      qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+      qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+      qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+      qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+      qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+      qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+      qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+      qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+      qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+      qqqqqqqqqqqqqqqq
+  - name: $AssistTrigger
+    type: text
+    data: "4"
+    signed: true
+  - name: $AssistType
+    type: number
+    data: 65413
+    signed: true
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: fL3
+  - name: $FlagsExt
+    type: text
+    data: ""
+    signed: true
+  - name: $Restricted
+    type: number
+    data: 1
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-05-25T12:52:42.68-04:00"
+        dst: true
+      - data: "2021-05-25T13:12:01.60-04:00"
+        dst: true
+      - data: "2021-05-25T13:13:26.21-04:00"
+        dst: true
+      - data: "2021-05-25T13:13:26.45-04:00"
+        dst: true
+      - data: "2021-05-25T13:15:50.69-04:00"
+        dst: true
+      - data: "2021-05-25T13:15:50.90-04:00"
+        dst: true
+      - data: "2021-05-27T11:23:21.79-05:00"
+        dst: true
+      - data: "2021-06-03T15:42:01.49-04:00"
+        dst: true
+      - data: "2021-06-03T15:42:01.65-04:00"
+        dst: true
+      - data: "2021-06-03T15:43:51.02-04:00"
+        dst: true
+      - data: "2021-06-03T15:46:28.59-04:00"
+        dst: true
+      - data: "2021-06-03T15:46:28.78-04:00"
+        dst: true
+      - data: "2021-06-24T08:13:29.67-04:00"
+        dst: true
+      - data: "2021-06-24T08:13:29.86-04:00"
+        dst: true
+      - data: "2021-06-24T09:59:49.76-04:00"
+        dst: true
+      - data: "2021-06-24T09:59:49.93-04:00"
+        dst: true
+      - data: "2021-06-30T21:57:34.19-05:00"
+        dst: true
+      - data: "2021-07-09T08:59:45.88-04:00"
+        dst: true
+      - data: "2021-07-09T09:02:00.02-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:06.46-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:48.53-04:00"
+        dst: true
+      - data: "2021-07-09T09:21:13.63-04:00"
+        dst: true
+      - data: "2021-08-17T13:55:04.50-05:00"
+        dst: true
+      - data: "2021-09-16T12:02:38.27-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:57.79-05:00"
+        dst: true
+  - name: $TITLE
+    type: text
+    data: OpenWorkstationProfile
+    signed: true
+remaining: []

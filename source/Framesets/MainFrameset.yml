@@ -1,0 +1,60 @@
+---
+class: 4
+flags: 0x0000
+unid: OF5FC5ABAF37CC88CF-ON004C6DBC852586D9
+items:
+  - name: $Comment
+    type: text
+    data: ""
+    signed: true
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: "#34CQ"
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-05-18T09:54:48.29-04:00"
+        dst: true
+      - data: "2021-06-07T13:43:55.78-04:00"
+        dst: true
+      - data: "2021-06-07T13:43:55.94-04:00"
+        dst: true
+      - data: "2021-06-30T12:40:16.72-04:00"
+        dst: true
+      - data: "2021-06-30T12:40:16.81-04:00"
+        dst: true
+      - data: "2021-07-01T08:46:55.85-04:00"
+        dst: true
+      - data: "2021-07-01T08:46:55.93-04:00"
+        dst: true
+      - data: "2021-08-17T13:46:04.14-05:00"
+        dst: true
+      - data: "2021-08-17T13:46:04.21-05:00"
+        dst: true
+      - data: "2021-08-17T13:56:25.86-05:00"
+        dst: true
+      - data: "2021-08-17T13:56:25.93-05:00"
+        dst: true
+      - data: "2021-09-24T15:29:57.08-05:00"
+        dst: true
+  - name: $TITLE
+    type: text
+    data: MainFrameset|MainFrameset
+    signed: true
+  - name: $FrameSet
+    signed: true
+    nonsummary: true
+    type: opaque
+    type_num: 1
+    opaque: |
+      7/8YAAIAAwAAAAAAAAAAAAAAAAAAAAAA8P8+AEUAAAABAAAAAAABAAEAAAAAAAUAAAAAAAUAAAAAAAEA
+      AgAAAAAAAQD///8AAAADAAEAAQBKAQIAVADx/0YAEQAAAABAAAACAAEAAQAAAAAACQAAAAkAAQD///8A
+      AABOYXZpZ2F0b3JOb3Rlc1ZpZXcBAP///6YBAAAKAQAAAACm9v8tAAAAAAADAAcACwAAAAAAAAAAAAAA
+      AAAAAAAAAAAAAE91dGxpbmVQYWdlP/H/PQABAAAAAEAAAAMAAQABAAAAAAAJAAAAAAABAP///wAAAE5v
+      dGVzVmlldwEA////pgEAAAoBAAAAAKY/9v9OAAAAAAADAAIAEQAAABsAAAAAAAAAAAB0ZW1wbGF0ZXNc
+      MTJcY29tcGFyZURCcy5uc2YAAAAAAAAAAFN1Ym1pc3Npb25zQnlEYXRl
+remaining: []

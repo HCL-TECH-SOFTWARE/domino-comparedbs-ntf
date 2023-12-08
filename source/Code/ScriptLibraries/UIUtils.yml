@@ -1,0 +1,266 @@
+---
+class: 512
+flags: 0x2000
+unid: OF51CF4EF977CBDF00-ON007AF7BE862586DB
+items:
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: 34Qs
+  - name: $PublicAccess
+    type: text
+    data: "1"
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-06-30T15:43:27.96-04:00"
+        dst: true
+      - data: "2021-06-30T15:43:27.99-04:00"
+        dst: true
+      - data: "2021-06-30T16:01:06.74-04:00"
+        dst: true
+      - data: "2021-06-30T16:01:06.76-04:00"
+        dst: true
+      - data: "2021-06-30T16:07:12.99-04:00"
+        dst: true
+      - data: "2021-06-30T16:07:13.00-04:00"
+        dst: true
+      - data: "2021-06-30T15:54:00.91-05:00"
+        dst: true
+      - data: "2021-06-30T15:54:00.96-05:00"
+        dst: true
+      - data: "2021-06-30T16:16:11.59-05:00"
+        dst: true
+      - data: "2021-06-30T16:16:11.63-05:00"
+        dst: true
+      - data: "2021-06-30T21:57:33.50-05:00"
+        dst: true
+      - data: "2021-06-30T22:15:03.55-05:00"
+        dst: true
+      - data: "2021-06-30T22:15:03.56-05:00"
+        dst: true
+      - data: "2021-07-01T14:53:01.20-04:00"
+        dst: true
+      - data: "2021-07-01T14:53:01.21-04:00"
+        dst: true
+      - data: "2021-07-01T14:58:26.95-04:00"
+        dst: true
+      - data: "2021-07-01T14:58:26.96-04:00"
+        dst: true
+      - data: "2021-07-01T14:59:58.99-04:00"
+        dst: true
+      - data: "2021-07-01T14:59:59.01-04:00"
+        dst: true
+      - data: "2021-07-01T15:01:45.95-04:00"
+        dst: true
+      - data: "2021-07-01T15:01:45.97-04:00"
+        dst: true
+      - data: "2021-07-01T15:11:41.82-04:00"
+        dst: true
+      - data: "2021-07-01T15:11:41.85-04:00"
+        dst: true
+      - data: "2021-07-02T10:12:38.87-04:00"
+        dst: true
+      - data: "2021-07-02T10:12:38.89-04:00"
+        dst: true
+      - data: "2021-07-02T10:21:32.97-04:00"
+        dst: true
+      - data: "2021-07-02T10:21:33.11-04:00"
+        dst: true
+      - data: "2021-07-09T08:59:44.73-04:00"
+        dst: true
+      - data: "2021-07-09T09:01:58.87-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:05.32-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:47.37-04:00"
+        dst: true
+      - data: "2021-07-09T09:21:12.49-04:00"
+        dst: true
+      - data: "2021-08-06T08:32:13.05-04:00"
+        dst: true
+      - data: "2021-08-06T08:32:13.14-04:00"
+        dst: true
+      - data: "2021-08-06T08:33:03.01-04:00"
+        dst: true
+      - data: "2021-08-06T08:33:03.11-04:00"
+        dst: true
+      - data: "2021-08-09T12:30:15.74-04:00"
+        dst: true
+      - data: "2021-08-09T12:30:15.77-04:00"
+        dst: true
+      - data: "2021-08-17T13:55:03.54-05:00"
+        dst: true
+      - data: "2021-09-16T12:02:37.30-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:56.84-05:00"
+        dst: true
+  - name: $ScriptLib
+    type: text
+    data: |
+      '++LotusScript Development Environment:2:5:(Options):0:74
+      %REM
+      	Library UIUtils
+      	Created by Andre Guirard
+      	Description: Functions to manage parts of the user interface on a form.
+      	© Copyright HCL Company, 2021
+      %END REM
+      Option Public
+      Option Declare
+      Use "lsconst"
+      Use "CommonUtil"
+      Use "CAPI"
+      
+      '++LotusScript Development Environment:2:5:(Forward):0:1
+      Declare Function LaunchDiff(pathLeft$, pathRight$, Byval bDirs As Boolean, bEdit As Boolean) As Boolean
+      Declare Public Function LaunchProfile(profType As String) As Boolean
+      Declare Sub UpdateOutline(ws As NotesUIWorkspace, outline As String, frameset As String, targetframe As String)
+      
+      '++LotusScript Development Environment:2:5:(Declarations):0:10
+      Const MSG_LAUNCHFAIL = {Launch of DIFF program failed. Please provide command line information.}
+      Const MSGTITLE_LAUNCHFAIL = {View Differences}
+      Const DLG_TITLE_CANCEL = {Operation Cancelled}
+      Const MSG_NO_CHANGE_SAVE = {Changes will not be saved.}
+      
+      'Begin DNT
+      Private Const ITEM_WKSTNID = {WKSTN_ID}
+      Private Const ITEM_NAME = {$Name}
+      
+      Private Const PROF_APP = {AppProfile}
+      Private Const PROF_WKSTN = {WorkstationProfile}
+      
+      'intentionally public for use across modules
+      Const OL_MAIN = {MainOutline}
+      Const FS_COMPTYPE = {CompareTypeFrameset}
+      Const FS_MAIN = {MainFrameset}
+      Const FR_NAV = {Navigator}
+      
+      '++LotusScript Development Environment:2:1:LaunchDiff:12:8
+      %REM
+      	Function LaunchDiff
+      	Description: Launch the "diff" program specified by the user to view differences between
+      		two files, or two folders.
+      	Arguments:
+      		pathLeft and pathRight: the filepaths of the files or folders to be compared.
+      		bDirs: True if the paths are folders.
+      		bEdit: If True, then if launch of the diff program fails the user is asked to edit the
+      			command line path in a dialog.
+      	Returns: True if launch worked.
+      %END REM
+      Function LaunchDiff(pathLeft$, pathRight$, Byval bDirs As Boolean, bEdit As Boolean) As Boolean
+      	On Error Goto oops
+      	Dim session As New NotesSession
+      	Dim db As NotesDatabase
+      	Dim pro As NotesDocument
+      	Set db = session.CurrentDatabase
+      	Set pro = GCU.getWorkstationProfile
+      	Dim cmdLine$, fldName$
+      	If bDirs Then fldName = "DirDiffCommand" Else fldName = "DiffCommand"
+      	
+      	Do
+      		cmdLine = Fulltrim(pro.GetItemValue(fldName)(0))
+      		While cmdLine = ""
+      reAsk:
+      			Dim wksp As New NotesUIWorkspace
+      			Dim result As Boolean
+      			result = LaunchProfile(PROF_WKSTN)
+      			If Not result Then Exit Function
+      			Delete pro
+      			Set pro = GCU.getWorkstationProfile
+      			cmdLine = Fulltrim(pro.GetItemValue(fldName)(0))		
+      		Wend
+      		cmdLine = Replace(cmdLine, Split("%1,%2",","), Split(pathleft & NEWLINE & pathright, NEWLINE))
+      		Dim retval%
+      		On Error 53 Goto badLaunch
+      		retval = Shell(cmdLine, 9)
+      		If retval <> 33 Then
+      nouse:
+      			Msgbox MSG_LAUNCHFAIL, 16, MSGTITLE_LAUNCHFAIL
+      			If Not bEdit Then Exit Function
+      			Goto reAsk
+      		End If
+      	Loop While retval <> 33
+      	LaunchDiff = True ' it worked!
+      	Exit Function
+      oops:
+      	Error Err, Error & " //" & Getthreadinfo(1) & ":" & Erl
+      	Exit Function
+      badLaunch:
+      	Resume noUse
+      End Function
+      
+      
+      '++LotusScript Development Environment:2:1:LaunchProfile:7:8
+      %REM
+      	Sub LaunchProfile
+      	Description: Let the user edit a profile document
+      	Arguments:
+      		profType: PROF_APP for the application profile, else it's the user's personal workstation profile
+      %END REM
+      Public Function LaunchProfile(profType As String) As Boolean
+      
+      	On Error GoTo ERROR_HANDLER
+      	
+      	Dim ses As New NotesSession
+      	Dim uiws As New NotesUIWorkspace
+      	
+      	'if we're editiing the application profile, we'll just edit, no dialog needed
+      	If profType = PROF_APP Then
+      		Call uiws.Editprofile(profType)
+      		Exit Function
+      	End If
+      	
+      	'if we're editing the workstation profile, we do it via dialog
+      	Dim profile As NotesDocument
+      	Set profile = GCU.GetWorkstationProfile
+      	
+      	Dim flag As Boolean
+      	flag = uiws.Dialogbox(PROF_WKSTN, True, True, False, False, False, False, PROF_WKSTN, profile, True, False, True)
+      	
+      	'save the doc on OK, show a message if Cancel
+      	If flag Then
+      		Call profile.Save(True,True)
+      		launchProfile = True
+      	Else
+      		MsgBox MSG_NO_CHANGE_SAVE,MB_OK + MB_ICONINFORMATION,DLG_TITLE_CANCEL
+      	End If
+      
+      	Exit Function
+      
+      ERROR_HANDLER:
+      	Error Err, Error & { //}& GetThreadInfo(1) & {:} & Erl
+      
+      End Function
+      
+      
+      '++LotusScript Development Environment:2:2:UpdateOutline:5:8
+      %REM
+      	Sub UpdateOutline
+      	Description: Comments for Sub
+      %END REM
+      Sub UpdateOutline(ws As NotesUIWorkspace, outline As String, frameset As String, targetframe As String)
+      
+      	On Error GoTo ERROR_HANDLER
+      
+      	Call ws.Outlinereload(outline, "")
+      	Call ws.Openframeset(frameset)
+      	Call ws.Settargetframe(targetframe)
+      	Call ws.Reloadwindow()
+      
+      	Exit Sub
+      
+      ERROR_HANDLER:
+      	Error Err, Error & { //}& GetThreadInfo(1) & {:} & Erl
+      
+      End Sub
+    signed: true
+    nonsummary: true
+  - name: $TITLE
+    type: text
+    data: UIUtils
+    signed: true
+remaining: []

@@ -1,0 +1,391 @@
+---
+class: 512
+flags: 0x2000
+unid: OF501591A7854D7C54-ON007B01BB862586DB
+items:
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: 34Qs
+  - name: $PublicAccess
+    type: text
+    data: "1"
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-05-20T17:23:35.77-05:00"
+        dst: true
+      - data: "2021-05-27T11:23:19.26-05:00"
+        dst: true
+      - data: "2021-06-15T15:30:35.63-05:00"
+        dst: true
+      - data: "2021-06-30T21:57:32.55-05:00"
+        dst: true
+      - data: "2021-07-09T08:59:43.51-04:00"
+        dst: true
+      - data: "2021-07-09T09:01:57.65-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:04.12-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:46.14-04:00"
+        dst: true
+      - data: "2021-07-09T09:21:11.26-04:00"
+        dst: true
+      - data: "2021-08-16T16:55:46.47-05:00"
+        dst: true
+      - data: "2021-08-16T16:55:46.50-05:00"
+        dst: true
+      - data: "2021-08-17T13:55:02.66-05:00"
+        dst: true
+      - data: "2021-09-16T12:02:36.41-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:55.89-05:00"
+        dst: true
+      - data: "2021-09-27T22:33:22.51-05:00"
+        dst: true
+      - data: "2021-11-18T10:03:06.25-06:00"
+      - data: "2021-11-18T10:03:06.30-06:00"
+      - data: "2021-11-18T10:33:23.30-06:00"
+      - data: "2021-11-18T10:33:23.33-06:00"
+      - data: "2021-11-29T13:29:06.96-05:00"
+      - data: "2021-11-29T13:29:06.98-05:00"
+      - data: "2021-11-29T13:29:29.13-05:00"
+  - name: $ScriptLib
+    type: text
+    data: |
+      '++LotusScript Development Environment:2:5:(Options):0:74
+      %REM
+      This class displays a "progress bar" showing percent completion of a task in the status bar at the bottom of the Notes window.
+      
+      Properties:
+           Limit (long) : the amount of work to be done, in whatever units you measure work in.  For instance if the unit of work is a document,
+               this could be the number of documents to be processed.
+           Position (long) : the amount of work completed so far, in the same units, e.g. the number of documents processed so far.  Assigning this
+               property results in the status bar being redisplayed if the percentage complete has changed.
+           Percentage : The ratio of Position to Limit, times 100, rounded down to an integer.  Assigning this property results in the progress bar
+               being redisplayed if the percentage has changed.
+      
+      Methods:     
+           Sub Redisplay(force_refresh%) : redisplay the status bar if the percentage complete changed since last time.  If force_refresh is true,
+               the status bar is redisplayed even if the percentage didn't change.
+      
+           Sub New(init_limit As Long, timed As boolean) : Create a new progressbar object, setting the amount of work to be done as init_limit
+               (it can be changed later if more work is discovered).  If timed is True, an estimate of the amount of time remaining to completion is
+               displayed.
+      
+           Sub Advance(incr As Long, force_refresh%) : Report that "incr" amount of work has been done.  E.g. if the unit of work is a document
+               being processed you would call this sub after each document with an argument of 1.  If this results in a change to the percentage
+               complete, or if force_refresh is True, the progress bar is redisplayed.
+      
+           Sub Finish : Clear the status bar and beep to indicate the task is complete.
+      
+      When you're all done, either call Finish or else (if you don't like the beep or don't want to clear the status area) set the Percentage
+      property to 100.  If the amount of work reported is less than the Limit value, then when the process ends a message will be displayed in the status
+      bar that there's unfinished work.  This is useful if the user presses Ctrl+Break to exit the agent, but if the process exited normally you'll want to
+      forestall this message by letting the ProgressBar object know that the task is really complete.
+      
+      © Copyright HCL Company, 2021
+      %END REM
+      Option Public
+      Option Declare
+      
+      '++LotusScript Development Environment:2:5:(Forward):0:1
+      Declare Class ProgressBar
+      Declare Class ProgessBarWin As ProgressBar
+      Declare Class ProgressBarDoNothing As ProgressBar
+      Declare Function CreateProgressBar(work As Long, timed As Boolean) As ProgressBar
+      
+      '++LotusScript Development Environment:2:5:(Declarations):0:10
+      
+      
+      
+      Private Const TIME_CLOCK_START = 4. / (24. * 60. * 60.) ' 4 seconds (or 1%, whichever is more)
+      Private Const ONE_MINUTE = 1. / (24. * 60.)
+      
+      ' progress bar functions specific to Windows
+      Private Const LIB_WS = "nnotesws.dll"
+      Private Const NPB_TWOLINE = 1
+      Private Const NPB_STATUSBAR = 32
+      Declare Private Function NEMProgressBegin Lib LIB_WS ( Byval wFlags As Integer ) As Long
+      Declare Private Sub NEMProgressDeltaPos Lib LIB_WS ( Byval hwnd As Long, Byval dwIncrement As Long )
+      Declare Private Sub NEMProgressEnd Lib LIB_WS ( Byval hwnd As Long )
+      Declare Private Sub NEMProgressSetBarPos Lib LIB_WS ( Byval hwnd As Long, Byval dwPos As Long)
+      Declare Private Sub NEMProgressSetBarRange Lib LIB_WS ( Byval hwnd As Long, Byval dwMax As Long )
+      Declare Private Sub NEMProgressSetText Lib LIB_WS ( Byval hwnd As Long, Byval pcszLine1 As String, Byval pcszLine2 As String )
+      Class ProgressBar
+      	start_time As Variant
+      	run_timer As Boolean
+      	z_pos As Long
+      	z_maxpos As Long
+      	z_activity As String ' what are we doing at the moment?
+      	z_showpct As Integer
+      	
+      	'Public Limit As Long
+      '	Public Activity As String ' set activity before updating position.
+      	
+      	%REM
+      		SET limit
+      		Description: Total amount of work to be done (long).
+      	%END REM
+      	Public Property Set limit As Long
+      		On Error Goto ERRHANDLE
+      		z_maxpos = limit
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		GET limit
+      		Description: The total amount of "work" to be done.
+      	%END REM
+      	Public Property Get limit As Long
+      		On Error Goto ERRHANDLE
+      		limit = z_maxpos
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		GET RemainingTime
+      		Description: Return string describing how much time remains to completion.
+      	%END REM
+      	Public Property Get RemainingTime As String
+      		On Error Goto ERRHANDLE
+      		If run_timer And z_pos < z_maxpos Then
+      			Dim time_dif As Double, time_estimate As Double
+      			time_dif = Cdbl(Now) - start_time
+      			If time_dif > TIME_CLOCK_START And z_pos > 0 Then
+      				time_estimate = (time_dif * (z_maxpos - z_pos)) / (z_pos * ONE_MINUTE)
+      				If time_estimate < 1 Then
+      					RemainingTime = "< 1 min. left"
+      				Else
+      					RemainingTime = Format(Round(time_estimate, 0), "0") & " min. left"
+      				End If
+      			End If
+      		End If
+      		
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	Sub Redisplay(force_refresh As Boolean)
+      		Dim pct, time_desc$
+      		On Error Resume Next
+      		pct = (z_pos * 100) \ z_maxpos
+      		On Error GoTo ERRHANDLE
+      		If pct > 100 Then
+      			pct = 100
+      		Elseif pct < 0 Then
+      			pct = 0
+      		End If
+      		If pct <> z_showpct Or force_refresh Then
+      			z_showpct = pct
+      			time_desc = RemainingTime
+      			If Len(time_desc) Then time_desc = ", " & time_desc
+      			If Len(z_activity) Then time_desc = time_desc & " " & z_activity
+      			Print String$(pct, "-") & String$(100-pct, "^") & "  " & pct & "%" & time_desc
+      		End If
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	Sub New(init_limit As Long, timed As Boolean)
+      		On Error Goto ERRHANDLE
+      		If timed Then
+      			start_time = Cdbl(Now)
+      			run_timer = True
+      		End If
+      		z_maxpos = init_limit
+      		Redisplay True
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	Sub Advance(incr As Long, force_refresh As Boolean, new_activity As String)
+      		On Error Goto ERRHANDLE
+      		z_pos = z_pos + incr
+      		z_activity = new_activity
+      		Redisplay force_refresh
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	Public Property Get Position As Long
+      		On Error Goto ERRHANDLE
+      		Position = z_pos
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	Public Property Get Percentage
+      		On Error Goto ERRHANDLE
+      		Percentage = z_showpct
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	Public Property Set Position As Long
+      		On Error Goto ERRHANDLE
+      		z_pos = Position
+      		Redisplay False
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	Public Property Set Percentage
+      		On Error Goto ERRHANDLE
+      		z_pos = ((z_maxpos * 100) * Percentage) / 100
+      		Redisplay False
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	Sub Finish
+      		On Error Goto ERRHANDLE
+      		If z_pos >= z_maxpos Then
+      			Print
+      		End If
+      		z_showpct = 100
+      		z_pos = z_maxpos
+      		Beep
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	Sub Delete
+      		On Error Goto ERRHANDLE
+      		If z_pos < z_maxpos Then
+      			Print "Process aborted, " & (100-z_showpct) & "% remaining."
+      		End If
+      		Finish
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      End Class
+      
+      %REM
+      	Class ProgessBarWin
+      	Description: A variant of the progress bar class specific to Windows.
+      %END REM
+      Class ProgessBarWin As ProgressBar
+      	Private hwnd As Long
+      	
+      	Sub New(init_limit As Long, timed As Boolean), ProgressBar(init_limit, timed)
+      	End Sub
+      	
+      	Public Property Set limit As Long
+      		On Error Goto ERRHANDLE
+      		z_maxpos = limit
+      		If hwnd Then Nemprogresssetbarrange hwnd, limit
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	Sub Redisplay(force_refresh As Boolean)
+      		On Error Goto ERRHANDLE
+      		If hwnd = 0 Then 
+      			hwnd = NEMProgressBegin(NPB_TWOLINE)
+      			Nemprogresssetbarrange hwnd, z_maxpos
+      		End If
+      		
+      		Dim time_desc$
+      		time_desc = RemainingTime
+      		Nemprogresssetbarpos hwnd, z_pos
+      		Nemprogresssettext hwnd, z_activity, time_desc
+      		z_showpct = (z_pos * 100) \ z_maxpos
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	Sub Finish
+      		On Error Goto ERRHANDLE
+      		z_showpct = 100
+      		If hwnd Then
+      			Nemprogressend hwnd
+      			hwnd = 0
+      			Beep
+      		End If
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      
+      End Class
+      %REM
+      	Class ProgressBarDoNothing
+      	Description: TODO
+      %END REM
+      Class ProgressBarDoNothing As ProgressBar
+      	Sub New, ProgressBar(1, False)
+      	End Sub
+      	
+      	Sub Redisplay(force_refresh As Boolean)
+      	End Sub
+      
+      	Sub Advance(incr As Long, force_refresh As Boolean, new_activity As String)
+      		On Error Goto ERRHANDLE
+      		Print new_activity
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & Typename(Me) & {.} & Getthreadinfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	Sub Finish
+      	End Sub
+      		
+      	Sub Delete
+      	End Sub
+      
+      End Class
+      '++LotusScript Development Environment:2:1:CreateProgressBar:8:8
+      %REM
+      	Function CreateProgressBar
+      	Description: Create a new ProgressBar object appropriate to the OS.
+      	Arguments: 
+      		work: the amount of work to be done. This can be changed later using the Limit property.
+      		timed: whether to display a time estimate of remaining work.
+      %END REM
+      Function CreateProgressBar(work As Long, timed As Boolean) As ProgressBar
+      	Dim tim1 As Single, plat
+      	On Error Goto ERRHANDLE
+      	plat = Evaluate("@Platform")
+      	tim1 = Timer
+      	Stop ' if debugging, we detect this pause and use a progress bar that won't interfere.
+      	If Timer-tim1 < 0.02 Then
+      		If plat(0) Like "Windows/*" Then
+      			Set CreateProgressBar = New ProgessBarWin(work, timed)
+      		Else
+      			Set CreateProgressBar = New ProgressBar(work, timed)
+      		End If
+      	Else
+      		Set CreateProgressBar = New ProgressBarDoNothing
+      	End If
+      	Exit Function
+      ERRHANDLE:
+      	Error Err, Error & { //} & Getthreadinfo(1) & {:} & Erl
+      End Function
+    signed: true
+    nonsummary: true
+  - name: $TITLE
+    type: text
+    data: ProgressBar
+    signed: true
+remaining: []

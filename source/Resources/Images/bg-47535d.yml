@@ -1,0 +1,75 @@
+---
+class: 4
+flags: 0x2000
+unid: OF126C618A44AB4376-ON0072906A862586E7
+items:
+  - name: $EditFilePath
+    type: text
+    data: "C:\\Users\\sokeefe\\AppData\\Local\\Temp\\2\\notesBBC308\\~bg-47535d.gif"
+    signed: true
+  - name: $Flags
+    type: text
+    data: 34CiQ$
+  - name: $FlagsExt
+    type: text
+    data: D
+    signed: true
+  - name: $ImageNames
+    type: text
+    data: bg-47535d.gif
+    signed: true
+  - name: $ImagesColorize
+    type: number
+    data: 0
+    signed: true
+  - name: $ImagesHigh
+    type: number
+    data: 1
+    signed: true
+  - name: $ImagesWide
+    type: number
+    data: 1
+    signed: true
+  - name: $MimeType
+    type: text
+    data: image/image/gif
+    signed: true
+  - name: $PublicAccess
+    type: text
+    data: "1"
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-06-01T15:51:20.74-05:00"
+        dst: true
+      - data: "2021-06-02T07:01:16.72-04:00"
+        dst: true
+  - name: $TITLE
+    type: text
+    data:
+      - bg-47535d
+      - "@EIC000204"
+      - bg
+    signed: true
+  - name: CatalogID
+    type: text
+    data: "@EIC000204"
+    signed: true
+  - name: Category
+    type: text
+    data: Background
+    signed: true
+  - name: Dimensions
+    type: text
+    data: 32x32
+    signed: true
+  - name: Hash
+    type: text
+    data: 795ED929
+    signed: true
+  - name: $ImageData
+    type: composite
+    signed: true
+    nonsummary: true
+remaining: []

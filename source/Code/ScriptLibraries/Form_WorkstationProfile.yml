@@ -1,0 +1,394 @@
+---
+class: 512
+flags: 0x2000
+unid: OFC9A7D825287D0AB4-ON006AFC47852586DA
+items:
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: s34Q
+  - name: $PublicAccess
+    type: text
+    data: "1"
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-06-30T15:47:20.13-05:00"
+        dst: true
+      - data: "2021-06-30T15:47:20.20-05:00"
+        dst: true
+      - data: "2021-06-30T15:48:24.88-05:00"
+        dst: true
+      - data: "2021-06-30T15:48:24.90-05:00"
+        dst: true
+      - data: "2021-06-30T21:57:32.76-05:00"
+        dst: true
+      - data: "2021-06-30T22:19:50.32-05:00"
+        dst: true
+      - data: "2021-06-30T22:19:50.34-05:00"
+        dst: true
+      - data: "2021-07-02T09:29:22.71-04:00"
+        dst: true
+      - data: "2021-07-02T09:29:22.74-04:00"
+        dst: true
+      - data: "2021-07-06T10:33:15.62-04:00"
+        dst: true
+      - data: "2021-07-06T10:33:15.64-04:00"
+        dst: true
+      - data: "2021-07-09T08:59:43.79-04:00"
+        dst: true
+      - data: "2021-07-09T09:01:57.93-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:04.38-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:46.42-04:00"
+        dst: true
+      - data: "2021-07-09T09:21:11.54-04:00"
+        dst: true
+      - data: "2021-08-06T10:18:43.78-04:00"
+        dst: true
+      - data: "2021-08-06T10:18:43.88-04:00"
+        dst: true
+      - data: "2021-08-09T12:30:30.90-04:00"
+        dst: true
+      - data: "2021-08-09T12:30:30.92-04:00"
+        dst: true
+      - data: "2021-08-16T16:51:26.18-05:00"
+        dst: true
+      - data: "2021-08-16T16:51:26.22-05:00"
+        dst: true
+      - data: "2021-08-17T13:55:03.96-05:00"
+        dst: true
+      - data: "2021-09-16T12:02:37.73-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:57.23-05:00"
+        dst: true
+  - name: $ScriptLib
+    type: text
+    data: |
+      '++LotusScript Development Environment:2:5:(Options):0:74
+      %REM
+      	Library Form_WorkstationProfile
+      	Created by Scott O'Keefe
+      	Description: Code associated with buttons and so on on the WorkstationProfile form.
+      	© Copyright HCL Software. 2021
+      %END REM
+      Option Public
+      Option Declare
+      
+      Use "lsconst"
+      Use "zprintf"
+      Use "RecursiveFileSearch"
+      
+      
+      
+      '++LotusScript Development Environment:2:5:(Forward):0:1
+      Declare Public Class form_WorkstationProfile
+      
+      '++LotusScript Development Environment:2:5:(Declarations):0:10
+      Const MSG_TITLE_DIFFTOOL = {Diff Tool}
+      Const MSG_BROWSEPROMPT = {Would you like to browse for the program?}
+      Const MSG_PROGNOTFOUND = {was not found. } + MSG_BROWSEPROMPT
+      Const MSG_OPCANCELLED = {Operation cancelled.}
+      Const MSG_SEARCHING = "Searching {0} for {1}"
+      
+      'Begin DNT
+      Const EXE_BCOMPARE = {BCompare.exe}
+      Const EXE_WINMERGE = {WinMergeU.exe}
+      Const EXE_DIFFMERGE = {sgdm.exe}
+      
+      Const ITEM_DIFFCMD = {DirDiffCommand}
+      Const ITEM_EXEPATH = {PathToExe}
+      Const ITEM_DIFFTOOL = {DiffTool}
+      Const ITEM_CLIARGS = {CLIArguments}
+      Const ITEM_WKSTNID = {WKSTN_ID}
+      
+      Const X86_PATH = {c:\Program Files (x86)}
+      Const WIN_PATH = {c:\Program Files}
+      
+      Const WIN_PATH_BCOMPARE = {\Beyond*}
+      Const WIN_PATH_DIFFMERGE = {\SourceGear}
+      Const WIN_PATH_WINMERGE = {\WinMerge}
+      
+      Const OSX_PATH_APPS = {/Applications}
+      
+      
+      %REM
+      	Class form_WorkstationProfile
+      	Description: Comments for Class
+      %END REM
+      Public Class form_WorkstationProfile
+      
+      	z_uidoc As NotesUIDocument
+      	z_uiws As NotesUIWorkspace
+      	z_ses As NotesSession
+      	
+      	%REM
+      		Sub New
+      		Description: Comments for Sub
+      	%END REM
+      	Sub New(uidoc As NotesUIDocument)
+      		
+      		Set z_uidoc = uidoc
+      		Set z_uiws = New NotesUIWorkspace
+      		Set z_ses = New NotesSession
+      		
+      	End Sub
+      	
+      	%REM
+      		Sub UpdateDiffsTabUI
+      		Description: Comments for Sub
+      	%END REM
+      	Sub UpdateDiffsTabUI(exePath As String)
+      
+      		On Error GoTo ERROR_HANDLER
+      				
+      		If exePath <> "" Then
+      			Call Me.SetExePath(exePath)
+      			Call Me.SetCLIArgs(exePath)
+      			Call Me.SetCommandString(exePath)	
+      		End If
+      
+      		Exit Sub
+      
+      ERROR_HANDLER:
+      		Error Err, Error & { //}& GetThreadInfo(1) & {:} & Erl
+      
+      	End Sub
+      	
+      	%REM
+      		Function FindExe
+      		Description: Comments for Function
+      	%END REM
+      	Function FindExe() As String
+      
+      		On Error GoTo ERROR_HANDLER
+      
+      		FindExe = ""
+      		
+      		Dim winPaths(1) As String
+      		winPaths(0) = X86_PATH
+      		winPaths(1) = WIN_PATH
+      		
+      		Dim progFolder$, searchPath$, exe$
+      		Dim index%
+      		Dim rf As New RecursiveFileSearch
+      
+      		exe = z_uidoc.Document.Getitemvalue(ITEM_DIFFTOOL)(0)
+      
+      		Select Case LCase(z_ses.Platform)
+      			Case "windows/32", "windows/64":
+      				Select Case exe
+      				
+      				Case EXE_BCOMPARE:
+      					searchPath = WIN_PATH_BCOMPARE
+      				
+      				Case EXE_DIFFMERGE:
+      					searchPath = WIN_PATH_DIFFMERGE
+      				
+      				Case EXE_WINMERGE:
+      					searchPath = WIN_PATH_WINMERGE
+      					
+      				Case Else:
+      					FindExe = Me.BrowseForExe("")
+      					Exit Function
+      
+      					
+      				End Select
+      				
+      				For index = 0 To UBound(winPaths)
+      					progFolder = winPaths(index) & searchPath
+      					rf.addfolder progFolder
+      					rf.AddFilename exe
+      					rf.search
+      					
+      					FindExe = rf.firstMatch()
+      					If FindExe <> "" Then Exit For
+      				Next
+      				
+      			Case "macintosh/64":
+      				MsgBox zprintf2(MSG_SEARCHING, OSX_PATH_APPS, exe)
+      				rf.addfolder OSX_PATH_APPS
+      				rf.AddFilename exe
+      				rf.search
+      				
+      				FindExe = rf.firstMatch()
+      				
+      			Case Else:
+      				'unknown OS
+      				
+      		End Select
+      		
+      		If FindExe = "" Then
+      			FindExe = Me.BrowseForExe(exe)
+      			Exit Function		
+      		End If
+      
+      		Exit Function
+      
+      ERROR_HANDLER:
+      		Error Err, Error & { //}& GetThreadInfo(1) & {:} & Erl
+      		
+      	End Function
+      	
+      	%REM
+      		Function BrowseForExe
+      		Description: Comments for Function
+      	%END REM
+      	Function BrowseForExe(tool As String) As String
+      
+      		On Error GoTo ERROR_HANDLER
+      
+      		BrowseForExe = ""
+      
+      		Dim answer As Integer
+      		If tool <> "" Then
+      			answer = MsgBox(tool + { } + MSG_PROGNOTFOUND,MB_YESNO + MB_ICONQUESTION,MSG_TITLE_DIFFTOOL)
+      		Else
+      			answer = MsgBox(MSG_BROWSEPROMPT,MB_YESNO + MB_ICONQUESTION,MSG_TITLE_DIFFTOOL)
+      		End If
+      		
+      		If answer = IDYES Then
+      			Dim exe As Variant
+      			exe = z_uiws.Openfiledialog(False, "", "executable|*.exe", "", "")
+      			
+      			If Not IsEmpty(exe) Then
+      				BrowseForExe = exe(0)
+      			Else
+      				MsgBox MSG_OPCANCELLED,MB_OK + MB_ICONINFORMATION,MSG_TITLE_DIFFTOOL
+      			End If	
+      		End If
+      
+      		Exit Function
+      
+      ERROR_HANDLER:
+      		Error Err, Error & { //}& GetThreadInfo(1) & {:} & Erl
+      		
+      	End Function
+      
+      %REM
+      	Sub SetExePath
+      	Description: Comments for Sub
+      %END REM
+      Sub SetExePath(exePath As String)
+      
+      		On Error GoTo ERROR_HANDLER
+      				
+      		Call z_uidoc.Fieldsettext(ITEM_EXEPATH, exePath)
+      		
+      		Exit Sub
+      
+      ERROR_HANDLER:
+      		Error Err, Error & { //}& GetThreadInfo(1) & {:} & Erl
+      
+      End Sub
+      	%REM
+      		Sub button_BrowseForExe
+      		Description: Comments for Sub
+      	%END REM
+      	Sub button_BrowseToExe
+      
+      		On Error GoTo ERROR_HANDLER
+      		
+      		Dim exe As Variant
+      		exe = z_uiws.Openfiledialog(False, "", "executable|*.exe", "", "")
+      		
+      		If Not IsEmpty(exe) Then
+      			Call Me.UpdateDiffsTabUI(exe(0))
+      		Else
+      			MsgBox MSG_OPCANCELLED,MB_OK + MB_ICONINFORMATION,MSG_TITLE_DIFFTOOL
+      		End If
+      		
+      		Exit Sub
+      
+      ERROR_HANDLER:
+      		Error Err, Error & { //}& GetThreadInfo(1) & {:} & Erl
+      
+      	End Sub
+      	
+      	%REM
+      		Sub button_UpdateDiffCommand
+      		Description: Comments for Sub
+      	%END REM
+      	Sub button_UpdateDiffCommand
+      
+      		On Error GoTo ERROR_HANDLER
+      
+      		Dim exePath$
+      		exePath = z_uidoc.Fieldgettext(ITEM_EXEPATH)
+      		
+      		Call Me.SetCommandString(exePath)
+      
+      		Exit Sub
+      
+      ERROR_HANDLER:
+      		Error Err, Error & { //}& GetThreadInfo(1) & {:} & Erl
+      
+      	End Sub
+      	
+      	%REM
+      		Sub SetArgs
+      		Description: Comments for Sub
+      	%END REM
+      	Sub SetCLIArgs(exePath As String)
+      
+      		On Error GoTo ERROR_HANDLER
+      		
+      		Call z_uidoc.Fieldsettext(ITEM_CLIARGS, "")
+      		
+      		Dim toolExe$
+      		toolExe = StrRightBack(exePath,{\})
+      	
+      		Select Case toolExe
+      				
+      			Case EXE_WINMERGE:
+      				Call z_uidoc.Fieldsettext(ITEM_CLIARGS, { /r /u})
+      				
+      			Case EXE_DIFFMERGE:
+      				Call z_uidoc.Fieldsettext(ITEM_CLIARGS, { -caption=comparison -t1=left -t2=right})
+      				
+      			Case Else:
+      				'nothing to do
+      				
+      		End Select
+      
+      		Exit Sub
+      
+      ERROR_HANDLER:
+      		Error Err, Error & { //}& GetThreadInfo(1) & {:} & Erl
+      
+      	End Sub
+      	%REM
+      		Sub SetCommandString
+      		Description: Assign the field that contains the full command for launching the user's preferred diff tool.
+      	%END REM
+      	Sub SetCommandString(ByVal exePath As String)
+      
+      		On Error GoTo ERROR_HANDLER
+      		
+      		Call z_uidoc.Fieldsettext(ITEM_DIFFCMD, "")
+      		
+      		Const FOLDERS = { "%1" "%2"}
+      		
+      		If InStr(Exepath, " ") Then Exepath = {"} & exepath & {"}
+      		Call z_uidoc.Fieldsettext(ITEM_DIFFCMD, exePath + { } + z_uidoc.Fieldgettext(ITEM_CLIARGS) + FOLDERS)
+      
+      		Exit Sub
+      
+      ERROR_HANDLER:
+      		Error Err, Error & { //}& GetThreadInfo(1) & {:} & Erl
+      
+      	End Sub
+      	
+      End Class
+    signed: true
+    nonsummary: true
+  - name: $TITLE
+    type: text
+    data: Form_WorkstationProfile
+    signed: true
+remaining: []

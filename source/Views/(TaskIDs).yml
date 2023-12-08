@@ -1,0 +1,78 @@
+---
+class: 8
+flags: 0x0000
+unid: OF75F79A82A6BB69AD-ON0054CCC2852586B7
+items:
+  - name: $Collation
+    type_num: 2
+    type: opaque
+    opaque: DwABAABEAGYAAAACACQw
+  - name: $Comment
+    type: text
+    data: ""
+    signed: true
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: Y
+  - name: $Formula
+    type: formula
+    data: " @All"
+    opaque: MgAFABoAFQACAAkABAAkQ29uZmxpY3QkUkVGAAQABAAAAAgAZgADAAcACgAEAAlMMVM=
+    signed: true
+  - name: $FormulaClass
+    type: text
+    data: "1"
+    signed: true
+  - name: $Index
+    type: text
+    data: ""
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-04-14T11:26:14.50-04:00"
+        dst: true
+      - data: "2021-04-14T11:26:14.54-04:00"
+        dst: true
+      - data: "2021-04-14T16:04:33.17-04:00"
+        dst: true
+      - data: "2021-05-27T11:23:22.42-05:00"
+        dst: true
+      - data: "2021-06-30T21:57:35.53-05:00"
+        dst: true
+      - data: "2021-07-09T08:59:47.71-04:00"
+        dst: true
+      - data: "2021-07-09T09:02:01.83-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:08.25-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:50.36-04:00"
+        dst: true
+      - data: "2021-07-09T09:21:15.46-04:00"
+        dst: true
+      - data: "2021-08-13T08:29:55.37-05:00"
+        dst: true
+      - data: "2021-08-17T13:55:06.02-05:00"
+        dst: true
+      - data: "2021-09-16T12:02:39.76-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:59.04-05:00"
+        dst: true
+  - name: $TITLE
+    type: text
+    data: (TaskIDs)
+    signed: true
+  - name: $ViewFormat
+    type_num: 5
+    type: opaque
+    opaque: |
+      AQABAAEACAAAAFZDAQACAAYACgAKAFAAAQAACgAAAAAAAAAAAAICAAAAJDBUYXNrSUQKAAAACACSAAMA
+      AQUBAAQAf0Ew/yYAAQAAAAEBAAkBAAAKAQEOCgAAAQCtKwEAAQABAAAAAAAAAAAAV0MBAQAJAAAAAAAA
+      AAAAAAAAAAAAAAAAAAAAAAAA//8AAAAAAAAAAAAAAAAAAEIAAAAAAAEA////AAUA////AAEAAAAAAAAA
+      AAAAAAAAAQD///8AAQD///8AAAABAAAAAAABAAAAAAABAAAAAAAAAAgAAAAAAAEA
+    signed: true
+remaining: []

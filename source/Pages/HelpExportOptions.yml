@@ -1,0 +1,309 @@
+---
+class: 4
+flags: 0x0000
+unid: OFEE52411BAC18BE24-ON005A445A862586FC
+items:
+  - name: $$ScriptName
+    type: text
+    data: HelpExportOptions
+    signed: true
+    nonsummary: true
+  - name: $Comment
+    type: text
+    data: ""
+    signed: true
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: C34WQ
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-06-22T11:25:57.68-05:00"
+        dst: true
+      - data: "2021-06-22T11:56:19.89-05:00"
+        dst: true
+      - data: "2021-06-22T12:03:34.93-05:00"
+        dst: true
+      - data: "2021-06-22T14:32:27.97-05:00"
+        dst: true
+      - data: "2021-06-30T21:57:34.81-05:00"
+        dst: true
+      - data: "2021-07-09T08:59:46.88-04:00"
+        dst: true
+      - data: "2021-07-09T09:02:01.01-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:07.44-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:49.53-04:00"
+        dst: true
+      - data: "2021-07-09T09:21:14.63-04:00"
+        dst: true
+      - data: "2021-08-17T13:55:05.29-05:00"
+        dst: true
+      - data: "2021-09-16T12:02:39.04-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:58.40-05:00"
+        dst: true
+  - name: $TITLE
+    type: text
+    data:
+      - HelpExportOptions
+      - HelpExportOptions
+  - name: $WindowTitle
+    type: formula
+    data: "\"Help: Export Options\""
+    opaque: IAAAAB4AAQAUAEhlbHA6IEV4cG9ydCBPcHRpb25zAwA=
+    signed: true
+    nonsummary: true
+  - name: $Body
+    type: composite
+    signed: true
+    nonsummary: true
+    data:
+      - type: 0x0081
+      - type: 0xff82
+        FirstLineLeftMargin: 1440
+        Flags: 0x0100
+        Flags2: 0x8494
+        JustifyMode: 0
+        LeftMargin: 1440
+        LineSpacing: 0
+        PABID: 1
+        ParagraphSpacingAfter: 0
+        ParagraphSpacingBefore: 0
+        RightMargin: 0
+        Tab:
+          - 720
+          - 1440
+          - 2160
+          - 2880
+          - 3600
+          - 4320
+          - 5040
+          - 5760
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+        TabTypes: 0x00000000
+        Tabs: 8
+        data:
+          - 1440
+          - 10
+          - 1440
+          - 10
+          - 0
+          - 100
+          - 0x00000001
+          - 0x00000004
+      - type: 0x00a6
+        FONTID: 234881281
+        Flags: 0x00000007
+        PABID: 1
+        StyleName: Headline
+        UserName: Andre Guirard-
+      - type: 0x0083
+        PABID: 1
+      - type: 0x00dd
+        Signature: 0xff85
+        Version: 0
+      - type: 0xff85
+        FontID: 0xc0b0101
+        data: Export Options
+      - type: 0x00d2
+        Color:
+          Flags: 0x0001
+          rgb: 0x800080
+      - type: 0x00de
+        Signature: 0xff85
+        Version: 0
+      - type: 0x0081
+      - type: 0xff82
+        FirstLineLeftMargin: 1800
+        Flags: 0x0500
+        Flags2: 0x8494
+        JustifyMode: 0
+        LeftMargin: 1800
+        LineSpacing: 0
+        PABID: 2
+        ParagraphSpacingAfter: 1
+        ParagraphSpacingBefore: 0
+        RightMargin: 0
+        Tab:
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+        TabTypes: 0x00000000
+        Tabs: 0
+        data:
+          - 1800
+          - 10
+          - 1800
+          - 10
+          - 0
+          - 100
+          - 0x00000001
+          - 0x00000004
+      - type: 0x0083
+        PABID: 2
+      - type: 0xff85
+        FontID: 0xa000101
+        data: Export signatures
+      - type: 0xff85
+        FontID: 0xa000001
+        data: " adds the signer name to the output of each design element and document. If you uncheck this option, you'll still get a summary statement of how many notes were signed by what IDs, which is generally enough to tell you if there's a problem with signatures."
+      - type: 0x0081
+      - type: 0x0083
+        PABID: 2
+      - type: 0xff85
+        FontID: 0xa000101
+        data: Export language
+      - type: 0xff85
+        FontID: 0xa000001
+        data: " is for multilingual applications or cases where two applications you're comparing may have the design elements flagged with different language tags. (Normally you'd notice the difference anyway because the strings would also be in different languages)."
+      - type: 0x0081
+      - type: 0x0083
+        PABID: 2
+      - type: 0xff85
+        FontID: 0xa000101
+        data: Hide item sign bit
+      - type: 0xff85
+        FontID: 0xa000001
+        data: " is used where export data includes \"item\" elements. This is mostly documents, but some design elements may have item elements in the DXL data. Normally you do want to see these differences, but if you have a lot of these and honestly don't care, you can turn this off."
+      - type: 0x0081
+      - type: 0x0083
+        PABID: 2
+      - type: 0xff85
+        FontID: 0xa000101
+        data: Hide fromtemplate
+      - type: 0xff85
+        FontID: 0xa000001
+        data: " hides the indication that a single design element's design is inherited from a template. Normally you would want to know about this, but there are cases where you prefer to hide these differences."
+      - type: 0x0081
+      - type: 0x0083
+        PABID: 2
+      - type: 0xff85
+        FontID: 0xa000101
+        data: Export generated .properties
+      - type: 0xff85
+        FontID: 0xa000001
+        data: " when working with multilingual XPages applications, exports the contents of all the automatically generated .properties files that you can't even see in the Applications view of Designer. Normally you would want to do this, because differences in these files do affect what text users see. Leaving it turned on for applications that are not multilingual XPages, does no harm."
+      - type: 0x0081
+      - type: 0x0083
+        PABID: 2
+      - type: 0xff85
+        FontID: 0xa000101
+        data: Strip <run> elements
+      - type: 0xff85
+        FontID: 0xa000001
+        data: " removes the <run> elements from exported DXL, replacing them either with the text they contained, or a different element, containing that text (<font>, <i> or <b>, depending how the contents of the run were formatted). This is significantly easier to read, but obscures some differences, including words broken up into consecutive runs with the same formatting, in case you care about that (it can be relevnt for translations with DGW)."
+      - type: 0x0081
+      - type: 0x0083
+        PABID: 2
+      - type: 0xff85
+        FontID: 0xa000101
+        data: Export documents
+      - type: 0xff85
+        FontID: 0xa000001
+        data: " selects whether to include documents in your synopsis or report. This makes sense if you're using this tool to compare data in two copies of an NSF, less so when comparing an application to a template, for instance."
+      - type: 0x0081
+      - type: 0x0083
+        PABID: 2
+      - type: 0xff85
+        FontID: 0xa000101
+        data: Standardize LotusScript
+      - type: 0xff85
+        FontID: 0xa000001
+        data: " parses the LotusScript code in the application and changes keywords to the standard capitalization ("
+      - type: 0xff85
+        FontID: 0xa000004
+        data: NotesItem
+      - type: 0xff85
+        FontID: 0xa000001
+        data: " vs "
+      - type: 0xff85
+        FontID: 0xa000004
+        data: Notesitem
+      - type: 0xff85
+        FontID: 0xa000001
+        data: ", for instance). Pasting blocks of LotusScript code can cause lots of calitalization changes which don't affect functionality, so generally it's best to leave this turned on."
+      - type: 0x0081
+      - type: 0x0083
+        PABID: 2
+      - type: 0xff85
+        FontID: 0xa000101
+        data: Flag all strings
+      - type: 0xff85
+        FontID: 0xa000001
+        data: " is used when evaluating translations. It scans the output looking for all potentially translatable strings -- in design element titles, field help, literals in source code, etc -- and flags them to be highlighted when the file are converted into difference reports or design synopsis databases."
+      - type: 0x0081
+      - type: 0x0083
+        PABID: 2
+      - type: 0xff85
+        FontID: 0xa000101
+        data: Form key fields
+      - type: 0xff85
+        FontID: 0xa000001
+        data: " are used only in cases where you've chosen to export documents. We want a meaningful name to label the documents with, and in cases where the document Universal ID doesn't match between databases being compared, we'd also like a value to match them by that reflects their contents. This field lets you define, based on the form alias, how to calculate a unique-ish human readable title."
+      - type: 0x0081
+      - type: 0x0083
+        PABID: 2
+      - type: 0xff85
+        FontID: 0xa000105
+        data: Fallback key formula
+      - type: 0xff85
+        FontID: 0xa000005
+        data: " is applied to cases where a document's Form item doesn't match any of the values in the "
+      - type: 0xff85
+        FontID: 0xa000105
+        data: Form key fields
+      - type: 0xff85
+        FontID: 0xa000005
+        data: " list. It's a formula that should return a text result which is the key value for the document."
+  - name: $Fonts
+    nonsummary: true
+    type: opaque
+    type_num: 1
+    opaque: i/8oAAEABSZBcmlhbAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
+  - name: $HTMLCode
+    signed: true
+    nonsummary: true
+    type: opaque
+    type_num: 1
+    opaque: X/8QAAIADwAHAAAAAAAAAA==
+  - name: $Info
+    signed: true
+    nonsummary: true
+    type: opaque
+    type_num: 1
+    opaque: hhgBAIAAAAAAgAAAAQABAP///wAQAAAA
+remaining: []

@@ -1,0 +1,2029 @@
+---
+class: 512
+flags: 0x2000
+unid: OF63DD48F650563C83-ON007ADDB6862586DB
+items:
+  - name: $DesignerVersion
+    type: text
+    data: "8.5"
+    signed: true
+  - name: $Flags
+    type: text
+    data: 34Qs
+  - name: $PublicAccess
+    type: text
+    data: "1"
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-05-20T17:22:04.80-05:00"
+        dst: true
+      - data: "2021-05-27T11:23:20.81-05:00"
+        dst: true
+      - data: "2021-06-30T21:57:32.94-05:00"
+        dst: true
+      - data: "2021-07-09T08:59:43.99-04:00"
+        dst: true
+      - data: "2021-07-09T09:01:58.13-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:04.58-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:46.62-04:00"
+        dst: true
+      - data: "2021-07-09T09:21:11.76-04:00"
+        dst: true
+      - data: "2021-08-17T13:55:02.97-05:00"
+        dst: true
+      - data: "2021-09-16T12:02:36.74-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:56.31-05:00"
+        dst: true
+      - data: "2021-09-27T22:33:22.97-05:00"
+        dst: true
+      - data: "2021-11-18T10:15:04.14-06:00"
+      - data: "2021-11-18T10:15:04.19-06:00"
+      - data: "2021-11-29T13:38:06.01-05:00"
+  - name: $ScriptLib
+    type: text
+    data: |
+      '++LotusScript Development Environment:2:5:(Options):0:74
+      %REM
+        © Copyright HCL Company, 2021
+      	Library StringDiff
+      	Created by Andre Guirard
+      	Description: Supports finding the differences between two strings (which might be
+      		entire files, or the text from rich text items).
+      %END REM
+      Option Public
+      Option Declare
+      Use "CommonUtil"
+      
+      '++LotusScript Development Environment:2:5:(Forward):0:1
+      Declare Private Class CQueueNode
+      Declare Private Class Cqueue
+      Declare Class StringDiffer
+      Declare Class DiffResultNode
+      Declare Class DiffWriter
+      Declare Class DiffWriterRT As DiffWriter
+      Declare Class DiffWriterHTML As DiffWriter
+      Declare Class DiffWriterSideBySide As DiffWriterHTML
+      Declare Class DiffResult
+      Declare Function createSeqNo As Long
+      Declare Private Function ToHTML(strText$) As String
+      Declare Private Function WhitespaceNear(strVal$, ByVal pos As Long, ByVal range As Long) As Long
+      
+      '++LotusScript Development Environment:2:5:(Declarations):0:10
+      'Begin DNT
+      Private Const WHITESPACEMATCH = {*[ 	
+      ]*}
+      Private Const WORDBREAKMATCH = {[- 	
+      ,."+'^%#@:;*!?/=\)(<>|{}}]}
+      
+      Private Const WORDBREAKCHARS = |
+       	-,.;"+'^%#@:*!?/=\||_&~()<>[]{}|
+      
+      
+      Const DIFFMODE_CHAR = 0
+      Const DIFFMODE_WORD = 1
+      Const DIFFMODE_LINE = 2
+      
+      %REM
+      	Type ReserveRec
+      	Description: A record that describes a matching area found within two strings. 
+      %END REM
+      Type ReserveRec
+      	start1 As Long ' start position of match in first string (1-based)
+      	start2 As Long ' start position in 2nd string
+      	llen As Long	' number of chars that match.
+      End Type
+      
+      
+      
+      %REM
+      	Class CQueueNode
+      	Description: Data node for a linked list to be used in a queue.
+      %END REM
+      Private Class CQueueNode
+      	Public Val As Variant
+      	Public Next As CQueueNode
+      	
+      	Sub New(valu, nextNode As CQueueNode)
+      		On Error GoTo ERRHANDLE
+      		Set Me.val = valu
+      		Set Me.next = nextNode
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      End Class
+      
+      %REM
+      	Class Cqueue
+      	Description: Simple implementation of a queue using linked lists.
+      %END REM
+      Private Class Cqueue
+      	first As CQueueNode
+      	
+      	Sub push(x)
+      		On Error GoTo ERRHANDLE
+      		Set first = New CQueueNode(x, first)
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	Function pop()
+      		On Error GoTo ERRHANDLE
+      		If first Is Nothing Then
+      			Set pop = Nothing
+      		Else
+      			Set pop = first.val
+      			Set first = first.next
+      		End If
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      End Class
+      %REM
+      	Class StringDiffer
+      	Description: Utility class to compare strings and return a list of their
+      		differences, in the form of alternating "same" and "different" nodes.
+      		The "same" nodes contain one string; the "different" nodes contain two.
+      %END REM
+      Class StringDiffer
+      	qWork As Cqueue
+      	iMode As Integer ' 0=character, 1=word, 2=line
+      	z_Mode As Integer ' override default mode detection.
+      	z_count As Long
+      	reserve(0 To 9) As ReserveRec
+      	cReserve As Integer
+      	Public TranslationMode As Boolean
+      	Public bDebug As Boolean
+      		
+      	mustBeAtLeast As Long
+      	
+      	Sub New
+      		On Error GoTo ERRHANDLE
+      		Set qWork = New Cqueue
+      		Mode = -1
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Property Set Mode
+      		Description: Assign to a DIFFMODE_ constant to control whether we're comparing by line, word or character.
+      	%END REM
+      	Public Property Set Mode As Integer
+      		z_mode = Mode
+      	End Property
+      	
+      	%REM
+      		Sub AddReserve
+      		Description: Add a record to the "reserve" list of long blocks
+      	%END REM
+      	Sub AddReserve(start1 As Long, start2 As Long, llen As Long)	
+      
+      		On Error GoTo ERRHANDLE
+      		If llen < mustBeAtLeast Then Exit Sub
+      		If start1 = 0 Then Stop
+      		
+      		' there's room for another entry.
+      		Dim i%
+      		If cReserve < 10 Then
+      			cReserve = cReserve + 1
+      		End If
+      
+      		For i = cReserve-1 To 1 Step -1
+      			If reserve(i-1).llen < llen Then
+      				reserve(i) = reserve(i-1)
+      			Else
+      				Exit For
+      			End If
+      		Next
+      		reserve(i).llen = llen
+      		reserve(i).start1 = start1
+      		reserve(i).start2 = start2
+      		If cReserve = 10 Then
+      			mustBeAtLeast = reserve(cReserve-1).llen
+      		End If
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      
+      	%REM
+      		Function inReserve
+      		Description: Return True if a potential "same" block is already known.
+      	%END REM
+      	Private Function inReserve(ByVal start1&, ByVal start2&) As Boolean
+      		Dim i%
+      		On Error GoTo ERRHANDLE
+      		For i = 0 To cReserve-1
+      			If reserve(i).start1 <= start1 Then
+      				If reserve(i).start1+reserve(i).llen > start1 Then
+      					If reserve(i).start2 - start2 = reserve(i).start1 - start1 Then
+      						inReserve = True
+      						Exit Function
+      					End If
+      				End If
+      			End If
+      		Next
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Sub SwapReserve
+      		Description: After having figured out the reserve entries with the
+      			strings swapped, call this to swap the results so str1 corresponds
+      			to start1, etc.
+      	%END REM
+      	Sub SwapReserve
+      		Dim i%, tmp&
+      		On Error GoTo ERRHANDLE
+      		For i = 0 To cReserve-1
+      			tmp = reserve(i).start1
+      			reserve(i).start1 = reserve(i).start2
+      			reserve(i).start2 = tmp
+      		Next
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Function clearOfReserve
+      		Description: return True if reserve record i doesn't overlap the record given. 
+      	%END REM
+      	Private Function clearOfReserve(rr As ReserveRec, ByVal i%) As Boolean
+      		On Error GoTo ERRHANDLE
+      		If Sgn(reserve(i).start1 - rr.start1) Xor Sgn(reserve(i).start1 - rr.start1) = -2 Then
+      			Exit Function
+      		End If
+      		If reserve(i).start1 <= rr.start1 Then
+      			If reserve(i).start1 + reserve(i).llen > rr.start1 Then
+      				Exit Function
+      			End If
+      		ElseIf rr.start1 + rr.llen > reserve(i).start1 Then
+      			Exit Function
+      		End If
+      		If reserve(i).start2 <= rr.start2 Then
+      			If reserve(i).start1 + reserve(i).llen > rr.start1 Then
+      				Exit Function
+      			End If
+      		ElseIf rr.start1 + rr.llen > reserve(i).start1 Then
+      			Exit Function
+      		End If
+      
+      		clearOfReserve = True
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Sub UsedReserve
+      		Description: Remove the first reserve record -- it's been used.
+      			Also remove anything that intersects it.
+      	%END REM
+      	Private Sub UsedReserve(rr As ReserveRec)
+      		Dim dif%, i%
+      		On Error GoTo ERRHANDLE
+      		dif = 1
+      		For i = 1 To cReserve-1
+      			If clearOfReserve(rr, i) Then
+      				reserve(i-dif) = reserve(i)
+      			Else
+      				dif = dif + 1
+      			End If
+      		Next
+      		cReserve = cReserve - dif
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub DiscardReserve
+      		Description: Delete the first reserve record without using it.
+      	%END REM
+      	Private Sub discardReserve
+      		Dim i%
+      		On Error GoTo ERRHANDLE
+      		cReserve = cReserve - 1
+      		For i = 1 To cReserve
+      			reserve(i-1) = reserve(i)
+      		Next
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Function FindDifferences
+      		Description: Returns the first node in a linked list of objects describing the
+      			portions of two strings that are the same or different.
+      	%END REM
+      	Function FindDifferences(str1$, str2$) As DiffResult
+      		' figure out whether we're comparing a piece of text containing words,
+      		' vs an alphanumeric value where we want to highlight internal character differences.
+      		' E.g. in a piece of text, we want to say they changed "hapen" to "happened", not that
+      		' they added a p and an ed. But if the values were "2983ST298393" and "2983ST2958393",
+      		' it's more useful to show where a 5 was added.
+      		On Error GoTo ERRHANDLE
+      		If z_Mode >= 0 And z_Mode <= 2 Then
+      			iMode = z_Mode ' caller specified how detailed to compare.
+      		Else
+      			iMode = DIFFMODE_CHAR
+      			If str1 Like WHITESPACEMATCH Then
+      				iMode = DIFFMODE_WORD
+      			ElseIf Not str1 Like {*[!-a-zA-Z']*} Then
+      				iMode = DIFFMODE_WORD
+      			ElseIf str2 Like WHITESPACEMATCH Then
+      				iMode = DIFFMODE_WORD
+      			ElseIf Not str2 Like {*[!-a-zA-Z']*} Then
+      				iMode = DIFFMODE_WORD
+      			End If
+      		End If
+      
+      		Dim current As DiffResultNode, first As DiffResultNode
+      		Set current = New DiffResultNode(Nothing, False)
+      		z_count = 1
+      		Set first = current
+      		current.setDiff str1, str2
+      		Do Until current Is Nothing
+      			Process current
+      			' if processing current node generated more "difference" nodes, drill down into those.
+      			Set current = qWork.pop()
+      		Loop
+      		
+      		' find the new first node
+      		Do Until first.prev Is Nothing
+      			Set first = first.prev
+      		Loop
+      
+      		' a special case occurs if we get strings with no differences.
+      		' We'll have a SAME node, then a DIFFERENT node with "" as both values.
+      		If first.isSame Then
+      			Set current = first.Next
+      			If Not (current Is Nothing) Then
+      				If Len(current.val1) + Len(current.val2) = 0 Then
+      					Set first.next = current.next
+      					Delete current
+      				End If
+      			End If
+      		End If
+      		Set FindDifferences = New DiffResult
+      		Set FindDifferences.First = First
+      		FindDifferences.Count = z_count
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	Private Function xFindCommonEnd(str1$, str2$, ByVal pos1 As Long, ByVal pos2 As Long, _
+      		ByVal maxMatch As Long) As Long
+      		' ending before position pos1 in str1, and position pos2 in str2, find out how many characters are
+      		' the same starting from those spots. The answer will not be more than maxMatch.
+      		Dim worstcase As Long
+      		Dim curlen As Long
+      		On Error GoTo ERRHANDLE
+      		If pos1-maxMatch <= 0 Then maxMatch = pos1-1
+      		If pos2-maxMatch <= 0 Then maxMatch = pos2-1
+      		If maxMatch = 0 Then Exit Function ' returning 0
+      		
+      		Do
+      			curlen = (1+maxMatch+worstcase) \ 2
+      			If Mid$(str1, pos1-curlen, curlen) = Mid$(str2, pos2-curlen, curlen) Then
+      				worstcase = curlen
+      			Else
+      				maxMatch = curLen-1
+      			End If
+      		Loop Until maxMatch <= worstcase
+      		xFindCommonEnd = worstcase
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	Private Function xFindCommonStart(str1$, str2$, ByVal pos1 As Long, ByVal pos2 As Long, _
+      		ByVal maxMatch As Long) As Long
+      		' ending before position pos1 in str1, and position pos2 in str2, find out how many characters are
+      		' the same starting from those spots. The answer will not be more than maxMatch.
+      		Dim worstcase As Long
+      		Dim curlen As Long
+      		On Error GoTo ERRHANDLE
+      		If pos1+maxMatch > Len(str1) Then maxMatch = Len(str1) - pos1 + 1
+      		If pos2+maxMatch > Len(str2) Then maxMatch = Len(str2) - pos2 + 1
+      		If maxMatch <= 0 Then Exit Function ' returning 0
+      		
+      		Dim plen As Long 
+      		Do
+      			curlen = (1+maxMatch+worstcase) \ 2
+      			If Mid$(str1, pos1, curlen) = Mid$(str2, pos2, curlen) Then
+      				worstcase = curlen
+      			Else
+      				maxMatch = curLen-1
+      			End If
+      		Loop Until maxMatch <= worstcase
+      		xFindCommonStart = worstcase
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Sub lcs
+      		Description: Legacy function that finds the longest common substring of two strings.
+      	%END REM
+      	Private Sub xlcs(str1$, str2$, lBegin1 As Long, lBegin2 As Long, lLen As Long)
+      		' find the longest common substring of two strings.
+      		
+      		On Error GoTo ERRHANDLE
+      		If Len(str1) > Len(str2) Then
+      			Call xlcs(str2, str1, lBegin2, lBegin1, lLen)
+      		Else
+      			' now we can proceed on the assumption that str2 is the longer one
+      			Dim bestPos1 As Long, bestPos2 As Long, bestLen As Long
+      			Dim curLen As Long, curPos As Long, maxLen As Long
+      			Dim addlBefore As Long, addlAfter As Long, pos2 As Long, pos As Long
+      			Dim bestPossible As Long
+      			If iMode = DIFFMODE_CHAR Then
+      				pos2 = InStr(str2, str1)
+      				If pos2 Then
+      					lbegin1 = 1
+      					lbegin2 = pos2
+      					lLen = Len(str1)
+      					Exit Sub
+      				End If
+      			End If
+      			
+      			llen = 0 ' the signal nothing was found
+      			maxLen = Len(str1)
+      			curLen = maxLen\2
+      			bestPossible = maxlen
+      			If iMode = DIFFMODE_LINE Then
+      				bestlen = max(9, maxlen \ 60)
+      			ElseIf maxlen > 400 Then 
+      				bestLen = 40
+      			Else 
+      				bestlen = max(3, maxlen \ 20) ' if the matching section is less than 5% of the string it's probably a fluke.
+      			End If
+      			
+      			Do While curLen > 1 And bestLen < bestpossible
+      				For curPos = 1 To maxLen-curlen+1 Step curLen
+      					' break the shorter string up into blocks of curLen chars.
+      					' The longest matching string we could miss detecting on this pass is curLen*2-2 chars;
+      					' any longer than that, and it would have to entirely contain one of the blocks.
+      					pos2 = 0
+      					Dim strTmp$, bWhy As Boolean
+      					
+      					strTmp = Mid$(str1, curPos, curLen)
+      					Do
+      						pos2 = InStr(pos2+1, str2, strTmp)
+      						' Print "("; curpos; "-"; curpos+curlen; ") = "; pos2
+      						If bWhy Then
+      							Dim pp&
+      							For pp = 1 To Len(strtmp)
+      								If Mid$(str2, pp, 1) <> Mid$(strtmp, pp, 1) Then
+      									MsgBox debugstr(Mid$(str2, pp-10, 20)) & NEWLINE & debugstr(Mid$(strtmp, pp-10, 20))
+      								End If
+      							Next 
+      						End If
+      						If pos2 = 0 Then Exit Do
+      						If bestpos2 Then If pos2 >= bestpos2 And pos2 < bestpos2 + bestlen Then GoTo nextmatch
+      						' we already know about this matching segment.
+      
+      						' we have matched curLen chars!
+      						' how many chars before this one substring might also match? If there were more than
+      						' curlen-1, we would've caught it on the previous iteration of the For loop.
+      						addlBefore = xFindCommonEnd(str1, str2, curpos, pos2, curLen-1)
+      						' what about after this substring? We know bestpossible is the most we can expect
+      						' to match, so bestpossible less whatever we already matched.
+      						addlAfter = xFindCommonStart(str1, str2, curpos+curLen, pos2+curLen, bestpossible-curLen-addlBefore)
+      						Dim lLent As Long, lStart1 As Long, lStart2 As Long
+      						lLEnt = addlBefore+Len(strTmp)+addlAfter
+      						If lLent <= bestLen Then GoTo nextmatch
+      						lStart1 = curPos - addlBefore
+      						lStart2 = pos2 - addlBefore
+      						Dim ws1 As Boolean, delta As Long
+      						Select Case iMode
+      						Case DIFFMODE_LINE
+      							' shrink the matching part until it starts right after a newline and ends
+      							' with a newline.
+      							' If there's anything before it, the previous non-matching parts can't both end
+      							' NEWLINE or the NEWLINE would be part of the matching area!
+      							' tmp = Replace(Replace(Mid$(str1, lstart1, llent), NEWLINE, "~"), Chr$(9), " ")
+      							Dim bShrink As Boolean
+      							If lStart1 = 1 And lStart2 = 1 Then
+      								bShrink = False
+      							ElseIf lstart1 = 1 Then
+      								bShrink = Mid$(str2, lstart2-1, 1) <> NEWLINE
+      							ElseIf lStart2 = 1 Then
+      								bShrink = Mid$(str1, lstart1-1, 1) <> NEWLINE
+      							Else
+      								bShrink = True
+      							End If
+      							If bShrink Then
+      								' does not start after newlines; shrink it.
+      								pos = InStr(lstart1, str1, NEWLINE)
+      								delta = pos - lstart1 + 1
+      								If delta <= 0 Or delta >= llent Then GoTo nextMatch
+      								llent = llent - delta
+      								lStart2 = lStart2 + delta
+      								lStart1 = lStart1 + delta
+      								' tmp = Replace(Replace(Mid$(str1, lstart1, llent), NEWLINE, "~"), Chr$(9), " ")
+      							End If
+      							If lLent <= bestLen Then GoTo nextmatch
+      							
+      							If llent + lstart1 < Len(str1) Or llent + lstart2 < Len(str2) Then
+      								' if the last character of the match area isn't NEWLINE now, back up to the last NEWLINE.
+      								While NEWLINE <> Mid$(str1, lStart1+lLent-1, 1)
+      									lLent = lLent - 1
+      									If lLent <= bestLen Then GoTo nextmatch
+      									' tmp = Replace(Replace(Mid$(str1, lstart1, llent), NEWLINE, "~"), Chr$(9), " ")
+      								Wend
+      							End If
+      						Case DIFFMODE_WORD
+      							' we don't want to find differences within words. Even if characters match, ignore the matching chars
+      							' at the beginning and end if they're not preceded by a word break.
+      							
+      							' if the first character in the matching part is not whitespace, we
+      							' have to do more. We have to find out whether the character preceding the
+      							' first char is whitespace (or it is the first char) in BOTH strings.
+      							' If not, trim chars from the start of the matching string until it starts
+      							' with whitespace.
+      							If Not (Mid$(str1, lStart1, 1) Like WORDBREAKMATCH) Then
+      								If lstart1 = 1 Then ws1 = True Else ws1 = (Mid$(str1, lStart1-1, 1) Like WORDBREAKMATCH)
+      								If ws1 Then
+      									If lstart2 = 1 Then ws1 = True Else ws1 = (Mid$(str2, lStart2-1, 1) Like WORDBREAKMATCH)
+      								End If
+      								If Not ws1 Then
+      									' the matching strings start in the middle of a word. Back up until
+      									' they start with whitespace.
+      									Do Until lLent <= bestLen
+      										lStart1 = lStart1 + 1
+      										lStart2 = lStart2 + 1
+      										lLent = lLent - 1
+      										If Mid$(str2, lStart2, 1) Like WORDBREAKMATCH Then Exit Do
+      									Loop
+      								End If
+      							End If
+      							
+      							If lLent <= bestLen Then GoTo nextmatch
+      							' ditto, if the last char in the matching part is not whitespace,
+      							' check the character following that in each string to see whether
+      							' it's a non-whitespace char.
+      							Dim lEnd1 As Long
+      							lEnd1 = lStart1 + lLent-1 ' pos of last char in 1st match string.
+      							If Not (Mid$(str1, lEnd1, 1) Like WORDBREAKMATCH) Then
+      								If lEnd1 = Len(str1) Then ws1 = True Else ws1 = (Mid$(str1, lEnd1+1, 1) Like WORDBREAKMATCH)
+      								If ws1 Then
+      									If lStart2 + lLent > Len(str2) Then
+      										ws1 = True
+      									Else
+      										ws1 = (Mid$(str2, lStart2 + lLent, 1) Like WORDBREAKMATCH)
+      									End If
+      								End If
+      								If Not ws1 Then
+      									' we're in the middle of a word. Trim chars off end until the last char is whitespace
+      									Do
+      										lEnd1 = lEnd1 - 1
+      										lLent = lLent - 1
+      										If lLent <= bestlen Then Exit Do
+      									Loop Until Mid$(str1, lEnd1, 1) Like WORDBREAKMATCH
+      								End If
+      							End If
+      						Case Else
+      							
+      					End Select
+      
+      						If lLent > bestLen Then
+      							bestLen = lLent
+      							bestPos1 = lStart1
+      							bestPos2 = lStart2
+      						End If
+      nextmatch:
+      					Loop ' while pos2 > 0
+      				Next
+      				bestpossible = (curlen*2)-2	' the greatest matching string length we might possibly have missed on this iteration.
+      				curLen = (1+curLen)\2
+      			Loop
+      			
+      			lBegin1 = bestPos1
+      			lBegin2 = bestPos2
+      			If bestPos1 Then lLen = bestLen Else lLen = 0
+      		End If
+      		If lBegin1 Then
+      			Print "lcs: "; llen; " ("; maxlen; ")"
+      		End If
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Function nearestPower2
+      		Description: TODO
+      	%END REM
+      	Function nearestPower2(ByVal x&) As Long
+      		Dim tmp&
+      		On Error GoTo ERRHANDLE
+      		tmp = 2
+      		While tmp < x
+      			tmp = tmp + tmp
+      		Wend
+      		nearestPower2 = tmp \ 2
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Sub expandextract
+      		Description: starting at pos1 of str1 and pos2 of str2, these two
+      			strings contain a common substring. How much bigger can we make it
+      			before and after, subject to the current mode (line/word/char)?
+      	%END REM
+      	Private Sub expandextract(str1$, str2$, pos1&, pos2&, llen&, ByVal xmaxBefore&)
+      		Dim cbef&, caft&, cleast&, cmost&, ctry&
+      		Dim epos1&, epos2&
+      		On Error GoTo ERRHANDLE
+      		epos1 = pos1 + llen ' first char following match area
+      		epos2 = pos2 + llen
+      		' look at the part before.
+      		cmost = min(pos1,pos2)-1 ' we won't match more chars before than there are before.
+      		'If maxBefore < cmost Then cmost = Maxbefore
+      		cleast = 0
+      		While cmost > cleast
+      			ctry = (cmost-cleast+1)\2
+      			' for efficiency, look at one char before trying the whole substring.
+      			If Mid$(str1, pos1-cleast-ctry, 1) <> Mid$(str2, pos2-cleast-ctry, 1) Then
+      				cmost = cleast + ctry - 1
+      			ElseIf Mid$(str1, pos1-cleast-ctry, ctry) = Mid$(str2, pos2-cleast-ctry, ctry) Then
+      				cleast = cleast + ctry
+      			Else
+      				cmost = cleast + ctry - 1
+      			End If
+      		Wend
+      		pos1 = pos1 - cleast
+      		pos2 = pos2 - cleast
+      		llen = llen + cleast
+      		
+      		' now look at adding to the end of the match region
+      		cmost = min(Len(str1)-epos1, Len(str2)-epos2)+1 ' max possible match is the rest of the shorter string.
+      		' phase 1: grow ctry until no match
+      		ctry = min(cmost, (llen+1)\2)
+      		Do While 0 < cmost
+      			If Mid$(str1, epos1+ctry-1, 1) <> Mid$(str2, epos2+ctry-1, 1) Then Exit Do
+      			If Mid$(str1, epos1, ctry) = Mid$(str2, epos2, ctry) Then
+      				epos1 = epos1 + ctry
+      				epos2 = epos2 + ctry
+      				cmost = cmost - ctry
+      				ctry = min(ctry+ctry, cmost)
+      			Else
+      				Exit Do
+      			End If
+      		Loop
+      		cleast = 0
+      		cmost = ctry-1 ' ctry chars didn't match.
+      		
+      		' binary search for length of remaining match
+      		Do While cmost > cleast
+      			ctry = (cmost-cleast+1)\2
+      			If Mid$(str1, epos1+cleast+ctry-1, 1) <> Mid$(str2, epos2+cleast+ctry-1, 1) Then
+      				cmost = cleast + ctry - 1
+      			ElseIf Mid$(str1, epos1+cleast, ctry) = Mid$(str2, epos2+cleast, ctry) Then
+      				cleast = cleast + ctry
+      			Else
+      				cmost = cleast + ctry - 1
+      			End If
+      		Loop
+      		epos1 = epos1 + cleast
+      		epos2 = epos2 + cleast
+      		llen = epos1 - pos1
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub reduceMatchByMode
+      		Description: based on the current iMode, shift the ends of a matching region inwards
+      			until they start and end on an appropriate boundary.
+      	%END REM
+      	Function reduceMatchByMode(str1$, str2$, start1&, start2&, llen&) As Boolean
+      		Dim bShrink As Boolean, pos&, delta&
+      		On Error GoTo ERRHANDLE
+      		Select Case imode
+      			Case DIFFMODE_LINE
+      				' shrink the matching part until it starts right after a newline and ends
+      				' with a newline.
+      				' If there's anything before it, the previous non-matching parts can't both end
+      				' NEWLINE or the NEWLINE would be part of the matching area!
+      				If start1 > 1 Then
+      					bShrink = Mid$(str1, start1-1, 1) <> NEWLINE
+      				End If
+      				If start2 <> 1 And Not bShrink Then
+      					bShrink = Mid$(str2, start2-1, 1) <> NEWLINE
+      				End If
+      				If bShrink Then
+      					' does not start after newlines; shrink it.
+      					pos = InStr(start1, str1, NEWLINE)
+      					If pos = 0 Then Exit Function ' returning False
+      					delta = pos-start1+1
+      					If delta >= llen Then Exit Function
+      					start1 = pos+1
+      					start2 = start2+delta
+      					llen = llen - delta
+      				End If
+      				
+      				If llen + start1 < Len(str1) Or llen + start2 < Len(str2) Then
+      					' if the last character of the match area isn't NEWLINE now, back up to the last NEWLINE.
+      					While NEWLINE <> Mid$(str1, Start1+lLen-1, 1)
+      						lLen = lLen - 1
+      						If lLen = 0 Then Exit Function
+      					Wend
+      				End If
+      				
+      			Case DIFFMODE_WORD
+      				' we don't want to find differences within words. Even if characters match, ignore the matching chars
+      				' at the beginning and end if they're not preceded by a word break.
+      				
+      				' if the first character in the matching part is not whitespace, we
+      				' have to do more. We have to find out whether the character preceding the
+      				' first char is whitespace (or it is the first char) in BOTH strings.
+      				' If not, trim chars from the start of the matching string until it starts
+      				' with whitespace.
+      				If 0 = InStr(WORDBREAKCHARS, Mid$(str1, start1, 1)) Then
+      					If start1 > 1 Then
+      						bShrink = (0 = InStr(WORDBREAKCHARS, Mid$(str1, start1-1, 1)))
+      					End If
+      					If start2 > 1 And Not bShrink Then
+      						bShrink = (0 = InStr(WORDBREAKCHARS, Mid$(str2, start2-1, 1)))
+      					End If
+      					If bShrink Then
+      						' matching strings start in middle of word. Shift start to right until they start with whitespace.
+      						Do
+      							If llen < 3 Then Exit Function
+      							start1 = start1 + 1
+      							start2 = start2 + 1
+      							llen = llen - 1
+      						Loop Until InStr(WORDBREAKCHARS, Mid$(str1, start1, 1))
+      					End If
+      				End If
+      				
+      				' ditto, if the last char in the matching part is not whitespace,
+      				' check the character following that in each string to see whether
+      				' it's a non-whitespace char.
+      				Dim end1&
+      				
+      				end1 = Start1 + lLen-1 ' pos of last char in 1st match string.
+      				If InStr(WORDBREAKCHARS, Mid$(str1, end1, 1)) = 0 Then
+      					If end1 = Len(str1) Then bShrink = False Else bShrink = InStr(WORDBREAKCHARS, Mid$(str1, end1+1, 1)) = 0
+      					If Not bshrink Then
+      						If Len(str2) >= start2+llen Then
+      							bShrink = InStr(WORDBREAKCHARS, Mid$(str2, start2+llen, 1)) = 0
+      						End If
+      					End If
+      					If bshrink Then
+      						Do
+      							llen = llen - 1
+      							If llen = 0 Then Exit Function
+      						Loop Until 0 <> InStr(WORDBREAKCHARS, Mid$(str1, start1+llen-1, 1))
+      					End If
+      				End If
+      		End Select
+      		reduceMatchByMode = True
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Sub scattershot
+      		Description: Implement the scattershot algorithm for finding a list of the
+      			longest common substrings of two strings.
+      	%END REM
+      	Private Sub scattershot(str1$, str2$)
+      		Dim dblStep As Double, xlen&, dblStart As Double
+      		Dim maxlen&, bestpossible&, pos&, pos2&, limit&, tmp$, bFirstPass As Boolean
+      		On Error GoTo ERRHANDLE
+      		cReserve = 0 ' none found as yet.
+      		bFirstPass = True
+      		maxLen = Len(str1) ' assume str1 is the shorter one
+      		If iMode = DIFFMODE_LINE Then
+      			mustBeAtLeast = max(9, maxlen \ 120)
+      		ElseIf maxlen > 400 Then 
+      			mustBeAtLeast = 40
+      		Else 
+      			mustBeAtLeast = max(3, maxlen \ 20) ' if the matching section is less than 5% of the string it's probably a fluke.
+      		End If
+      		xlen = max(2, mustBeAtLeast \ 3)
+      		limit = maxlen - xlen + 1 ' highest character index to take test substring.
+      		dblStep = (limit - 1.0) / 2.0 ' from 1.5 to limit+.5 in 2 steps
+      		bestpossible = maxlen ' on the first pass, we might match all of str1.
+      		dblStart = 1.5
+      
+      		Do Until bestpossible < mustBeAtLeast Or dblStep < 1.0
+      			pos = Int(dblStart)
+      			Do
+      				tmp = Mid$(str1, pos, xlen)
+      				pos2 = InStr(str2, tmp)
+      				Do While pos2
+      					If Not inReserve(pos, pos2) Then
+      						Dim p1&, p2&, llen&
+      						p1 = pos
+      						p2 = pos2
+      						llen = xlen
+      						expandextract str1, Str2, p1, p2, Llen, 0 ' @@ xstep+xlen-1
+      						AddReserve p1, p2, llen
+      						If llen + llen >= maxlen And cReserve > 0 Then
+      							cReserve = 1
+      							Exit Sub
+      						End If
+      					End If
+      					pos2 = InStr(pos2+1, str2, tmp)
+      				Loop
+      
+      				dblStart = dblStart + dblStep
+      				pos = Int(dblStart)
+      			Loop Until pos > limit
+      			
+      			If bFirstPass Then
+      				' Longest matching substring we failed to find on first pass, might run from
+      				' one character after the beginning of a "window" to one character
+      				' before end of the next "window". Its length would be:
+      				bestPossible = xLen + dblStep - 1
+      				bFirstPass = False
+      			Else
+      				' after the first pass we halve step step size, to hit the positions midway
+      				' between those already checked.
+      				' so the steps are half the size.
+      				dblStep = dblStep / 2.0
+      				bestPossible = xlen + dblStep
+      			End If
+      			dblStart = 1.5 + (dblStep / 2.0)
+      			If cReserve Then
+      				If bestpossible <= reserve(0).llen Then
+      					Exit Do
+      				End If
+      			End If	
+      		Loop
+      
+      		If cReserve Then
+      			Do While bestpossible > reserve(cReserve-1).llen
+      				' discard matches that are shorter than the longest match
+      				' we might have missed. We don't want to create nodes about them
+      				' because they're not necessarily a LCS in their regions.
+      				cReserve = cReserve - 1
+      				If cReserve = 0 Then Exit Do
+      			Loop
+      		End If
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	Private Sub tmscattershot(str1$, str2$)
+      		Dim dblStep As Double, xlen&, dblStart As Double
+      		Dim maxlen&, bestpossible&, pos&, pos2&, limit&, tmp$, bFirstPass As Boolean, goodEnough As Long
+      		On Error GoTo ERRHANDLE
+      		cReserve = 0 ' none found as yet.
+      		bFirstPass = True
+      		maxLen = Len(str1) ' assume str1 is the shorter one
+      		goodEnough = maxlen \ 2
+      		If TranslationMode Then maxlen = min(maxlen, 20000)
+      		If iMode = DIFFMODE_LINE Then
+      			mustBeAtLeast = max(9, maxlen \ 60)
+      		ElseIf maxlen > 400 Then 
+      			If TranslationMode Then
+      				mustBeAtLeast = 12
+      				goodEnough = min(goodEnough, 500)
+      			Else
+      				mustBeAtLeast = 40
+      			End If
+      		Else 
+      			mustBeAtLeast = max(3, maxlen \ 20) ' if the matching section is less than 5% of the string it's probably a fluke.
+      		End If
+      		xlen = max(2, mustBeAtLeast \ 3)
+      		If TranslationMode Then xlen = mustBeAtLeast
+      		limit = maxlen - xlen + 1 ' highest character index to take test substring.
+      		
+      		dblStep = (limit - 1.0) / 2.0 ' from 1.5 to limit+.5 in 2 steps
+      		bestpossible = maxlen ' on the first pass, we might match all of str1.
+      		dblStart = 1.5
+      
+      		Do Until bestpossible < mustBeAtLeast Or dblStep < 1.0
+      			pos = Int(dblStart)
+      			Do
+      				tmp = Mid$(str1, pos, xlen)
+      				pos2 = InStr(str2, tmp)
+      				Do While pos2
+      					If Not inReserve(pos, pos2) Then
+      						Dim p1&, p2&, llen&
+      						p1 = pos
+      						p2 = pos2
+      						llen = xlen
+      						expandextract str1, Str2, p1, p2, Llen, 0 ' @@ xstep+xlen-1
+      						AddReserve p1, p2, llen
+      						If llen >= goodEnough And cReserve > 0 Then
+      							cReserve = 1
+      							Exit Sub
+      						End If
+      					End If
+      					pos2 = InStr(pos2+1, str2, tmp)
+      					If TranslationMode Then
+      						If pos2 > pos * 3 Then
+      							Exit Do
+      						End If
+      					End If
+      				Loop
+      
+      				dblStart = dblStart + dblStep
+      				pos = Int(dblStart)
+      			Loop Until pos > limit
+      			
+      			If bFirstPass Then
+      				' Longest matching substring we failed to find on first pass, might run from
+      				' one character after the beginning of a "window" to one character
+      				' before end of the next "window". Its length would be:
+      				bestPossible = xLen + dblStep - 1
+      				bFirstPass = False
+      			Else
+      				' after the first pass we halve step step size, to hit the positions midway
+      				' between those already checked.
+      				' so the steps are half the size.
+      				dblStep = dblStep / 2.0
+      				bestPossible = xlen + dblStep
+      			End If
+      			dblStart = 1.5 + (dblStep / 2.0)
+      			If cReserve Then
+      				If bestpossible <= reserve(0).llen Then
+      					Exit Do
+      				End If
+      			End If	
+      		Loop
+      
+      		If cReserve Then
+      			Do While bestpossible > reserve(cReserve-1).llen
+      				' discard matches that are shorter than the longest match
+      				' we might have missed. We don't want to create nodes about them
+      				' because they're not necessarily a LCS in their regions.
+      				cReserve = cReserve - 1
+      				If cReserve = 0 Then Exit Do
+      			Loop
+      		End If
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      
+      	%REM
+      		Sub stepster
+      		Description: Appropriate for use in situations where the files are expected to have lots of short differences,
+      			e.g. when comparing original and translated versions of the same application.
+      	%END REM
+      	Private Sub xstepster(str1$, str2$)
+      		Dim xlen&, cSegments&, segment&, i&, ptmp&, offset%, goodenough&, prettygood&
+      		Dim maxlen&, pos1&, pos2&, tmp$
+      		Dim rat1 As Double, rat2 As Double
+      		On Error GoTo ERRHANDLE
+      		
+      		cReserve = 0 ' none found as yet.
+      		maxLen = Len(str1) ' assume str1 is the shorter one
+      		If maxlen < 60000 Then
+      			scattershot str1, str2
+      			Exit Sub
+      		End If
+      		
+      		xlen = 100
+      		goodenough = 1000
+      		prettygood = 250
+      		For offset = 0 To xlen-1 Step xlen\2
+      			cSegments = (maxlen - offset + xlen\2) \ xlen
+      			segment = cSegments \ 2 ' start in the middle so we first find matches that split the string evenly
+      			For i = 1 To cSegments
+      				pos1 = segment * xlen + 1 + offset
+      				tmp = Mid$(str1, pos1, xlen)
+      				pos2 = InStr(str2, tmp)
+      				If pos2 Then
+      					' make sure they're at roughly the same place in the string.
+      					rat1 = CDbl(maxlen) / pos1
+      					rat2 = CDbl(Len(str2)) / pos2
+      					If Abs(rat1-rat2) <= .15 Then
+      						If Not inReserve(pos1, pos2) Then
+      							' we don't already know about this match
+      							' make sure the string is unique on both sides
+      							ptmp = InStr(str1, tmp)
+      							If ptmp = pos1 Then
+      								ptmp = InStr(pos1+1, str1, tmp, 0)
+      								If ptmp = 0 Then
+      									ptmp = InStr(pos2+1, str2, tmp, 0)
+      									If ptmp = 0 Then
+      										Dim p1&, p2&, llen&
+      										p1 = pos1
+      										p2 = pos2
+      										llen = xlen
+      										expandextract str1, Str2, p1, p2, Llen, 0 ' @@ xstep+xlen-1
+      										AddReserve p1, p2, llen
+      										If llen >= goodenough And cReserve > 0 Then
+      											Exit Sub
+      										End If
+      										If creserve > 3 And reserve(3).llen >= prettygood Then
+      											Exit Sub
+      										End If
+      									End If
+      								End If
+      							End If
+      						End If
+      					End If
+      				End If
+      				If i And 1 Then
+      					' step forward
+      					segment = segment + i
+      				Else
+      					' back up
+      					segment = segment - i
+      				End If
+      			Next
+      		Next
+      		If cReserve Then Exit Sub ' didn't find much but it'll have to do.
+      		If bDebug Then Stop ' shoot -- got all the way through with no decent-length matches.
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub Process
+      		Description: Take a "different" node and look for portions of the strings
+      			that are identical, creating "same" nodes out of them, until
+      			there are no more identical parts.
+      	%END REM
+      	Private Sub Process(node As DiffResultNode)
+      		On Error GoTo ERRHANDLE
+      		If Len(node.val1) = 0 Then Exit Sub
+      		If Len(node.val2) = 0 Then Exit Sub
+      		If Len(node.val1) <= Len(node.val2) Then
+      			If TranslationMode Then Call xstepster(node.val1, node.val2) Else Call scattershot(node.val1, node.val2)
+      		Else
+      			If TranslationMode Then Call xstepster(node.val2, node.val1) Else Call scattershot(node.val2, node.val1)
+      			SwapReserve
+      		End If
+      		If cReserve Then
+      			' some matches were found
+      			Dim recs(0 To 9) As ReserveRec, crec%, arec As ReserveRec
+      			While cReserve
+      				arec = reserve(0)
+      				If reduceMatchByMode(node.val1, node.val2, arec.start1, arec.Start2, arec.llen) Then
+      					UsedReserve arec
+      					recs(crec) = arec
+      					crec = crec + 1
+      				Else
+      					discardReserve
+      				End If
+      			Wend
+      			If crec = 0 Then Exit Sub ' no matches found, leave them as different.
+      			Dim i%, j%
+      			' sort the match records in order as they appear in the string
+      			For i = 0 To crec-2
+      				For j = i+1 To crec-1
+      					If recs(i).start1 > recs(j).start1 Then
+      						arec = recs(i)
+      						recs(i) = recs(j)
+      						recs(j) = arec
+      					End If
+      				Next
+      			Next
+      			Dim ncur As DiffResultNode, pos1 As Long, pos2 As Long, bCre As Boolean
+      			Dim str1$, str2$
+      			str1 = node.val1
+      			str2 = node.val2
+      			Set ncur = node
+      			pos1 = 1
+      			pos2 = 1
+      			bCre = False
+      			For i = 0 To crec-1
+      				arec = recs(i) ' position of first same block
+      				If arec.start1 > pos1 Or arec.start2 > pos2 Then
+      					' there's a 'diff' record before this same block
+      					If bCre Then
+      						Set ncur = New DiffResultNode(ncur, True)
+      						z_count = z_count + 1
+      					Else
+      						bCre = True
+      					End If
+      					ncur.SetDiff Mid$(str1, pos1, arec.start1-pos1) ,Mid$(str2, pos2, arec.start2-pos2)
+      					qWork.push ncur
+      				End If
+      				If bCre Then
+      					Set ncur = New DiffResultNode(ncur, True)
+      					z_count = z_count + 1
+      				Else
+      					bCre = True
+      				End If
+      				ncur.SetSame Mid$(str1, arec.start1, arec.llen)
+      				pos1 = arec.start1 + arec.llen
+      				pos2 = arec.start2 + arec.llen
+      			Next
+      			If pos1 <= Len(str1) Or pos2 <= Len(str2) Then
+      				' final diff node.
+      				Set ncur = New DiffResultNode(ncur, True)
+      				z_count = z_count + 1
+      				ncur.SetDiff Mid$(str1, pos1), Mid$(str2, pos2)
+      				qWork.push ncur
+      			End If
+      		End If
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub OptimizeMatches
+      		Description: If there are matches in the reserve, determine which set we can use that
+      			will allow the most matching to be used. For instance, if we have a match of 300
+      			characters, but using that match means we can't use two other matches of 200 chars
+      			each, we want to use the 200-char matches. 
+      	%END REM
+      	Sub OptimizeMatches
+      		On Error GoTo ERRHANDLE
+      		If cReserve < 3 Then Exit Sub
+      		Dim maxtotal&, total&, besttotal&, bestbits&, inactive(0 To 9) As Boolean, ind%
+      		For ind = 0 To cReserve
+      			maxTotal = maxtotal + reserve(ind).llen ' theoretical best
+      		Next
+      		
+      		Do
+      			'
+      			If inactive(ind) Then
+      				ind = ind + 1
+      				If ind = cReserve Then Exit Do
+      			Else
+      				
+      			End If
+      		Loop
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      End Class
+      
+      %REM
+      	Class DiffResultNode
+      	Description: Nodes of a linked list of results of a diff tool.
+      %END REM
+      Class DiffResultNode
+      	id As Long
+      	Public prev As DiffResultNode
+      	Public Next As DiffResultNode
+      	Public isSame As Boolean
+      	Public val1 As String
+      	Public val2 As String
+      
+      	Private z_lineCount1 As Long
+      	Private z_lineCount2 As Long
+      	
+      	%REM
+      		Sub New
+      		Description: The insertionpoint is the node that this is added adjacent to,
+      			and bAfter is True if the new node is supposed to follow the insertion point,
+      			False to precede it.
+      	%END REM
+      	Sub New(insertionpoint As DiffResultNode, ByVal bAfter As Boolean)
+      		id = createSeqNo
+      		On Error GoTo ERRHANDLE
+      		If insertionpoint Is Nothing Then
+      			Set Me.next = Nothing
+      			Set Me.prev = Nothing
+      		ElseIf bAfter Then
+      			Set Me.prev = insertionpoint
+      			Set Me.next = insertionpoint.next
+      			If Not (Me.next Is Nothing) Then
+      				Set Me.next.prev = Me
+      			End If
+      			Set insertionpoint.next = Me
+      		Else
+      			Set Me.next = insertionpoint
+      			Set Me.prev = insertionpoint.prev
+      			If Not (Me.prev Is Nothing) Then
+      				Set Me.prev.next = Me
+      			End If
+      			Set insertionpoint.prev = Me
+      		End If
+      		z_lineCount1 = -1
+      		z_lineCount2 = -1
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub SetSame
+      		Description: Set this to be a "same" node with the given text. 
+      	%END REM
+      	Sub SetSame(szVal$)
+      		On Error GoTo ERRHANDLE
+      		IsSame = True
+      		val1 = szVal
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub EraseChain
+      		Description: An alternative to StringDiffer.Clean -- free all the memory
+      			in the linked list. This is needed because the nodes refer to each other
+      			in a doubly linked list, so their reference counters will never drop
+      			to zero even when the pointer to the first node goes out of scope.
+      	%END REM
+      	Sub EraseChain
+      		Dim tmp As DiffResultNode, tmpNext As DiffResultNode
+      		On Error GoTo ERRHANDLE
+      		Set tmp = Me.Next
+      		Do Until tmp Is Nothing
+      			Set tmpNext = tmp.Next
+      			Delete tmp
+      			Set tmp = tmpNext
+      		Loop
+      		
+      		Set tmp = Me.Prev
+      		Do Until tmp Is Nothing
+      			Set tmpNext = tmp.prev
+      			Delete tmp
+      			Set tmp = tmpNext
+      		Loop
+      		
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub SetDiff
+      		Description: Make this a "different" node with the two values given. 
+      	%END REM
+      	Sub SetDiff(szVal1$, szVal2$)
+      		On Error GoTo ERRHANDLE
+      		IsSame = False
+      		val1 = szVal1
+      		val2 = szVal2
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Property Get lines1
+      		Description: Return the number of lines in the first value
+      	%END REM
+      	Public Property Get lines1 As Long
+      		On Error GoTo ERRHANDLE
+      		If z_lineCount1 < 0 Then
+      			z_lineCount1 = GCU.countOccurrences(val1, NEWLINE)
+      		End If
+      		lines1 = z_lineCount1
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      
+      	%REM
+      		Property Get lines2
+      		Description: Return the number of lines in the first value
+      	%END REM
+      	Public Property Get lines2 As Long
+      		On Error GoTo ERRHANDLE
+      		If issame Then
+      			lines2 = lines1
+      		Else
+      			If z_lineCount2 < 0 Then
+      				z_lineCount2 = GCU.countOccurrences(val2, NEWLINE)
+      			End If
+      			lines2 = z_lineCount2
+      		End If
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	Public Property Get Head As DiffResultNode
+      		If Me.prev Is Nothing Then
+      			Set Head = Me
+      		Else
+      			Dim tmp As DiffResultNode
+      			Set tmp = Me.prev
+      			While Not tmp.prev Is Nothing
+      				Set tmp = tmp.prev
+      			Wend
+      			Set Head = tmp
+      		End If
+      	End Property
+      
+      End Class
+      
+      %REM
+      	Class DiffWriter
+      	Description: Once you have the list of differences and same sections, you often will want to
+      		display the results to a user. This base class provides methods to override to produce
+      		the specific type of output you need.
+      %END REM
+      Class DiffWriter
+      	Public MaxSegment As Long	' blocks of text longer than this will have a ellipsis in the middle (0 = don't add ellipsis)
+      	Public EllipsisText As String
+      	z_first As Boolean
+      	z_last As Boolean
+      	
+      	Sub New
+      		On Error GoTo ERRHANDLE
+      		EllipsisText = "@@@" ' easier to see than "..."
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub WriteNewText
+      		Description: Output an indication that a string was added (it was in string2 but not string1).
+      	%END REM
+      	Private Sub WriteNewText(strNewText$)
+      	End Sub
+      	
+      	%REM
+      		Sub WriteDeletedText
+      		Description: Output an indication that text was removed from string1.
+      	%END REM
+      	Private Sub WriteDeletedText(strDeleted$)
+      	End Sub
+      	
+      	%REM
+      		Sub WriteSameText
+      		Description: Output a stretch of text that was the same in both strings.
+      	%END REM
+      	Private Sub WriteSameText(strSame$)
+      	End Sub
+      	
+      	%REM
+      		Sub WriteModified
+      		Description: Indicate that a section was changed between the two strings.
+      	%END REM
+      	Private Sub WriteModified(szOld$, szNew$)
+      		On Error GoTo ERRHANDLE
+      		WriteDeletedText szOld
+      		WriteNewText szNew
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub PutText
+      		Description: Write text into the output (lower-level routine called by the
+      			various "write" functions.
+      	%END REM
+      	Private Sub PutText(strText$)
+      	End Sub
+      	
+      	%REM
+      		Sub WriteText
+      		Description: Insert ellipsis if needed, and write given text to the output.
+      			It's assumed that styling, HTML tags or whatever have already been output
+      			that will make this text appear correctly for whatever you're doing.
+      	%END REM
+      	Private Sub WriteText(strText$)
+      		On Error GoTo ERRHANDLE
+      		If MaxSegment Then
+      			If Len(strText) > MaxSegment Then
+      				PutText Left$(strText, MaxSegment/2 - 2)
+      				WriteEllipsis
+      				PutText Right$(strText, MaxSegment/2 - 2)
+      				Exit Sub
+      			End If
+      		End If
+      		PutText strText
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub WriteEllipsis
+      		Description: Output an indication that characters were omitted here.
+      	%END REM
+      	Private Sub WriteEllipsis
+      	End Sub
+      	
+      	%REM
+      		Sub WriteDiffs
+      		Description: Scan the list of nodes and call the appropriate other routines to
+      			generate the desired output.
+      	%END REM
+      	Sub WriteDiffs(diffs As DiffResult)
+      		Dim firstNode As DiffResultNode
+      		Dim node As DiffResultNode
+      		On Error GoTo ERRHANDLE
+      		Set firstNode = diffs.First
+      		z_first = True
+      		Set node = firstNode
+      		Begin
+      		Do Until node Is Nothing
+      			z_last = (node.Next Is Nothing)
+      			If node.isSame Then
+      				If Len(node.val1) Then
+      					WriteSameText node.val1
+      				End If
+      			Else
+      				If Len(node.val1) Then
+      					If Len(node.val2) Then
+      						WriteModified node.val1, node.val2
+      					Else
+      						WriteDeletedText node.val1
+      					End If
+      				ElseIf Len(node.val2) Then
+      					WriteNewText node.val2
+      				End If			
+      			End If
+      			Set node = node.Next
+      			z_first = False
+      		Loop
+      		Finish
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub Finish
+      		Description: Routine called automatically when output generation is finished.
+      	%END REM
+      	Private Sub Finish
+      	End Sub
+      	
+      	%REM
+      		Sub Begin
+      		Description: Called automatically before start of output generation.
+      	%END REM
+      	Private Sub Begin
+      	End Sub
+      End Class
+      %REM
+      	Class DiffWriterRT
+      	Description: The "rich text" version of the DiffWriter uses rich text styles to
+      		indicate what's been added, deleted, modified.
+      %END REM
+      Class DiffWriterRT As DiffWriter
+      	Public styleNew As NotesRichTextStyle	' style for text that was added.
+      	Public styleDel As NotesRichTextStyle	' text that was deleted
+      	Public styleNormal As NotesRichTextStyle	' that that's the same in the compared strings
+      	Public styleEllipsis As NotesRichTextStyle	' the "..." you might choose to insert in long blocks.
+      	
+      	Private m_curStyle As NotesRichTextStyle
+      	m_rti As NotesRichTextItem
+      	
+      	%REM
+      		Sub new
+      		Description: Pass in the rich text item into which you would like the results written.
+      	%END REM
+      	Sub New(rti As NotesRichTextItem)
+      		On Error GoTo ERRHANDLE
+      		Set m_rti = rti
+      		Dim session As New NotesSession
+      		Set styleNew = session.Createrichtextstyle
+      		styleNew.Bold = True
+      		styleNew.Notescolor = COLOR_RED
+      		styleNew.Strikethrough = False
+      		
+      		Set styleDel = session.Createrichtextstyle
+      		styleDel.Bold = True
+      		styleDel.Strikethrough = True
+      		styleDel.Notescolor = COLOR_BLUE
+      		
+      		Set styleNormal = session.Createrichtextstyle
+      		styleNormal.Bold = False
+      		styleNormal.Strikethrough = False
+      		styleNormal.Notescolor = COLOR_BLACK
+      		
+      		Set styleEllipsis = session.Createrichtextstyle
+      		styleEllipsis.Bold = False
+      		styleEllipsis.Strikethrough = False
+      		styleEllipsis.Notescolor = COLOR_MAGENTA
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub WriteStyledText
+      		Description: Output a style followed by some text. Remember which
+      			style was used so that if we have to interrupt it with ellipsis,
+      			we know how to resume the style after the ellipsis.
+      	%END REM
+      	Private Sub WriteStyledText(style As NotesRichTextStyle, strDat$)
+      		On Error GoTo ERRHANDLE
+      		Set m_curStyle = style
+      		m_rti.Appendstyle style
+      		WriteText strDat
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub WriteNewText
+      		Description: See base class. 
+      	%END REM
+      	Private Sub WriteNewText(strNewText$)
+      		On Error GoTo ERRHANDLE
+      		WriteStyledText styleNew, strNewText
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub WriteDeletedText
+      		Description: See base class.
+      	%END REM
+      	Private Sub WriteDeletedText(strDeleted$)
+      		On Error GoTo ERRHANDLE
+      		WriteStyledText styleDel, strDeleted
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub WriteEllipsis
+      		Description: Write an indication that the text was abridged here.
+      	%END REM
+      	Private Sub WriteEllipsis
+      		On Error GoTo ERRHANDLE
+      		m_rti.Appendstyle styleEllipsis
+      		m_rti.Appendtext EllipsisText
+      		m_rti.Appendstyle m_curStyle
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub WriteSameText
+      		Description: See base class.
+      	%END REM
+      	Private Sub WriteSameText(szText$)
+      		On Error GoTo ERRHANDLE
+      		WriteStyledText styleNormal, szText
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub PutText
+      		Description: Write text to a rich text field; because of a bug registering newlines
+      			if the argument to AppendText is too long, break long strings up into smaller chunks.
+      	%END REM
+      	Private Sub PutText(strText$)
+      		On Error GoTo ERRHANDLE
+      		If Len(strText) > 14000 Then
+      			Dim i As Long, tmp$
+      			For i = 1 To Len(strText) Step 14000
+      				tmp = Mid$(strText, i, 14000)
+      				m_rti.Appendtext tmp
+      			Next
+      		Else
+      			m_rti.Appendtext strText
+      		End If
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub Finish
+      		Description: Called when output generation is complete.
+      	%END REM
+      	Private Sub Finish
+      		On Error GoTo ERRHANDLE
+      		m_rti.Update
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      End Class
+      %REM
+      	Class DiffWriterHTML
+      	Description: Generate HTML output of a string difference list, using HTML elements
+      		presumed to be defined in the stylesheet (they have no meaning in regular HTML).
+      %END REM
+      Class DiffWriterHTML As DiffWriter
+      	m_result As NotesStream
+      	
+      	Public NewTag As String		' lets you control what's output around "new" text.
+      	Public DelTag As String
+      	Public EllipsisTag As String
+      	
+      	%REM
+      		Sub New
+      		Description: You may pass in your own stream (if you want output to a file, for instance)
+      			or pass Nothing and a stream will be generated for you.
+      	%END REM
+      	Sub New(stream As NotesStream)
+      		On Error GoTo ERRHANDLE
+      		If stream Is Nothing Then
+      			Dim session As New NotesSession
+      			Set m_result = session.CreateStream
+      		Else
+      			Set m_result = stream
+      		End If
+      		NewTag = "new"
+      		DelTag = "strike"
+      		EllipsisTag = "ellipsis"
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Property Get Stream
+      		Description: The stream containing the output. Note the Position will not be at zero.
+      	%END REM
+      	Public Property Get Stream As NotesStream
+      		On Error GoTo ERRHANDLE
+      		Set stream = m_result
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		Property Get HTML
+      		Description: The text version of the output. If you passed the constructor a stream,
+      			this will include any characters that were in the stream originally.
+      	%END REM
+      	Public Property Get HTML
+      		On Error GoTo ERRHANDLE
+      		m_result.Position = 0
+      		HTML = m_result.Readtext
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		Sub WriteNewText
+      		Description: Write text inside a <new> element.
+      	%END REM
+      	Private Sub WriteNewText(strNewText$)
+      		On Error GoTo ERRHANDLE
+      		m_result.Writetext {<} & NewTag & {>}
+      		WriteText strNewText
+      		m_result.Writetext {</} & StrToken(NewTag, " ", 1) & {>}
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub WriteDeletedText
+      		Description: Write text inside a <strike> element.
+      	%END REM
+      	Private Sub WriteDeletedText(strDeleted$)
+      		On Error GoTo ERRHANDLE
+      		m_result.Writetext {<} & DelTag & {>}
+      		WriteText strDeleted
+      		m_result.Writetext {</} & StrToken(DelTag, " ", 1) & {>}
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub WriteSameText
+      		Description: Just write the "plain" text.
+      	%END REM
+      	Private Sub WriteSameText(strSame$)
+      		On Error GoTo ERRHANDLE
+      		WriteText strSame
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub PutText
+      		Description: When putting text at the lowest level, convert to HTML chars.
+      	%END REM
+      	Private Sub PutText(strText$)
+      		On Error GoTo ERRHANDLE
+      		m_result.Writetext ToHTML(strText)
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub WriteEllipsis
+      		Description: Write an indication that characters were omitted at this point.
+      	%END REM
+      	Private Sub WriteEllipsis
+      		On Error GoTo ERRHANDLE
+      		m_result.Writetext "<" & EllipsisTag & ">" & EllipsisText & "</" & StrToken(EllipsisTag, " ", 1) & ">"
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      End Class
+      
+      %REM
+      	Class DiffWriterSideBySide
+      	Description: A variant of the HTML writer that creates an HTML table showing the diffs.
+      		In this case the New and Del elements are replaced with arguments to the TD tag.
+      %END REM
+      Class DiffWriterSideBySide As DiffWriterHTML
+      	Public EmptyTag As String
+      	
+      	Sub New(stream As NotesStream), DiffWriterHTML(stream)
+      		On Error GoTo ERRHANDLE
+      		NewTag = {bgcolor="#C0FFC0"}
+      		DelTag = {bgcolor="#FFC0C0"}
+      		EmptyTag = {bgcolor="#C0C0C0"}
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub Begin
+      		Description: Called automatically before starting to output node data.
+      	%END REM
+      	Private Sub Begin
+      		On Error GoTo ERRHANDLE
+      		m_result.Writetext {<table width="100%" border="0"><tr><td width="50%" align="center"><em>OLD</em></td><td width="50%" align="center"><em>NEW</em></td>}
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub Finish
+      		Description: Called automatically when the writing is done.
+      	%END REM
+      	Private Sub Finish
+      		On Error GoTo ERRHANDLE
+      		m_result.Writetext {</table>}
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      
+      	%REM
+      		Sub WriteNewText
+      		Description: New text is displayed on the right, with a blank cell on the left.
+      	%END REM
+      	Private Sub WriteNewText(szText$)
+      		On Error GoTo ERRHANDLE
+      		m_result.Writetext {<tr><td } & EmptyTag & {></td><td } & NewTag & {>}
+      		WriteText szText
+      		m_result.Writetext {</td></tr>}
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub WriteDeletedText
+      		Description: Deleted text is displayed on the left, with a blank cell on the right.
+      	%END REM
+      	Private Sub WriteDeletedText(szText$)
+      		On Error GoTo ERRHANDLE
+      		m_result.Writetext {<tr><td } & DelTag & {>}
+      		WriteText szText
+      		m_result.Writetext {</td><td bgcolor="#C0C0C0"></td></tr>}
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub WriteModified
+      		Description: Modified text is displayed with the original on the left and the
+      			new text on the right.
+      	%END REM
+      	Private Sub WriteModified(sz1$, sz2$)
+      		On Error GoTo ERRHANDLE
+      		m_result.Writetext {<tr><td bgcolor="#FFC0C0">}
+      		Writetext sz1
+      		m_result.Writetext {</td><td bgcolor="#C0FFC0">}
+      		Writetext sz2
+      		m_result.Writetext {</td></tr>}
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub WriteSame
+      		Description: Text that's the same between the two sides is displayed in a merged row.
+      	%END REM
+      	Private Sub WriteSameText(szText$) 
+      		On Error GoTo ERRHANDLE
+      		m_result.Writetext {<tr><td colspan="2">}
+      		WriteText szText
+      		m_result.Writetext {<td></tr>}
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      End Class
+      %REM
+      	Class DiffResult
+      	Description: Contains the result of a string comparison.
+      %END REM
+      Class DiffResult
+      	Public First As DiffResultNode
+      	Public Count As Long
+      	
+      	%REM
+      		Property Get Same
+      		Description: Returns True if the strings compared were identical.
+      	%END REM
+      	Public Property Get Same As Boolean
+      		On Error GoTo ERRHANDLE
+      		Same = First.Next Is Nothing And first.isSame
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	Sub Delete
+      		On Error Resume Next
+      		First.EraseChain
+      	End Sub
+      	
+      	Public Property Get Last As DiffResultNode
+      		Dim tmp As DiffResultNode
+      		Set tmp = First
+      		Do Until tmp Is Nothing
+      			Set me.last = tmp
+      			Set tmp = tmp.Next
+      		Loop
+      	End Property
+      	
+      	%REM
+      		Function Remove
+      		Description: Remove a node from the difference list, returning the next node.
+      		Arguments:
+      			node: node to be removed.
+      	%END REM
+      	function Remove(node As DiffResultNode) As DiffResultNode
+      		On Error GoTo oops
+      		Set me.Remove = node.Next
+      		If node Is first Then
+      			Set First = node.Next
+      		Else
+      			Set node.prev.Next = node.Next
+      		End If
+      		If Not (node.next Is Nothing) Then
+      			Set node.Next.prev = node.prev
+      		End If
+      		Count = Count - 1
+      		'On Error Resume Next
+      		'@@Delete node
+      		Exit Function
+      oops:
+      		Stop
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Function mergeWithNeighbors
+      		Description: Combine two or three nodes into one. The resulting node will be of the opposite type (same/different) as the argument.
+      			If the argument is a different node, the val1 will be kept and the difference lost.
+      		Arguments:
+      			node: the middle node of the three to be merged.
+      		Return value: the new merged node, which will be the last of the three.
+      	%END REM
+      	Function mergeWithNeighbors(node As DiffResultNode) As DiffResultNode
+      		On Error GoTo ERRHANDLE
+      		If Not (node.Next Is Nothing) Then
+      			Set mergeWithNeighbors = node.Next
+      			mergeWithNeighbors.val1 = node.val1 & mergeWithNeighbors.val1
+      			If node.isSame Then
+      				mergeWithNeighbors.val2 = node.val1 & mergeWithNeighbors.val2
+      			End If
+      			If Not (node.prev Is Nothing) Then
+      				mergeWithNeighbors.val1 = node.prev.val1 & mergeWithNeighbors.val1
+      				If node.issame Then
+      					mergeWithNeighbors.val2 = node.prev.val2 & mergeWithNeighbors.val2
+      				End If
+      				me.Remove node.prev
+      			End If
+      			me.remove node
+      		Else ' no next node, put combined values in current node.
+      			Set mergeWithNeighbors = node
+      			If Not (node.prev Is Nothing) Then
+      				If node.isSame Then
+      					Call node.SetDiff(node.prev.val1 & node.val1, node.prev.val2 & node.val1)
+      				Else ' discard the value in val2 to make the new string a same node.
+      					Call node.setSame(node.prev.val1 & node.val1)
+      				End If
+      				me.remove node.prev
+      			End If
+      		End If
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      End Class
+      '++LotusScript Development Environment:2:1:createSeqNo:5:8
+      %REM
+      	Function createSeqNo
+      	Description: Assign a new sequential ID number for a memory object.
+      %END REM
+      Function createSeqNo As Long
+      	Static SnextNum As Long
+      	createSeqNo = Snextnum
+      	On Error GoTo wrap
+      	Snextnum = Snextnum + 1
+      	Exit Function
+      wrap:
+      	Snextnum = &h80000000
+      	Exit Function
+      End Function
+      
+      '++LotusScript Development Environment:2:1:ToHTML:6:8
+      %REM
+      	Function ToHTML
+      	Description: Escape special characters in the input string to
+      		produce an HTML representation of the string. 
+      %END REM
+      Private Function ToHTML(strText$) As String
+      	Static ffrom() As String, tto() As String
+      	On Error GoTo arrayinit
+      tryagain:
+      	ToHTML = Replace(strText, ffrom, tto)
+      	Exit Function
+      arrayinit:
+      	ReDim ffrom(0 To 4)
+      	ReDim tto(0 To 4)
+      	ffrom(0) = {&}
+      	ffrom(1) = {>}
+      	ffrom(2) = {<}
+      	ffrom(3) = {"}
+      	ffrom(4) = {
+      }
+      	tto(0) = {&amp;}
+      	tto(1) = {&gt;}
+      	tto(2) = {&lt;}
+      	tto(3) = {&quot;}
+      	tto(4) = {<br>}
+      	GoTo tryAgain
+      End Function
+      
+      '++LotusScript Development Environment:2:1:WhitespaceNear:13:8
+      
+      %REM
+      	Function WhitespaceNear
+      	Description: Locate the nearest whitespace character to a given position in a
+      		string, either before or after,
+      	Parameters:
+      		- strval: the string to search
+      		- pos:	starting position for search
+      		- range: number of characters before and after to search.
+      	Returns: position of whitespace character. If none found in the given
+      		range, returns pos.  
+      %END REM
+      Private Function WhitespaceNear(strVal$, ByVal pos As Long, ByVal range As Long) As Long
+      	On Error GoTo ERRHANDLE
+      	If Not (Mid$(strVal, pos, 1) Like WORDBREAKMATCH) Then
+      		Dim ssign As Long, li As Long, newpos As Long
+      		For li = 1 To range
+      			For ssign = -li To li Step (li+li)
+      				newpos = pos + ssign
+      				If Mid$(strVal, newpos, 1) Like WORDBREAKMATCH Then
+      					WhitespaceNear = newpos
+      					Exit Function
+      				End If
+      			Next
+      		Next
+      	End If
+      	WhitespaceNear = pos
+      	Exit Function
+      ERRHANDLE:
+      	Error Err, Error & { //} & GetThreadInfo(1) & {:} & Erl
+      End Function
+    signed: true
+    nonsummary: true
+  - name: $TITLE
+    type: text
+    data: StringDiff
+    signed: true
+remaining: []

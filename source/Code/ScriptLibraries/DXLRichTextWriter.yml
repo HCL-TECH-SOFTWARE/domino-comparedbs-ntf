@@ -1,0 +1,2088 @@
+---
+class: 512
+flags: 0x2000
+unid: OFBEE457098411330A-ON004C1865862586E0
+items:
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: 34Qs
+  - name: $PublicAccess
+    type: text
+    data: "1"
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-08-25T12:49:40.61-05:00"
+        dst: true
+      - data: "2021-08-25T12:49:40.66-05:00"
+        dst: true
+      - data: "2021-09-16T12:02:37.13-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:56.67-05:00"
+        dst: true
+      - data: "2021-09-27T20:24:52.70-05:00"
+        dst: true
+      - data: "2021-09-27T20:24:52.71-05:00"
+        dst: true
+      - data: "2021-09-27T20:53:23.92-05:00"
+        dst: true
+      - data: "2021-09-27T20:53:23.93-05:00"
+        dst: true
+      - data: "2021-09-27T20:57:48.36-05:00"
+        dst: true
+      - data: "2021-09-27T20:57:48.37-05:00"
+        dst: true
+      - data: "2021-09-27T21:51:25.09-05:00"
+        dst: true
+      - data: "2021-09-27T21:51:25.10-05:00"
+        dst: true
+      - data: "2021-09-27T22:02:49.95-05:00"
+        dst: true
+      - data: "2021-09-27T22:02:49.99-05:00"
+        dst: true
+      - data: "2021-09-27T22:19:02.11-05:00"
+        dst: true
+      - data: "2021-09-27T22:19:02.14-05:00"
+        dst: true
+      - data: "2021-09-27T22:21:01.80-05:00"
+        dst: true
+      - data: "2021-09-27T22:21:01.82-05:00"
+        dst: true
+      - data: "2021-09-27T22:33:23.36-05:00"
+        dst: true
+      - data: "2021-11-18T08:17:22.95-06:00"
+      - data: "2021-11-18T08:17:22.99-06:00"
+      - data: "2021-11-29T13:25:45.83-05:00"
+      - data: "2021-11-29T13:25:45.84-05:00"
+      - data: "2021-11-29T13:26:35.65-05:00"
+  - name: $ScriptLib
+    type: text
+    data: |
+      '++LotusScript Development Environment:2:5:(Options):0:74
+      %REM
+      	Library DXLRichTextWriter
+      	Description: A general-purpose library for producing rich text by constructing the DXL description of the
+      		desired document. To create the actual document then requires an import, which saves a document.
+      		However, this class uses a temporary database to create the imported document and then copies the result
+      		to a document it is passed, which need not ever be saved. This makes it handy for creating memos and
+      		display-only reports.
+      	© Copyright HCL Company, 2021
+      %END REM
+      Option Public
+      Option Declare
+      
+      Use "DOMUtils"
+      Use "TempFolderManager"
+      Use "CommonUtil"
+      Use "Resources"
+      
+      '++LotusScript Development Environment:2:5:(Forward):0:1
+      Declare Class DXLRichNode
+      Declare Class DXLParStyle As DXLRichNode
+      Declare Class DXLBorder As DXLRichNode
+      Declare Class DXLStyle
+      Declare Class DXLReporter
+      Declare Class DXLTextContainer As DXLRichNode
+      Declare Class DXLRichContainer As DXLTextContainer
+      Declare Class DXLBody As DXLRichContainer
+      Declare Class DXLTable As DXLRichNode
+      Declare Class DXLPar As DXLTextContainer
+      Declare Class DXLCell As DXLRichContainer
+      Declare Class DXLSection As DXLRichContainer
+      Declare Sub Initialize
+      Declare Function NotesColorName(colorcode%) As String
+      
+      '++LotusScript Development Environment:2:5:(Declarations):0:10
+      Const ERR_UNDEF_METHOD = 20040
+      Const MSG_UNDEF_METHOD = "Undefined method {0}"
+      Const ERR_CREATEDOMTREE = "Error creating report DOM tree: [ {0:Err} ]: "
+      
+      'Begin DNT
+      Private Const EFFECTNAMES = {superscript,subscript,shadow,emboss,extrude} ' corresponding to EFFECTS_ builtin constants.
+      Private Const STYLENAMES = {bold=1 italic=2 underline=4 strikethrough=8}
+      Private Gstyles List As Integer
+      
+      Private CTRL_CHARS_ARR As Variant
+      
+      Const LIST_NONE = 0
+      Const LIST_BULLET = 1
+      Const LIST_NUMBER = 2
+      Const LIST_CHECK = 3
+      Const LIST_UNCHECK = 4
+      Const LIST_CIRCLE = 5
+      Const LIST_SQUARE = 6
+      Const LIST_UCALPHA = 7
+      Const LIST_LCALPHA = 8
+      Const LIST_UCROMAN = 9
+      Const LIST_LCROMAN = 10
+      
+      Const CELLBORDER_SOLID = 0
+      Const CELLBORDER_RIDGE = 1
+      Const CELLBORDER_GROOVE = 2
+      
+      Const HILITE_NONE = 0
+      Const HILITE_YELLOW = 1
+      Const HILITE_PINK = 2
+      Const HILITE_BLUE = 3
+      
+      
+      %REM
+      	Class DXLRichNode
+      	Description: Corresponds to a DXL element node but can't contain just anything.
+      %END REM
+      Class DXLRichNode
+      	Public Node As NotesDOMElementNode
+      	Public Body As DXLBody
+      	
+      	Sub New(parent As DXLRichNode, elemName$)
+      		On Error GoTo ERRHANDLE
+      		If Not (parent Is Nothing) Then
+      			Set Body = parent.Body
+      			Set Node = body.domdoc.CreateElementNode(elemName)
+      		End If
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      
+      	Public Property Set Attr(ByVal attrname$) As String
+      		On Error GoTo ERRHANDLE
+      		If Len(attr) Then
+      			node.Setattribute attrname, attr
+      		Else
+      			node.Removeattribute attrname
+      		End If
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	Public Property Set AttrBool(ByVal Attrname$, bDef As Boolean) As Boolean
+      		On Error GoTo ERRHANDLE
+      		If AttrBool = bDef Then
+      			node.Removeattribute attrname
+      		ElseIf AttrBool Then
+      			Node.Setattribute attrname, "true"
+      		Else
+      			Node.Setattribute attrname, "false"
+      		End If
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      End Class
+      
+      
+      %REM
+      	Class DXLParStyle
+      	Description: A paragraph definition
+      %END REM
+      Class DXLParStyle As DXLRichNode
+      	Public ID As Integer
+      	
+      	Sub New(body As DXLBody), dxlrichnode(body, "pardef")
+      	End Sub
+      
+      	Function Clone(sName$) As DXLParStyle
+      		On Error GoTo ERRHANDLE
+      		Set clone = body.CreatePStyle(sName)
+      		Set clone.Node = Node.Clone(True)
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	Public Property Set KeepTogether As Boolean
+      		On Error GoTo ERRHANDLE
+      		AttrBool("keeptogether", False) = KeepTogether
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	Public Property Set KeepWithNext As Boolean
+      		On Error GoTo ERRHANDLE
+      		AttrBool("keepwithnext", False) = KeepWithNext
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		SET Align
+      		Value: ALIGN_ constant.
+      	%END REM
+      	Public Property Set Align As Integer
+      		On Error GoTo ERRHANDLE
+      		attr("align") = StrToken({|right|full|center|none}, "|", Align+1)
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		SET LineSpacing
+      		Values: SPACING_DOUBLE (4), SPACING_ONE_POINT_25 (1), SPACING_ONE_POINT_50 (2)
+      			SPACING_ONE_POINT_75 (3), SPACING_SINGLE (0)
+      	%END REM
+      	Public Property Set LineSpacing As Integer
+      		On Error GoTo ERRHANDLE
+      		Attr("linespacing") = Replace(CStr((2.0 + Linespacing) / 2), ",", ".")
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		SET SpaceBefore
+      		Values: SPACING_DOUBLE (4), SPACING_ONE_POINT_25 (1), SPACING_ONE_POINT_50 (2)
+      			SPACING_ONE_POINT_75 (3), SPACING_SINGLE (0)
+      	%END REM
+      	Public Property Set SpaceBefore As Integer
+      		On Error GoTo ERRHANDLE
+      		Attr("spacebefore") = Replace(CStr((2.0 + SpaceBefore) / 2), ",", ".")
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		SET SpaceAfter
+      		Values: SPACING_DOUBLE (4), SPACING_ONE_POINT_25 (1), SPACING_ONE_POINT_50 (2)
+      			SPACING_ONE_POINT_75 (3), SPACING_SINGLE (0)
+      	%END REM
+      	Public Property Set SpaceAfter As Integer
+      		On Error GoTo ERRHANDLE
+      		Attr("spaceafter") = Replace(CStr((2.0 + SpaceAfter) / 2), ",", ".")
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		SET hideFlags
+      		value: A string containing the value of the hide attribute ("notes web mobile")
+      	%END REM
+      	Public Property Set hideFlags As String
+      		On Error GoTo ERRHANDLE
+      		Attr("hide") = hideFlags
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		SET list
+      		value: One of the LIST_ constants
+      	%END REM
+      	Public Property Set List As Integer
+      		On Error GoTo ERRHANDLE
+      		attr("list") = StrToken({'|bullet|number|check|uncheck|circle|square|alphaupper|alphalower|romanupper|romanlower}, "|", Me.List+1)
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		SET LeftMargin
+      		Description: margin setting, e.g. "1.25in" or "7%"
+      	%END REM
+      	Public Property Set LeftMargin As String
+      		On Error GoTo ERRHANDLE
+      		Attr("leftmargin") = LeftMargin
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		Sub AddTabStop
+      		Description: Add a tab stop.
+      		Arguments:
+      			tabtype: TAB_LEFT (0), TAB_CENTER (3), TAB_DECIMAL (2), TAB_RIGHT (1)
+      			pos: position of tab stop in TWIPS, which should be RULER_ONE_INCH.
+      	%END REM
+      	Sub AddTabStop(ByVal tabType%, ByVal pos&)
+      		Dim newTab$
+      		On Error GoTo ERRHANDLE
+      		newTab = Mid$("LRDC", Tabtype+1, 1) & Replace(Format(CDbl(pos)/RULER_ONE_INCH, "0.####"), ",", ".") & "in"
+      		node.Setattribute "tabs", Trim(node.Getattribute("tabs") & " " & newTab)
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      End Class
+      %REM
+      	Class DXLBorder
+      	Description: Represents the border settings of a table or the like.
+      %END REM
+      Class DXLBorder As DXLRichNode
+      	Sub New(parent As DXLRichNode), DXLRichNode(parent, "border")
+      	End Sub
+      	
+      	%REM
+      		SET style
+      		values: none (or ""), solid, ... (see border.styles in help)
+      	%END REM
+      	Public Property Set style As String
+      		On Error GoTo ERRHANDLE
+      		If style = "none" Then
+      			Attr("style") = ""
+      		Else
+      			Attr("style") = style
+      		End If
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		SET Width
+      		value: border width in pixels (default 0)
+      	%END REM
+      	Public Property Set Width As Integer
+      		On Error GoTo ERRHANDLE
+      		setWidthsImp Me.Width & "px"
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		SET Color
+      		Value: Border color name (e.g. "navy") or "#hhhhhh" code. "" for default (black)
+      	%END REM
+      	Public Property Set Color As String
+      		On Error GoTo ERRHANDLE
+      		Attr(color) = Color
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		SET Dropshadow
+      		Value: 0 for no shadow, else width in pixels.
+      	%END REM
+      	Public Property Set Dropshadow As Integer
+      		On Error GoTo ERRHANDLE
+      		If dropshadow <= 0 Then
+      			Attr("dropshadow") = ""
+      			Attr("dropshadowwidth") = ""
+      		Else
+      			Attr("dropshadow") = "true"
+      			Attr("dropshadowwidth") = Dropshadow & "px"
+      		End If
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		Sub SetWidths
+      		Description: Set the widths of the table border to different numbers on each side.
+      		Arguments: widths in pixels.
+      	%END REM
+      	Sub SetWidths(ByVal iTop%, ByVal iRight%, ByVal iBottom%, ByVal iLeft%)
+      		On Error GoTo ERRHANDLE
+      		If iTop = iRight And iTop = iBottom And iTop = iLeft Then
+      			setWidthsImp iTop & "px"
+      		Else
+      			setWidthsImp iTop & "px " & iRight & "px " & iBottom & "px " & iLeft & "px"
+      		End If
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	Private Sub setWidthsImp(szWidth$)
+      		Dim el As NotesDOMElementNode
+      		On Error GoTo ERRHANDLE
+      		Set el = Node
+      		If szWidth = "0px" Or szWidth = "" Then
+      			el.SetAttribute "style", ""
+      			el.SetAttribute "width", ""
+      		Else
+      			el.SetAttribute "width", szWidth
+      			If el.GetAttribute("style") = "" Then
+      				el.SetAttribute "style", "solid"
+      			End If
+      		End If
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      End Class
+      %REM
+      	Class DXLStyle
+      	Description: Represents a "font" element
+      %END REM
+      Class DXLStyle
+      	z_font As String ' default 'default sans serif'
+      	z_size As String ' default 10pt
+      	z_color As String ' default black
+      	z_style As Integer ' a bit for each style option, 1=bold etc.
+      	Public Effect As Integer	' EFFECTS_ constant
+      	Public SpellCheck As Boolean	' FALSE if we are not to spell check the text (language=Unknown)  
+      	z_domdoc As NotesDOMDocumentNode
+      	
+      	Public Passthru As Boolean
+      	Public Hilite As Integer ' HILITE_xxx value
+      	
+      	Sub New(domdoc As NotesDOMDocumentNode)
+      		On Error GoTo ERRHANDLE
+      		Set z_domdoc = domdoc
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Function AddRun
+      		Description: Using the current style, add text to the paragraph or other parent element (rg table cell) we're passed.
+      		Arguments:
+      			elPar: the <par> or other element to which to append.
+      			szText: the text to add to it.
+      		Return value: the parent node of the text element created, in case caller wants to add to the run.
+      			This node may be the same as elPar, or it may be a span or run element.
+      	%END REM
+      	Function AddRun(elPar As NotesDOMElementNode, szText$) As NotesDOMElementNode
+      		On Error GoTo oops
+      		Dim elFont As NotesDOMElementNode, elRun As NotesDOMElementNode, elSpan As NotesDOMElementNode, nSib As NotesDOMNode
+      		Dim typsib$, elContainer As NotesDOMElementNode
+      
+      		If Not spellcheck Then
+      			Set nSib = elPar.LastChild
+      			If Not nSib.Isnull Then typsib = nSib.nodename
+      			If typsib = "span" Then ' there's already a span element -- we can just add to it. This assumes turning off spellcheck is the only reason we use span.
+      				Set elContainer = nSib
+      			Else
+      				Set elContainer = z_domdoc.CreateElementNode("span")
+      				elContainer.setAttribute "propid", "0"
+      				elPar.appendchild elContainer
+      			End If
+      		End If
+      		If elContainer Is Nothing Then Set elContainer = elPar
+      		' container at this point is a span, par, tablecell or similar.
+      		If needsRunElement Then
+      			Set elRun = createRun
+      			Set elFont = createFont
+      			If Not (elFont Is Nothing) Then elRun.appendChild elFont
+      			elContainer.appendChild elRun
+      			Set elContainer = elRun
+      		End If
+      		Dim tex As NotesDOMTextNode
+      		If Len(szText) Then
+      			Set tex = z_domdoc.createtextnode(szText)
+      			elContainer.appendchild tex
+      		End If
+      		Set AddRun = elContainer
+      		Exit Function
+      oops:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Function createRun
+      		Description: %TODO
+      		Arguments:
+      		Return value:
+      	%END REM
+      	Private Function createRun As NotesDOMElementNode
+      		Set createRun = z_domdoc.createelementnode("run")
+      		If Passthru Then createRun.setAttribute "html", "true"
+      		If Hilite Then createRun.setAttribute "highlight", StrToken("yellow pink blue", " ", hilite)
+      	End Function
+      	
+      	%REM
+      		Function needsFont
+      		Description: %TODO
+      		Arguments:
+      		Return value:
+      	%END REM
+      	Private Property Get needsFont As Boolean
+      		needsfont = (Len(z_font) + Len(z_size) + Len(z_color) + z_style + Effect) > 0
+      	End Property
+      	
+      	%REM
+      		Function createFont
+      		Description: create the <font> element needed to express this style
+      		Arguments:
+      		Return value: The font element, or Nothing if no font element is needed.
+      	%END REM
+      	Public Function createFont As NotesDOMElementNode
+      		If Not needsFont Then Exit Function ' returning Nothing
+      		Set createFont = z_domdoc.createelementnode("font")
+      		If z_font <> "" Then createFont.setAttribute "name", z_font
+      		If z_size <> "" Then createFont.setAttribute "size", z_size
+      		If z_color <> "" Then createFont.setAttribute "color", z_color
+      		Dim szStyle$
+      		If z_style Then
+      			ForAll stynum In Gstyles
+      				If (z_style And stynum) Then
+      					szStyle = szStyle & " " & ListTag(stynum)
+      				End If
+      			End ForAll
+      		End If
+      		If Effect Then
+      			szStyle = szStyle & { } & StrToken(EFFECTNAMES, ",", Effect)
+      		End If
+      		If Len(szStyle) Then
+      			createFont.setAttribute "style", Mid$(szStyle, 2)
+      		End If
+      	End Function
+      	
+      	%REM
+      		Function Clone
+      		Description: Return a copy of the object.
+      	%END REM
+      	Function Clone(body As DXLBody, ByVal sname$) As DXLStyle
+      		On Error GoTo ERRHANDLE
+      		Set Clone = body.CreateStyle(sName)
+      		Clone.Passthru = Passthru
+      		Clone.hilite = hilite
+      		clone.spellcheck = spellcheck
+      		Clone.z_color = z_color
+      		clone.z_size = z_size
+      		clone.z_font = z_font
+      		Set clone.z_domdoc = z_domdoc
+      		clone.z_style = z_style
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Property Get needsRunElement
+      		Description: Determine whether the style needs a "run" element in the DXL output.
+      	%END REM
+      	Private Property Get needsRunElement As Boolean
+      		needsRunElement = True
+      		If passthru Or (hilite <> Hilite_NONE) Then Exit Property ' returning true
+      		needsRunElement = needsFont
+      	End Property
+      	
+      	%REM
+      		GET needsSpanElement
+      		Description: True if the style is for default text
+      	%END REM
+      	Private Property Get needsSpanElement As Boolean
+      		On Error GoTo ERRHANDLE
+      		needsSpanElement = Not spellcheck 
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	Private Sub addstyle(x$)
+      		On Error GoTo ERRHANDLE
+      		Dim code%
+      		code = Gstyles(x)
+      		z_style = z_style Or code
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	Private Sub delstyle(x$)
+      		Dim code%
+      		code = Gstyles(x)
+      		z_style = z_style And Not code
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		SET Italic
+      		Description: Whether the text is italicized
+      	%END REM
+      	Public Property Set Italic As Boolean
+      		On Error GoTo ERRHANDLE
+      		
+      		If Italic Then addstyle("italic") Else delstyle("italic")
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	Public Property Set Bold As Boolean
+      		On Error GoTo ERRHANDLE
+      		If Bold Then addstyle("bold") Else delstyle("bold")
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	Public Property Set Underline As Boolean
+      		On Error GoTo ERRHANDLE
+      		If Underline Then addstyle("underline") Else delstyle("underline")
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	Public Property Set Strikethrough As Boolean
+      		On Error GoTo ERRHANDLE
+      		If strikethrough Then addstyle("strikethrough") Else delstyle("strikethrough")
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		SET Color
+      		Description: Sets text color. Example: "blue" or "#E4C509"
+      			See also NotesColor property.
+      	%END REM
+      	Public Property Set Color As String
+      		On Error GoTo ERRHANDLE
+      		If IsNumeric(color) Then
+      			Error 24942, "Illegal color value " & color & " (did you mean to use NotesColor?)."
+      		End If
+      		If Color = "black" Or color = "#000000" Or color = "#000" Then
+      			z_color = ""
+      		Else
+      			z_color = Color
+      		End If
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		SET NotesColor
+      		Description: Use a Notes color number to select a color.
+      	%END REM
+      	Public Property Set NotesColor As Integer
+      		On Error GoTo ERRHANDLE
+      		Color = NotesColorName(NotesColor)
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		SET Font
+      		Description: Use FONT_ROMAN, etc or the name of a font.
+      	%END REM
+      	Public Property Set Font As String
+      		On Error GoTo ERRHANDLE
+      		Select Case font
+      		Case "0"
+      			z_font = ""
+      		Case "1"
+      			z_Font = "serif"
+      		Case "4"
+      			z_Font = "monospace"
+      		Case Else
+      			z_Font = font
+      		End Select
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		SET Size
+      		Description: Size in Points
+      	%END REM
+      	Public Property Set Size As Integer
+      		On Error GoTo ERRHANDLE
+      		If Size = 10 Then
+      			z_size = ""
+      		Else
+      			z_size = Size & "pt"
+      		End If
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      End Class
+      %REM
+      	Class DXLReporter
+      	Description: Create rich text reports using DXL
+      %END REM
+      Class DXLReporter
+      	z_dbTemp As NotesDatabase
+      	z_tfm As TempFolderManager
+      	z_domp As NotesDOMParser
+      	z_domdoc As NotesDOMDocumentNode
+      	Public body As DXLBody
+      	
+      	%REM
+      		Sub New
+      		Arguments:
+      			db: the database in which reports will be created. You'll get an unsaved document
+      				with just a Body item out of this system, up to you whether you save, mail, or display it.
+      	%END REM
+      	Sub New(db As NotesDatabase)
+      		Dim ses As New NotesSession
+      		Dim doc As NotesDocument
+      		Dim retryCount As Integer
+      		
+      redoc:
+      		On Error GoTo ERRHANDLE
+      		Set doc = db.Createdocument()
+      		Dim dxle As NotesDXLExporter
+      		Set dxle = ses.Createdxlexporter(doc)
+      		Set z_domp = ses.Createdomparser(dxle)
+      		dxle.Outputdoctype = False
+      		If retryCount < 3 Then On Error GoTo exportErr
+      		dxle.Process
+      		On Error GoTo ERRHANDLE
+      		Set z_domdoc = z_domp.Document
+      		Dim elDoc As NotesDOMElementNode, elItem As NotesDOMElementNode, elBody As NotesDOMElementNode
+      		Dim elTP As NotesDOMElementNode, elTPs As NotesDOMElementNode
+      		Set elDoc = z_domdoc.Documentelement
+      		Set elTPs = z_domdoc.Createelementnode("textproperties")
+      		Set elTP = z_domdoc.Createelementnode("textproperty")
+      		elDoc.Appendchild elTPs
+      		elTP.Appendchild elTPs
+      		elTP.Setattribute "propid", "0"
+      		elTP.Setattribute "language", "Unknown"
+      		Set elItem = z_domdoc.Createelementnode("item")
+      		elItem.Setattribute "name", "Body"
+      		elDoc.Appendchild elItem
+      		Set body = New DXLBody(z_domdoc, elItem)
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      exportErr:
+      		MsgBox Replace(ERR_CREATEDOMTREE, "{0:Err}", Err) & Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0)) & NEWLINE _
+      		& dxle.Log & NEWLINE & MSG_RETRYING
+      		retryCount = retryCount + 1
+      		GoTo redoc
+      	End Sub
+      	
+      	%REM
+      		Function toString
+      		Description: Return the DXL rich text data as a string.
+      	%END REM
+      	Function toString As String
+      		Dim stream As NotesStream, ses As New NotesSession
+      		On Error GoTo ERRHANDLE
+      		Set stream = ses.Createstream
+      		z_domp.Setoutput stream
+      		z_domp.Serialize
+      		stream.Position = 0
+      		toString = stream.Readtext
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		GET DBTemp
+      		Description: Return the temporary database that we do our importing into.
+      	%END REM
+      	Property Get DBTemp As NotesDatabase
+      		On Error GoTo ERRHANDLE
+      		If z_dbTemp Is Nothing Then
+      			Dim fpath$
+      			Set z_tfm = New TempFolderManager("dxlwr")
+      			fpath = z_tfm.CreateFilename("nsf", False)
+      			Set z_dbTemp = New NotesDatabase("", fpath)
+      			z_dbTemp.Create "", "", True
+      		End If
+      		Set DBTemp = z_dbTemp
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		Sub AddItem
+      		Description: Add an item value to the DXL description of the document.
+      		Arguments:
+      	%END REM
+      	Sub AddItem(ByVal itemName$, valu)
+      		Dim elItem As NotesDOMElementNode, elVal As NotesDOMElementNode, tex As NotesDOMTextNode
+      		Set elItem = z_domdoc.Createelementnode("item")
+      		elItem.Setattribute "name", itemName
+      		Set elVal = itemValDXL(valu)
+      		elItem.Appendchild elVal
+      		Call z_domdoc.Documentelement.Appendchild(elItem)
+      	End Sub
+      	
+      	%REM
+      		Function itemValDXL
+      		Description: Translate an item value into its DXL representation, e.g. <text>0</text> or
+      			<numberlist><number>15</number><number>0</number></numberlist>. Only text and numbers are currently supported.
+      		Arguments: the value to represent.
+      		Return value: an Element node which can be made the chile of an item element.
+      	%END REM
+      	Private Function itemValDXL(valu) As NotesDOMElementNode
+      		Dim elTmp As NotesDOMElementNode, i%
+      		If IsArray(valu) Then
+      			Set elTmp = itemValDXL(valu(LBound(valu)))
+      			Set itemValDXL = z_domdoc.Createelementnode(elTmp.nodename & "list")
+      			itemValDXL.Appendchild elTmp
+      			For i = LBound(valu) + 1 To UBound(valu)
+      				itemValDXL.Appendchild itemValDXL(valu(i))
+      			Next
+      		Else
+      			Dim szName$
+      			If DataType(valu) = V_STRING Then
+      				szName = "text"
+      			Else
+      				szName = "number"
+      			End If
+      			Set itemValDXL = z_domdoc.Createelementnode(szName)
+      			itemValDXL.Appendchild z_domdoc.Createtextnode(CStr(valu))
+      		End If
+      	End Function
+      	
+      	%REM
+      		Sub SaveToFile
+      		Description: Rather than render the DXL to a document, save it to an XML file.
+      		Arguments:
+      	%END REM
+      	Sub SaveToFile(ByVal filepath$)
+      		Dim stream As NotesStream, ses As New NotesSession
+      		Set stream = ses.Createstream
+      		' replace the default UTF-16 character set XMLDecl with a UTF-8 -- less wasteful.
+      		Dim xdecl As NotesDOMXMLDeclNode, nmap As NotesDOMNamedNodeMap, nattr As NotesDOMAttributeNode
+      		Set xdecl = z_domdoc.Firstchild
+      		Dim nuX As NotesDOMXMLDeclNode
+      		Set nux = z_domdoc.Createxmldeclnode("1.0", "UTF-8", "")
+      		z_domdoc.Replacechild nuX, xdecl
+      		stream.Open filepath, "UTF-8"
+      		z_domp.Setoutput stream
+      		z_domp.Serialize
+      	End Sub
+      	
+      	%REM
+      		Sub Render
+      		Description: Render the data into a Notes document rich text item.
+      	%END REM
+      	Sub Render(doc As NotesDocument, fieldname$)
+      		Dim ses As New NotesSession, dxli As NotesDXLImporter, stream As NotesStream
+      		Dim dbOut As NotesDatabase, docTmp As NotesDocument
+      		Dim rtiTmp As NotesRichTextItem, rtiOut As NotesRichTextItem, tpIn As Variant, tpOut As Variant
+      		On Error GoTo ERRHANDLE
+      		Set dbOut = DBTemp
+      		Set stream = ses.createstream
+      		z_domp.Setoutput stream
+      		z_domp.Serialize
+      		Set dxli = ses.Createdxlimporter(stream, dbOut)
+      		dxli.Documentimportoption = dxlimportoption_create
+      		dxli.Inputvalidationoption = VALIDATE_NEVER
+      		On Error GoTo oops
+      		dxli.Process
+      		If dxli.Importednotecount Then
+      			Set docTmp = dbOut.Getdocumentbyid(dxli.Getfirstimportednoteid)
+      			Set tpIn = docTmp.Getfirstitem({$TextProperties})
+      			If Not (tpIn Is Nothing) Then
+      				Set tpOut = tpIn.CopyItemToDocument(doc, {$TextProperties})
+      			End If
+      			Set rtiTmp = docTmp.Getfirstitem("Body")
+      			If doc.Hasitem(fieldname) Then
+      				Set rtiOut = doc.Getfirstitem(fieldname)
+      				rtiOut.Appendrtitem rtiTmp
+      			Else
+      				Set rtiOut = rtiTmp.Copyitemtodocument(doc, fieldname)
+      			End If
+      			rtiOut.Update
+      			docTmp.Remove True
+      		Else
+      			Error 23440, "Import fail! " & DU_SimpleLog(dxli.Log)
+      		End If
+      		Exit Sub
+      oops:
+      		Error Err, Error & " (log: " & DU_SimpleLog(dxli.Log) & ")"
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	Sub Delete
+      		On Error GoTo ERRHANDLE
+      		If Not (z_dbTemp Is Nothing) Then
+      			z_dbTemp.Remove
+      		End If
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      End Class
+      %REM
+      	Class DXLTextContainer
+      	Description: a node that has AddText and AddStyledText methods, which may be implemented differently in the subclass.
+      %END REM
+      Class DXLTextContainer As DXLRichNode
+      	Sub New(parent As DXLRichNode, elemName$), DXLRichNode(parent, elemName)
+      	End Sub
+      	
+      	%REM
+      		Function AddText
+      		Description: Add text with the current styling.
+      		Arguments: the text to add
+      		Return value: the paragraph it was added into.
+      	%END REM
+      	Function AddText(szText$) As DXLPar
+      		Error ERR_UNDEF_METHOD, Replace(MSG_UNDEF_METHOD, "{0}", GetThreadInfo(1))
+      	End Function
+      	
+      	%REM
+      		Function AddStyledText
+      		Description: Add text with specified styling.
+      		Arguments:
+      			szText: the text to add.
+      			sty: the styling to apply to it.
+      		Return value: paragraph it was added into.
+      	%END REM
+      	Function AddStyledText(szText$, sty) As DXLPar
+      		Error ERR_UNDEF_METHOD, Replace(MSG_UNDEF_METHOD, "{0}", GetThreadInfo(1))
+      	End Function
+      	
+      	%REM
+      		Sub SetStyle
+      		Description: Set styling for text added after this point.
+      		Arguments:
+      	%END REM
+      	Sub SetStyle(style)
+      		Error ERR_UNDEF_METHOD, Replace(MSG_UNDEF_METHOD, "{0}", GetThreadInfo(1))
+      	End Sub
+      End Class
+      %REM
+      	Class DXLRichContainer
+      	Description: A node that may contain paragraphs,
+      		such as a section content or the field as a whole.
+      %END REM
+      Class DXLRichContainer As DXLTextContainer
+      	z_domdoc As NotesDOMDocumentNode
+      	z_Style As DXLStyle
+      	z_PStyle As Integer
+      	
+      	z_curPar As DXLPar
+      	
+      	Sub New(parent As DXLRichNode, elemName$), DXLTextContainer(parent, elemName)
+      		On Error GoTo ERRHANDLE
+      		If Not (parent Is Nothing) Then
+      			' copy the current default last used styles from parent object.
+      			If parent IsA "DXLRichContainer" Then
+      				Dim drc As DXLRichContainer
+      				Set drc = parent
+      				Set z_Style = drc.z_Style
+      				z_PStyle = drc.z_PStyle
+      			End If
+      		End If
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	Sub Append(x As DXLRichNode)
+      		On Error GoTo ERRHANDLE
+      		Node.Appendchild x.Node
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Function AddTable
+      		Description: Append a table to the rich text, returning the table object.
+      		Arguments:
+      			widths: comma-delimited list of column widths, e.g. "34%,66%"
+      	%END REM
+      	Function AddTable(widths$) As DXLTable
+      		On Error GoTo ERRHANDLE
+      		If z_curPar Is Nothing Then
+      			' lead off with a hidden paragraph
+      			AddStyledPar body.PStyleHidden
+      		End If
+      		Set AddTable = New DXLTable(Me, widths)
+      		Me.Append AddTable
+      		Set z_curPar = Nothing
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Function AddSection
+      		Description: Add a collapsing section to the report.
+      		Arguments:
+      			title: the title text (can be changed later)
+      			TitleParStyle: paragraph style of title
+      			TitleFontStyle: font style of title
+      	%END REM
+      	Function AddSection(ByVal title$, TitleParStyle As DXLParStyle, TitleFontStyle As dxlstyle) As DXLSection
+      		Set AddSection = New DXLSection(Me, TitleParStyle, TitleFontStyle, title)
+      		me.Append AddSection
+      		Set z_curPar = Nothing
+      	End Function
+      	
+      	%REM
+      		Function AddPar
+      		Description: Add a paragraph using the current default style of the container.
+      	%END REM
+      	Function AddPar As DXLPar
+      		On Error GoTo ERRHANDLE
+      		If z_pStyle = 0 Then
+      			Dim psty As DXLParStyle
+      			Set psty = body.PStyleDef
+      			z_pstyle = psty.ID
+      		End If
+      		Set AddPar = New DXLPar(Me, z_PStyle)
+      		Me.Append AddPar
+      		AddPar.SetStyle z_Style
+      		Set z_curPar = AddPar
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Function AddStyledPar
+      		Description: Add a paragraph of a specified style, not affecting the styling for subsequent
+      			paragraphs. Nothing adds using the current default style for the container (but if this
+      			is what you want, see AddPar method).
+      		Arguments:
+      			pstyle: a DXLStyle object or paragraph style name.
+      	%END REM
+      	Function AddStyledPar(pStyle) As DXLPar
+      		Dim ps As DXLParStyle
+      		On Error GoTo ERRHANDLE
+      		If IsObject(pStyle) Then Set ps = pstyle Else Set ps = body.GetPStyle(pStyle)
+      		Set AddStyledPar = New DXLPar(Me, ps.ID)
+      		Me.Append AddStyledPar
+      		Set z_curPar = AddStyledPar
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Sub AddText
+      		Description: Add some text to the container, if necessary creating a paragraph to do so.
+      		Returns: the paragraph the text was added to.
+      	%END REM
+      	Function AddText(szText$) As DXLPar
+      		On Error GoTo ERRHANDLE
+      		If z_curPar Is Nothing Then
+      			Set z_curPar = AddPar
+      		End If
+      		z_curPar.AddText(Sztext)
+      		Set AddText = z_curPar
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      
+      	%REM
+      		Function AddStyledText
+      		Description: Add text styled in a specified way, without changing the current default style.
+      	%END REM
+      	Function AddStyledText(szText$, sty) As DXLPar
+      		On Error GoTo ERRHANDLE
+      		If z_curPar Is Nothing Then
+      			Set z_curPar = AddPar
+      		End If
+      		z_curPar.AddStyledText Sztext, sty
+      		Set AddStyledText = z_curPar
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      
+      	Function GetPStyle(ByVal key$) As DXLParStyle
+      		On Error GoTo ERRHANDLE
+      		Set GetPStyle = body.GetPStyle(key)
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		SetStyle
+      		Description: Set the styling for any text added after this point.
+      		Value: string for name of named style, or a DXLStyle object.
+      			Use NOTHING or "" for default styling.
+      	%END REM
+      	Sub SetStyle(style)
+      		On Error GoTo ERRHANDLE
+      		If IsObject(Style) Then
+      			Set z_Style = style
+      		Else
+      			Set z_Style = Body.GetStyle((Style))
+      		End If
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		SetPStyle
+      		Description: Set the paragraph styling for paragraphs created in this container.
+      			You can also specify a style in AddPar, but it's handy to set the default
+      			if not creating paragraphs manually.
+      		Value: paragraph style name or DXLParStyle object.
+      			"" or Nothing sets to default style (same as body.PStyleDef).
+      	%END REM
+      	Sub SetPStyle(pstyle)
+      		Dim psTmp As DXLParStyle
+      		On Error GoTo ERRHANDLE
+      		If IsObject(PStyle) Then
+      			Set psTmp = PStyle
+      		Else
+      			Set psTmp = body.GetPStyle(PStyle)
+      		End If
+      		If psTmp Is Nothing Then
+      			Set psTmp = body.PStyleDef
+      		End If
+      		z_PStyle = psTmp.id
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      End Class
+      
+      
+      %REM
+      	Class DXLBody
+      	Description: Represents the entirety of a rich text item.
+      %END REM
+      Class DXLBody As DXLRichContainer
+      	z_pardefs List As DXLParStyle
+      	z_pardefsById( ) As DXLParStyle
+      	
+      	z_styles List As DXLStyle
+      	z_lastPardefId As Integer
+      
+      	Public DomDoc As NotesDOMDocumentNode
+      	
+      	Sub New(domd As NotesDOMDocumentNode, elParent As NotesDOMElementNode), dxlrichContainer(Nothing, "")
+      		On Error GoTo ERRHANDLE
+      		Set Me.Body = Me
+      		Set Me.Node = domd.Createelementnode("richtext")
+      		Set Me.DomDoc = domd
+      		elParent.AppendChild Node
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      		
+      	Function CreatePStyle(szName$) As DXLParStyle
+      		On Error GoTo ERRHANDLE
+      		z_lastPardefId = z_lastPardefId + 1
+      		Set CreatePStyle = New DXLParStyle(Me)
+      		CreatePStyle.ID = z_lastPardefId
+      		CreatePStyle.Attr("id") = z_lastPardefId
+      		If Node.Firstchild.Isnull Then
+      			Node.Appendchild CreatePStyle.Node
+      		Else
+      			DU_InsertBefore Domdoc, Node.Firstchild, CreatePStyle.Node
+      		End If
+      		If Len(szName) Then Set z_pardefs(szName) = CreatePStyle
+      		ReDim Preserve z_pardefsById(1 To z_lastPardefId)
+      		Set z_pardefsById(z_lastPardefId) = CreatePStyle
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		GET PStyleDef
+      		Value: The "default" built-in paragraph style.
+      	%END REM
+      	Public Property Get PStyleDef As DXLParStyle
+      		On Error GoTo ERRHANDLE
+      		If Not IsElement(z_pardefs("$default")) Then
+      			Set PStyleDef = CreatePStyle("$default")
+      		Else
+      			Set PStyleDef = z_pardefs("$default")
+      		End If
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		GET PStyleCenter
+      		Value: the "centered" built-in paragraph style.
+      	%END REM
+      	Public Property Get PStyleCenter As DXLParStyle
+      		On Error GoTo ERRHANDLE
+      		If Not IsElement(z_pardefs("$center")) Then
+      			Set PStyleCenter = CreatePStyle("$center")
+      			PStyleCenter.Align = ALIGN_CENTER
+      		Else
+      			Set PStyleCenter = z_pardefs("$center")
+      		End If
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		GET PStyleHidden
+      		Value: the "hidden" built-in paragraph style.
+      	%END REM
+      	Function PStyleHidden As DXLParStyle
+      		On Error GoTo ERRHANDLE
+      		If Not IsElement(z_pardefs("$hidden")) Then
+      			Set PStyleHidden = CreatePStyle("$hidden")
+      			PStyleHidden.hideFlags = "notes web mobile"
+      		Else
+      			Set PStyleHidden = z_pardefs("$hidden")
+      		End If
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Function PStyleBullet
+      		Description: Return the styling for a bullet list.
+      	%END REM
+      	Function PStyleList As DXLParStyle
+      		On Error GoTo ERRHANDLE
+      		If Not IsElement(z_pardefs("$list")) Then
+      			Set PStyleList = CreatePStyle("$list")
+      			PStyleList.List = LIST_BULLET
+      			PStyleList.LeftMargin = "1.5in"
+      		Else
+      			Set PStyleList = z_pardefs("$list")
+      		End If
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      		
+      	%REM
+      		Function CreateStyle
+      		Description: Create an entity that represents a font style (color, points, bold...)
+      		Arguments:
+      			szName: A "tag" which you can later use with the Style property to retrieve the style.
+      	%END REM
+      	Function CreateStyle(szName$) As DXLStyle
+      		On Error GoTo ERRHANDLE
+      		Set CreateStyle = New DXLStyle(Domdoc)
+      		If Len(szName) Then
+      			Set z_styles(szName) = CreateStyle
+      		End If
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	Function GetPStyle(ByVal key$) As DXLParStyle
+      		On Error GoTo ERRHANDLE
+      		If IsElement(z_pardefs(key)) Then
+      			Set GetPStyle = z_pardefs(key)
+      		End If
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Function GetPStyleById
+      		Description: Get the DXLParStyle object with a given ID.
+      	%END REM
+      	Function GetPStyleById(ByVal id%) As DXLParStyle
+      		On Error Resume Next
+      		Set GetPStyleById = z_pardefsById(id)
+      	End Function
+      	
+      	%REM
+      		Function GetStyle
+      		Description: Retrieve the DXLstyle object whose name is given.
+      	%END REM
+      	Function GetStyle(ByVal key$) As DXLStyle
+      		On Error Resume Next
+      		Set GetStyle = z_styles(key)
+      	End Function
+      End Class
+      %REM
+      	Class DXLTable
+      	Description: Represents a table in rich text.
+      %END REM
+      Class DXLTable As DXLRichNode
+      	z_nCols As Integer
+      	z_nRows As Integer
+      	z_curCol As Integer
+      	z_elRow As NotesDOMElementNode
+      	z_widths As String
+      	z_Border As DXLBorder
+      	Public CellBorder As Integer
+      	z_pStyle() As DXLParStyle
+      	z_style() As DXLStyle
+      	
+      	%REM
+      		Sub New
+      		Description: Create the table.
+      		Arguments:
+      			parent: the container of the table, which might be the rich text item,
+      				a table cell, or whatever.
+      			widths: comma-delimited list of column widths, e.g. "34%,66%"
+      	%END REM
+      	Sub New(parent As DXLRichContainer, ByVal widths$), DXLRichNode(parent, "table")
+      		On Error GoTo ERRHANDLE
+      		If widths = "" Then widths = "100%"
+      		z_widths = widths
+      		widthtype = "fitmargins"
+      		Attr("columnspacing") = "0.04in"
+      		Cellborder = 1 ' default border.
+      		GenerateWidthElems Node
+      		ReDim z_Style(1 To z_nCols)
+      		ReDim z_PStyle(1 To z_nCols)
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      
+      	%REM
+      		SetStyle
+      		style: A font style you want to use in all columns, or the name of the style.
+      			Use NOTHING or "" for default styling.
+      	%END REM
+      	Sub SetStyle(style)
+      		Dim styTmp As DXLStyle
+      		On Error GoTo ERRHANDLE
+      		If IsObject(Style) Then
+      			Set styTmp = Style
+      		Else
+      			Set styTmp = body.GetStyle(Style)
+      		End If
+      		Dim colNo%
+      		For colNo = 1 To z_nCols
+      			Set z_style(colNo) = styTmp
+      		Next
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		SetPStyle
+      		Description: Set the default paragraph style for all columns at once.
+      		Value: the paragraph style object or name.
+      	%END REM
+      	Sub SetPStyle(pstyle)
+      		Dim psTmp As DXLParStyle
+      		On Error GoTo ERRHANDLE
+      		If IsObject(Pstyle) Then
+      			Set psTmp = Pstyle
+      		Else
+      			Set psTmp = body.GetPStyle(Pstyle)
+      		End If
+      		Dim colNo%
+      		For colNo = 1 To z_nCols
+      			Set z_Pstyle(colNo) = psTmp
+      		Next
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		SET ColStyle
+      		Value: A font style you want to use in specified column, or the name of the style.
+      		Arguments:
+      			colNo: 1-based column you want to set style for.
+      	%END REM
+      	Public Property Set ColStyle(ByVal colNo%)
+      		Dim styTmp As DXLStyle
+      		On Error GoTo ERRHANDLE
+      		If IsObject(ColStyle) Then
+      			Set styTmp = ColStyle
+      		Else
+      			Set styTmp = body.GetStyle(ColStyle)
+      		End If
+      		Set z_style(colNo) = styTmp
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		SET ColPStyle
+      		Value: A paragraph style you want to use in this column, or the name of the style.
+      		Arguments:
+      			colNo: 1-based column you want to set style for.
+      	%END REM
+      	Public Property Set ColPStyle(ByVal colNo%)
+      		Dim psTmp As DXLParStyle
+      		On Error GoTo ERRHANDLE
+      		If IsObject(ColPstyle) Then
+      			Set psTmp = ColPstyle
+      		Else
+      			Set psTmp = body.GetPStyle(ColPstyle)
+      		End If
+      		Set z_Pstyle(colNo) = psTmp
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		GET Cols
+      		Description: Number of columns in the table.
+      	%END REM
+      	Public Property Get Cols As Integer
+      		On Error GoTo ERRHANDLE
+      		Cols = z_nCols
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      
+      	%REM
+      		GET Rows
+      		Description: Number of rows in the table. NOTE a table may contain up to
+      			255 rows, so if you keep adding rows, this class starts a new table,
+      			and the row counter goes back to zero.
+      	%END REM
+      	Public Property Get Rows As Integer
+      		On Error GoTo ERRHANDLE
+      		Rows = z_nRows
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		Sub GenerateWidthElems
+      		Description: Create the DXL that lists the column widths.
+      	%END REM
+      	Private Sub GenerateWidthElems(elTable As NotesDOMElementNode)
+      		Dim cols, elWidth As NotesDOMElementNode, wtmp$
+      		On Error GoTo ERRHANDLE
+      		cols = Split(z_widths, ",")
+      		z_nCols = UBound(cols) + 1
+      		ForAll col In cols
+      			wtmp = Trim(col)
+      			Set elWidth = body.domdoc.CreateElementNode("tablecolumn")
+      			If wtmp="fit" Then
+      				elWidth.SetAttribute "width", "1.0in"
+      				elWidth.Setattribute "sizetofit", "true"
+      			Else
+      				elWidth.SetAttribute "width", wtmp
+      			End If
+      			elTable.appendchild elWidth
+      		End ForAll
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		SET cellborderstyle
+      		Value: type of cell border used inside the table; use CELLBORDER_ constants
+      			There is no "none" selection; a cell displays no border if its border width is zero.
+      	%END REM
+      	Public Property Set cellborderstyle As Integer
+      		On Error GoTo ERRHANDLE
+      		Attr("cellborderstyle") = StrToken("|ridge|groove", "|", cellborderstyle+1)
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		SET cellbordercolor
+      		Description: Set the border color for internal cell divisions (which may
+      			be different from the table outer border.
+      	%END REM
+      	Public Property Set cellbordercolor As String
+      		On Error GoTo ERRHANDLE
+      		If IsNumeric(cellbordercolor) Then
+      			Error 24942, "Illegal cellbordercolor value " & cellbordercolor & " (use NotesColorName function to convert palette colors)."
+      		End If
+      		attr("cellbordercolor") = cellbordercolor
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		SET colorstyle
+      		Value: One of:
+      			TABLESTYLE_NONE, TABLESTYLE_ALTERNATINGCOLS, TABLESTYLE_ALTERNATINGROWS
+      			TABLESTYLE_LEFT, TABLESTYLE_LEFTTOP, TABLESTYLE_RIGHT, TABLESTYLE_RIGHTTOP
+      			TABLESTYLE_SOLID, TABLESTYLE_TOP
+      		'bgcolor' will apply to the area referred to by the stylename, 'altbgcolor' to other cells.
+      	%END REM
+      	Public Property Set colorstyle As Integer
+      		Const CS_NAMES = {,lefttop,top,left,altcolumns,altrows,righttop,right,solid}
+      		On Error GoTo ERRHANDLE
+      		Node.Setattribute "colorstyle", StrToken(CS_NAMES, ",", colorstyle+1)
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		SET bgcolor
+      		Description: set the main background color of the table.
+      	%END REM
+      	Public Property Set bgcolor As String
+      		On Error GoTo ERRHANDLE
+      		If bgcolor = "none" Then bgcolor = ""
+      		Node.Setattribute "bgcolor", bgcolor
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      
+      	%REM
+      		SET altbgcolor
+      		Description: set the main background color of the table.
+      	%END REM
+      	Public Property Set altbgcolor As String
+      		On Error GoTo ERRHANDLE
+      		Node.Setattribute "altbgcolor", altbgcolor
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		Sub BreakTable
+      		Description: Called when table would exceed the max row count,
+      			starts a new table with the same properties.
+      	%END REM
+      	Sub BreakTable
+      		' reached max rows; create new table.
+      		Dim elContable As NotesDOMElementNode
+      		On Error GoTo ERRHANDLE
+      		Set elContable = Node.Clone(False)
+      		GenerateWidthElems elContable
+      		Dim oldCs$
+      		oldCs = elConTable.Getattribute("colorstyle")
+      		If oldCs = "altrows" Then
+      			' if first table has odd number of rows, must swap colors
+      			If z_nRows And 1 Then
+      				Dim tmp$
+      				tmp = elContable.Getattribute("bgcolor")
+      				elContable.Setattribute "bgcolor", elContable.Getattribute("altbgcolor")
+      				elContable.Setattribute "altbgcolor", tmp
+      			End If
+      		ElseIf oldCS = "top" Then
+      			elContable.Setattribute "colorstyle", "solid"
+      			elContable.Setattribute "bgcolor", elContable.Getattribute("altbgcolor")
+      			elContable.Removeattribute "altbgcolor"
+      		ElseIf oldCS = "righttop" Or oldCS = "lefttop" Then
+      			elContable.Setattribute "colorstyle", Left$(oldCS, Len(oldCS)-3)
+      		End If
+      		
+      		' insert a hidden empty paragraph between tables.
+      		Dim elPar As NotesDOMElementNode, elContainer As NotesDOMElementNode
+      		Dim hiddenStyle As DXLParStyle
+      		Set hiddenStyle = body.PStyleHidden
+      		Set elContainer = Node.Parentnode
+      		Set elPar = body.domdoc.Createelementnode("par")
+      		elPar.setattribute "def", hiddenStyle.ID
+      		elContainer.Appendchild elPar
+      		elContainer.Appendchild elContable
+      		Set Node = elContable
+      		z_nRows = 0
+      		z_curCol = 0
+      		Set z_elRow = Nothing
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	Public Property Get Border As DXLBorder
+      		On Error GoTo ERRHANDLE
+      		If z_Border Is Nothing Then
+      			Set z_Border = New DXLBorder(Me)
+      			DU_InsertBefore body.domdoc, Node.Firstchild, z_Border.Node
+      		End If
+      		Set Border = z_Border
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		SET widthtype
+      		Values: fitmargins, fitwindow, fixedleft, fixedright, fixedcenter
+      	%END REM
+      	Public Property Set widthtype As String
+      		On Error GoTo ERRHANDLE
+      		Attr("widthtype") = widthtype
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		SET columnspacing
+      		Description: e.g. "" or "0.1in" or ".1cm"
+      	%END REM
+      	Public Property Set columnspacing As String
+      		On Error GoTo ERRHANDLE
+      		Attr("columnspacing") = columnspacing
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		SET rowspacing
+      		Description: e.g. "" or "0.1in" or ".1cm"
+      	%END REM
+      	Public Property Set rowspacing As String
+      		On Error GoTo ERRHANDLE
+      		Attr("rowspacing") = rowspacing
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		Function CreateCell
+      		Description: Create a table cell (no spanning)
+      	%END REM
+      	Function CreateCell As DXLCell
+      		On Error GoTo ERRHANDLE
+      		Set CreateCell = CreateSpannedCell(1)
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Function FillCell
+      		Description: Create a cell and also write some text into it.
+      	%END REM
+      	Function FillCell(szText$) As DXLCell
+      		On Error GoTo ERRHANDLE
+      		Set FillCell = CreateCell
+      		Call FillCell.AddText(szText)
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		GET AtEnd
+      		Description: Return True if we are at the end of a table row.
+      	%END REM
+      	Public Property Get AtEnd As Boolean
+      		On Error GoTo ERRHANDLE
+      		AtEnd = z_curCol = 0
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		Function CreateSpannedCell
+      		Description: Create a table cell spanning 'span' columns.
+      	%END REM
+      	Function CreateSpannedCell(ByVal span%) As DXLCell
+      		On Error GoTo ERRHANDLE
+      		If span <= 0 Then span = 1
+      		' z_curcol = 0 if there are no cells on the current row.
+      		If z_curCol + span > z_nCols Then
+      			Error 26500, "Error creating cell that spans " & span & " columns; not that many left in row."
+      		End If
+      		Set CreateSpannedCell = New DXLCell(Me, span)
+      		Dim ind As Integer
+      		ind = z_curCol + 1
+      		CreateSpannedCell.Col = ind
+      		CreateSpannedCell.setPStyle z_pStyle(ind)
+      		CreateSpannedCell.setStyle z_Style(ind)
+      		z_curCol = z_curCol + span
+      		If z_elRow Is Nothing Then
+      			If z_nRows = 255 Then
+      				BreakTable
+      			End If
+      			z_nRows = z_nRows + 1
+      			Set z_elRow = body.domdoc.CreateElementNode("tablerow")
+      			Node.Appendchild z_elRow
+      			z_curCol = span
+      		End If
+      		z_elRow.AppendChild CreateSpannedCell.node
+      		If z_curCol >= z_nCols Then
+      			' finished a row
+      			Set z_elRow = Nothing
+      			z_curCol = 0
+      		End If
+      		If CellBorder <> 1 Then
+      			CreateSpannedCell.Attr("borderwidth") = CellBorder & "px"
+      		End If
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Sub FinishRow
+      		Description: If there are more cells to be filled in on the current row,
+      			create empty cells to fill out the number of columns.
+      		Arguments:
+      			bSpan: if TRUE, use spanning to create a single cell over remaining columns.
+      		Returns: The cell created (if more than one cell created, returns the last).
+      			Nothing if no cells created
+      	%END REM
+      	Function FinishRow(ByVal bSpan As Boolean) As DXLCell
+      		On Error GoTo ERRHANDLE
+      		If Not (z_elRow Is Nothing) Then
+      			Dim cell As DXLCell
+      			If bSpan Then
+      				Set FinishRow = New DXLCell(Me, z_nCols - z_curCol)
+      			Else
+      				Dim i%
+      				For i = z_curCol+1 To z_nCols
+      					Set FinishRow = New DXLCell(Me, 1)
+      				Next
+      				z_curCol = 0
+      				Set z_elRow = Nothing
+      			End If 
+      		End If
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	Sub Delete
+      		On Error GoTo ERRHANDLE
+      		FinishRow True
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      End Class
+      %REM
+      	Class DXLPar
+      	Description: A paragraph.
+      %END REM
+      Class DXLPar As DXLTextContainer
+      	z_curStyle As DXLStyle ' style we last used to write to this paragraph.
+      	' @@ z_lastStyle As DXLStyle	
+      	z_lastContainer As NotesDOMElementNode ' container we last added text to in this paragraph, so we can continue to add in same style.
+      	
+      	Sub New(parent As DXLRichContainer, ByVal def%), DXLTextContainer(parent, "par")
+      		On Error GoTo ERRHANDLE
+      		Attr("def") = def
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		SetStyle
+      		Description: Set the current font style to a given value. 
+      	%END REM
+      	Sub SetStyle(style)
+      		On Error GoTo ERRHANDLE
+      		Dim lastStyle As DXLStyle
+      		Set lastStyle = z_curStyle
+      		If IsObject(Style) Then
+      			Set z_curStyle = style
+      		Else
+      			Set z_curStyle = Body.GetStyle((Style))
+      		End If
+      		If Not (lastStyle Is z_curstyle) Then
+      			' we switched styles, so if we were appending to a run, close it out.
+      			Set z_lastContainer = Nothing
+      		End If
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		Sub AddStyledText
+      		Description: Add a text run with a given style, without changing the default style
+      			of the paragraph (e.g. to write one word in bold).
+      	%END REM
+      	Function AddStyledText(szText$, sty) As DXLPar
+      		Dim dd As NotesDOMDocumentNode
+      		On Error GoTo ERRHANDLE
+      		Set AddStyledText = Me
+      		If Len(szText) Then
+      			' make sure the string contains no characters in a range that shouldn't be in XML. Replace with ?
+      			szText = Replace(szText, CTRL_CHARS_ARR, "?")
+      			Set dd = body.domdoc
+      			setStyle sty
+      			
+      			Dim tex As NotesDOMTextNode, elBreak As NotesDOMElementNode, szMore$, szLine$
+      			Dim bMore As Boolean, nodLast As NotesDOMNode, elContainer As NotesDOMElementNode
+      			
+      			If Not (z_lastContainer Is Nothing) Then
+      				' already have a run going, just add to it.
+      				Set elContainer = z_lastContainer
+      			ElseIf z_curStyle Is Nothing Then
+      				' there's no styling, so use the default styling of just blobbing text nodes into the paragraph 
+      				Set elContainer = node
+      			Else
+      				' we have a new style, so create container for text (might still end up being the par element).
+      				Set elContainer = z_curStyle.AddRun(Node, "")
+      			End If
+      			
+      			' now, we might have one or more lines of text with newline chars between.
+      			' newlines are represented by a break element.
+      			Dim pos&
+      			pos = InStr(szText, NEWLINE)
+      			Do While pos
+      				If pos > 1 Then
+      					szLine = Left$(szText, pos-1)
+      					elContainer.appendChild dd.createTextNode(szLine)
+      				End If
+      				elContainer.appendChild dd.createElementNode("break")
+      				szText = Mid$(szText, pos+1)
+      				pos = InStr(szText, NEWLINE)
+      			Loop
+      			If Len(szText) Then
+      				elContainer.appendChild dd.createTextNode(szText)
+      			End If
+      		End If
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Sub AddText
+      		Description: Add text in the current text style.
+      	%END REM
+      	Function AddText(szText$) As DXLPar
+      		On Error GoTo ERRHANDLE
+      		Set AddText = AddStyledText(Sztext, z_curStyle)
+      		Exit Function
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      	
+      	%REM
+      		Sub AddImage
+      		Description: Insert inline image into the paragraph.
+      		Params:
+      			fileType: "gif", "jpeg", "jpg", or "png"
+      			stream: binary data of the image.
+      	%END REM
+      	Sub AddImage(ByVal filetype$, stream As NotesStream)
+      		Stop
+      		Error 20003, "not implemented"
+      		Dim domd As NotesDOMDocumentNode
+      		Dim elPic As NotesDOMElementNode
+      		Dim elImg As NotesDOMElementNode
+      		Dim texB64 As NotesDOMTextNode
+      		On Error GoTo ERRHANDLE
+      		Set domd = Me.Body.DomDoc
+      		Set elPic = domd.Createelementnode("picture")
+      		filetype = LCase(filetype)
+      		If filetype = "jpg" Then filetype = "jpeg"
+      		If filetype = "png" Then filetype = "jpeg"
+      		Set elImg = domd.Createelementnode(filetype)
+      		stream.Position = 0
+      		Set texB64 = domd.Createtextnode(stream.ReadEncoded(ENC_BASE64, 76))
+      		elImg.Appendchild texB64
+      		elPic.Appendchild elImg
+      		Me.Node.Appendchild elPic
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      End Class
+      %REM
+      	Class DXLCell
+      	Description: represents a table cell
+      %END REM
+      Class DXLCell As DXLRichContainer
+      	Public Col As Integer
+      	
+      	Sub New(parent As DXLRichNode, ByVal span%), DXLRichContainer(parent, "tablecell")
+      		On Error GoTo ERRHANDLE
+      		If span > 1 Then
+      			Attr("columnspan") = span
+      		End If
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      	
+      	%REM
+      		SET bgcolor
+      		value: Background color of the cell, e.g. "none", "blue", "#4590DE"
+      	%END REM
+      	Public Property Set bgcolor As String
+      		On Error GoTo ERRHANDLE
+      		If bgcolor = "none" Then bgcolor = ""
+      		Node.Setattribute "bgcolor", bgcolor
+      		Exit Property
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Property
+      	
+      	%REM
+      		Sub SetGradient
+      		Description: Make the cell background a gradient.
+      		Arguments:
+      			bHorz: true if gradient is from side to side, false from top to bottom
+      			bg and altbg: the two colors at the end of the gradient. 
+      	%END REM
+      	Sub SetGradient(ByVal bHorz As Boolean, ByVal bg$, ByVal altbg$)
+      		On Error GoTo ERRHANDLE
+      		If bg = "" Then bg = "none"
+      		If altbg = "" Then altbg = "none"
+      		Node.Setattribute "bgcolor", bg
+      		Node.Setattribute "altbgcolor", altbg
+      		If (Bhorz) Then
+      			node.Setattribute "colorstyle", "hgradient"
+      		Else
+      			node.Setattribute "colorstyle", "vgradient"
+      		End If
+      		Exit Sub
+      ERRHANDLE:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Sub
+      End Class
+      %REM
+      	Class DXLSection
+      	Description: Represents a collapsing section. 
+      	Constructor: New DXLSection(parent as DXLRichNode, titleParstyle as DXLParStyle, titleStyle as DXLStyle, title$)
+      		parent: the containing entity, e.g. a DXLBody or table cell. Not a paragraph please.
+      		titleParStyle: the styling for the section header
+      		titlestyle: formatting for the section title text
+      %END REM
+      Class DXLSection As DXLRichContainer
+      	Private z_sectiontitle As NotesDOMElementNode
+      	Private z_tex As NotesDOMTextNode
+      	
+      	Sub New(Parent As Dxlrichnode, titleParStyle As DXLParStyle, titleFontStyle As DXLStyle, ByVal title$), DXLRichContainer(parent, "section")
+      		Dim domdoc As NotesDOMDocumentNode, elFont As NotesDOMElementNode
+      		Set domdoc = body.DomDoc
+      		Set z_sectiontitle = DomDoc.Createelementnode("sectiontitle")
+      		Call z_sectiontitle.Setattribute("color", "teal")
+      		Call z_sectiontitle.Setattribute("pardef", titleparstyle.ID)
+      		Call node.Appendchild(z_sectiontitle)
+      		Set elFont = titleFontStyle.createFont
+      		If Not elFont Is Nothing Then Call z_sectionTitle.Appendchild(elFont)
+      		Dim elTitle As NotesDOMElementNode
+      		Set elTitle = DomDoc.Createelementnode("text")
+      		Set z_tex = domdoc.createtextnode(title)
+      		elTitle.appendchild z_tex
+      		Call z_sectionTitle.Appendchild(elTitle)
+      	End Sub
+      	
+      	%REM
+      		Sub stattr
+      		Description: Set an attriblte of the section title
+      	%END REM
+      	Private Sub stattr(ByVal attrname$, ByVal valu$)
+      		If valu = "" Then
+      			z_sectiontitle.Removeattribute attrname
+      		Else
+      			z_sectiontitle.Setattribute attrname, valu
+      		End If
+      	End Sub
+      	
+      	%REM
+      		Property onedit   set
+      		Description: Set the default section behavior in edit mode -- expand, collapse, or "" for default
+      		Arguments:
+      	%END REM
+      	Public Property Set onedit As String
+      		Attr("onedit") = onedit
+      	End Property
+      	
+      	%REM
+      		Property onread   set
+      		Description: Set the default section behavior in read mode -- expand, collapse, or "" for default
+      		Arguments:
+      	%END REM
+      	Public Property Set onread As String
+      		Attr("onread") = onread
+      	End Property
+      	
+      	%REM
+      		Property onprint   set
+      		Description: Set the default section behavior when printing -- expand, collapse, or "" for default
+      		Arguments:
+      	%END REM
+      	Public Property Set onprint As String
+      		Attr("onprint") = onprint
+      	End Property
+      	
+      	%REM
+      		Property borderstyle   set
+      		Description: Values are "" | none | single | double | triple | shadow | twoline | windowcaption | gradient | tab | tabdiag
+      	%END REM
+      	Public Property Set borderstyle As String
+      		stAttr "borderstyle", borderstyle
+      	End Property
+      	
+      	%REM
+      		Property title   set
+      		Description: Set the title text (replacing what was specified in the constructor).
+      	%END REM
+      	Public Property Set title As String
+      		z_tex.Nodevalue = title
+      	End Property
+      	
+      	%REM
+      		Property color   set
+      		Description: Border and caret color (default teal)
+      		Arguments:
+      	%END REM
+      	Public Property Set color As String
+      		stAttr "color", color
+      	End Property
+      End Class
+      '++LotusScript Development Environment:2:2:Initialize:1:10
+      Sub Initialize
+      	Dim tmp$, i%
+      	For i = 0 To 31
+      		If i <> 10 And i <> 9 Then
+      			tmp = tmp & "," & Chr$(i)
+      		End If
+      	Next
+      	CTRL_CHARS_ARR = Split(Mid$(tmp, 2), {,})
+      	'CTRL_MATCH = {*[} & join(CTRL_CHARS_ARR, "") & {]*}
+      	Dim tmpArr, cod%
+      	' establish the codes corresponding to the style names.
+      	tmpArr = Split(STYLENAMES, " ")
+      	cod = 1
+      	For i = 0 To UBound(tmpArr)
+      		Gstyles(StrLeft(tmpArr(i), {=})) = CInt(StrRight(tmpArr(i), {=}))
+      	Next
+      End Sub
+      
+      '++LotusScript Development Environment:2:1:NotesColorName:6:8
+      %REM
+      	Function NotesColorName
+      	Description: Given a Notes color number in the range 0-255, convert it to a
+      		string with a color name ("blue") or "#" followed by 6 hex digits
+      %END REM
+      Function NotesColorName(colorcode%) As String
+      	Dim ses As New NotesSession
+      	Dim nc As NotesColorObject
+      	On Error GoTo ERRHANDLE
+      	Set nc = ses.createcolorobject
+      	nc.NotesColor = colorcode
+      	NotesColorName = "#" & Right$("0" & Hex(nc.Red),
+    signed: true
+    nonsummary: true
+  - name: $ScriptLib
+    type: text
+    data: |
+      2) & Right$("0" & Hex(nc.Green), 2) & Right$("0" & Hex(nc.Blue), 2)
+      	Exit Function
+      ERRHANDLE:
+      	Error Err, Error & { //} & GetThreadInfo(1) & {:} & Erl
+      End Function
+    signed: true
+    nonsummary: true
+  - name: $TITLE
+    type: text
+    data: DXLRichTextWriter
+    signed: true
+remaining: []

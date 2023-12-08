@@ -1,0 +1,209 @@
+---
+class: 512
+flags: 0x2000
+unid: OFCC3A052BAC1A9B5D-ON007ADDB8862586DB
+items:
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: s34Q
+  - name: $PublicAccess
+    type: text
+    data: "1"
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-05-20T17:22:04.94-05:00"
+        dst: true
+      - data: "2021-05-27T11:23:21.65-05:00"
+        dst: true
+      - data: "2021-06-30T21:57:33.70-05:00"
+        dst: true
+      - data: "2021-07-09T08:59:45.09-04:00"
+        dst: true
+      - data: "2021-07-09T09:01:59.24-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:05.68-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:47.73-04:00"
+        dst: true
+      - data: "2021-07-09T09:21:12.85-04:00"
+        dst: true
+      - data: "2021-08-16T16:56:07.65-05:00"
+        dst: true
+      - data: "2021-08-16T16:56:07.70-05:00"
+        dst: true
+      - data: "2021-08-17T13:55:03.82-05:00"
+        dst: true
+      - data: "2021-09-16T12:02:37.59-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:57.09-05:00"
+        dst: true
+  - name: $ScriptLib
+    type: text
+    data: |
+      '++LotusScript Development Environment:2:5:(Options):0:74
+      %REM
+      	Library zprintf
+      	Created Oct 12, 2018 by Andre Guirard/USA/PNPHCL
+      	Description: sprintf-like functions.
+      	© Copyright HCL Company, 2021
+      %END REM
+      Option Public
+      Option Declare
+      
+      
+      '++LotusScript Development Environment:2:5:(Forward):0:1
+      Declare Function zprintf2(fmtstr$, ByVal arg0$, ByVal arg1$) As String
+      Declare Function zprintf1(fmtstr$, ByVal arg0$) As String
+      Declare Function zprintfArr(fmtstr$, argarr) As String
+      Declare Function zprintf4(fmtstr$, ByVal arg0$, ByVal arg1$, ByVal arg2$, ByVal arg3$) As String
+      Declare Function zprintf(fmtstr$, args$, delim$) As String
+      Declare Function zprintf3(fmtstr$, ByVal arg0$, ByVal arg1$, ByVal arg2$) As String
+      
+      '++LotusScript Development Environment:2:5:(Declarations):0:2
+      
+      '++LotusScript Development Environment:2:1:zprintf2:9:8
+      %REM
+      	Function zprintf2
+      	Description: Substitute two argument strings for substrings of a formatting string of the form {#:name} or {#} where # is 0 or 1.
+      	Arguments:
+      		fmtstr: see fprintf function
+      		arg0: the string you want to substitute for "{0}" in the fmtstr.
+      		arg1: the string you want to substitute for "{1}" in the fmtstr.
+      %END REM
+      Function zprintf2(fmtstr$, ByVal arg0$, ByVal arg1$) As String
+      	Dim args
+      	args = Split("!","!")
+      	args(0) = arg0
+      	args(1) = arg1
+      	zprintf2 = zprintfArr(Fmtstr, args)
+      End Function
+      
+      '++LotusScript Development Environment:2:1:zprintf1:9:8
+      %REM
+      	Function zprintf1
+      	Description: Substitute one argument string for substrings of a formatting string of the form {0:name} or {0}.
+      	Arguments:
+      		fmtstr: see fprintf function
+      		arg0: the string you want to substitute for "{0}" in the fmtstr
+      	Return value:
+      %END REM
+      Function zprintf1(fmtstr$, ByVal arg0$) As String
+      	Dim args
+      	args = Split("",",")
+      	args(0) = arg0
+      	zprintf1 = zprintfArr(Fmtstr, args)
+      End Function
+      
+      
+      '++LotusScript Development Environment:2:1:zprintfArr:10:8
+      %REM
+      	Function zprintfArr
+      	Description: Given a formatting string containing substitution indicators of the form {#:name} or just {#}, replace those substrings with the #th
+      		element of argsArr, a string array. There is not a problem if the argument strings contain "{".
+      	Arguments:
+      		fmtstr: e.g. "You cannot put {1:object} into {0}."
+      		argArr: e.g. [ "drinking glass", "elephant"]
+      	Return value: e.g. "You cannot put elephant into drinking glass."
+      %END REM
+      Function zprintfArr(fmtstr$, argarr) As String
+      	Dim fmtparts, argi%, szInd$, i%, tmp$
+      	fmtparts = Split(fmtstr, "{")
+      	For i = 1 To UBound(fmtparts)
+      		tmp = StrToken(StrLeft(fmtparts(i), "}"), {:}, 1)
+      		If tmp Like {#} Or tmp Like {##} Then
+      			argi = CInt(tmp)
+      			If argi <= UBound(argArr) Then
+      				fmtparts(i) = argArr(argi) & StrRight(fmtparts(i), "}")
+      			End If
+      		Else
+      			fmtparts(i) = "{" & fmtparts(i)
+      		End If
+      	Next
+      	zprintfArr = Join(fmtparts, "")
+      End Function
+      
+      
+      '++LotusScript Development Environment:2:1:zprintf4:11:8
+      %REM
+      	Function zprintf3
+      	Description: Substitute two argument strings for substrings of a formatting string of the form {#:name} or {#} where # is 0, 1, 2, or 3.
+      	Arguments:
+      		fmtstr: see fprintf function
+      		arg0: the string you want to substitute for "{0}" in the fmtstr.
+      		arg1: the string you want to substitute for "{1}" in the fmtstr.
+      		arg2: the string you want to substitute for "{2}" in the fmtstr.
+      		arg3: the string you want to substitute for "{3}" in the fmtstr.
+      %END REM
+      Function zprintf4(fmtstr$, ByVal arg0$, ByVal arg1$, ByVal arg2$, ByVal arg3$) As String
+      	Dim args
+      	args = Split("!!","!")
+      	args(0) = arg0
+      	args(1) = arg1
+      	args(2) = arg2
+      	args(3) = arg3
+      	zprintf4 = zprintfArr(Fmtstr, args)
+      End Function
+      
+      
+      '++LotusScript Development Environment:2:1:zprintf:12:8
+      %REM
+      	Function zprintf
+      	Description: Given a formatting string containing substitution indicators of the form {#:name} or just {#}, replace those substrings with the #th
+      		element of args, which is a list delimited by delim, with zero-based indexes.
+      		There is not a problem if the argument strings contain "{".
+      	Arguments:
+      		fmtstr: e.g. "You cannot put {1:object} into {0:container}."
+      		args: e.g. "drinking glass,elephant"
+      		delim: e.g. ","
+      	Return value: e.g. "You cannot put elephant into drinking glass."
+      %END REM
+      Function zprintf(fmtstr$, args$, delim$) As String
+      	Dim argparts, fmtparts, argi%, szInd$, i%, tmp$
+      	argparts = Split(args, delim)
+      	fmtparts = Split(fmtstr, "{")
+      	For i = 1 To UBound(fmtparts)
+      		tmp = StrToken(StrLeft(fmtparts(i), "}"), {:}, 1)
+      		If tmp Like {#} Or tmp Like {##} Then
+      			argi = CInt(tmp)
+      			If argi <= UBound(argparts) Then
+      				fmtparts(i) = argparts(argi) & StrRight(fmtparts(i), "}")
+      			End If
+      		Else
+      			fmtparts(i) = "{" & fmtparts(i)
+      		End If
+      	Next
+      	zprintf = Join(fmtparts, "")
+      End Function
+      
+      
+      '++LotusScript Development Environment:2:1:zprintf3:10:8
+      %REM
+      	Function zprintf3
+      	Description: Substitute two argument strings for substrings of a formatting string of the form {#:name} or {#} where # is 0, 1 or 2.
+      	Arguments:
+      		fmtstr: see fprintf function
+      		arg0: the string you want to substitute for "{0}" in the fmtstr.
+      		arg1: the string you want to substitute for "{1}" in the fmtstr.
+      		arg2: the string you want to substitute for "{2}" in the fmtstr.
+      %END REM
+      Function zprintf3(fmtstr$, ByVal arg0$, ByVal arg1$, ByVal arg2$) As String
+      	Dim args
+      	args = Split("!!","!")
+      	args(0) = arg0
+      	args(1) = arg1
+      	args(2) = arg2
+      	zprintf3 = zprintfArr(Fmtstr, args)
+      End Function
+    signed: true
+    nonsummary: true
+  - name: $TITLE
+    type: text
+    data: zprintf
+    signed: true
+remaining: []

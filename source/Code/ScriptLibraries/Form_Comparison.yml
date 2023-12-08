@@ -1,0 +1,953 @@
+---
+class: 512
+flags: 0x2000
+unid: OFCEDF60A3998858D3-ON00632EE8852586E0
+items:
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: s34Q
+  - name: $PublicAccess
+    type: text
+    data: "1"
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-09-09T06:22:33.02-04:00"
+        dst: true
+      - data: "2021-09-09T06:23:06.42-04:00"
+        dst: true
+      - data: "2021-09-09T06:23:06.52-04:00"
+        dst: true
+      - data: "2021-09-16T12:02:37.84-05:00"
+        dst: true
+      - data: "2021-09-22T22:25:39.63-05:00"
+        dst: true
+      - data: "2021-09-22T22:25:39.69-05:00"
+        dst: true
+      - data: "2021-09-24T07:56:10.20-05:00"
+        dst: true
+      - data: "2021-09-24T08:01:44.89-05:00"
+        dst: true
+      - data: "2021-09-24T08:01:44.93-05:00"
+        dst: true
+      - data: "2021-09-24T08:06:19.02-05:00"
+        dst: true
+      - data: "2021-09-24T08:06:19.08-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:57.32-05:00"
+        dst: true
+      - data: "2021-09-27T17:15:53.49-04:00"
+        dst: true
+      - data: "2021-09-27T17:15:53.58-04:00"
+        dst: true
+      - data: "2021-09-27T22:33:24.06-05:00"
+        dst: true
+      - data: "2021-09-28T09:49:48.34-05:00"
+        dst: true
+      - data: "2021-09-28T09:49:48.45-05:00"
+        dst: true
+      - data: "2021-09-28T13:37:15.97-05:00"
+        dst: true
+      - data: "2021-09-28T13:37:16.02-05:00"
+        dst: true
+      - data: "2021-09-28T13:38:48.30-05:00"
+        dst: true
+      - data: "2021-09-28T13:38:48.32-05:00"
+        dst: true
+      - data: "2021-09-28T14:29:32.90-05:00"
+        dst: true
+      - data: "2021-09-28T14:29:32.94-05:00"
+        dst: true
+      - data: "2021-09-28T14:30:11.89-05:00"
+        dst: true
+      - data: "2021-09-28T14:30:11.96-05:00"
+        dst: true
+      - data: "2021-09-28T15:42:55.69-05:00"
+        dst: true
+      - data: "2021-09-28T15:42:55.73-05:00"
+        dst: true
+      - data: "2021-10-14T12:27:57.63-05:00"
+        dst: true
+      - data: "2021-10-14T12:27:57.69-05:00"
+        dst: true
+      - data: "2021-10-14T12:41:38.04-05:00"
+        dst: true
+      - data: "2021-10-14T12:41:38.08-05:00"
+        dst: true
+      - data: "2021-10-18T14:52:32.98-05:00"
+        dst: true
+      - data: "2021-10-18T14:52:33.04-05:00"
+        dst: true
+      - data: "2021-10-28T10:27:44.92-05:00"
+        dst: true
+      - data: "2021-10-28T10:27:44.98-05:00"
+        dst: true
+      - data: "2021-11-01T11:53:11.00-05:00"
+        dst: true
+      - data: "2021-11-01T11:53:11.02-05:00"
+        dst: true
+      - data: "2021-11-18T10:15:09.95-06:00"
+      - data: "2021-11-18T10:15:10.01-06:00"
+      - data: "2021-11-29T13:27:12.50-05:00"
+  - name: $ScriptLib
+    type: text
+    data: |
+      '++LotusScript Development Environment:2:5:(Options):0:74
+      %REM
+      	Library Form_Comparison
+      	Created May 25, 2021 by Scott O'Keefe
+      	Description: Contains the logic behind the buttons and so on of the Comparison form.
+      	
+      	© Copyright HCL Company, 2021
+      %END REM
+      Option Public
+      Option Declare
+      Use "CommonUtil"
+      Use "UICommon"
+      Use "UIUtils"
+      Use "Subform_exportOptions"
+      Use "Doc_Comparison"
+      Use "DatabaseDiffs"
+      Use "TempFolderManager"
+      Use "Resources"
+      Use "Subform_exportOptions"
+      Use "DirectoryDiffReport"
+      Use "Subform_ReportOptions"
+      
+      '++LotusScript Development Environment:2:5:(Forward):0:1
+      Declare Public Class form_Comparison
+      Declare Class DBINFO
+      Declare Class DESELEMINFO
+      Declare Class TidyDB
+      
+      '++LotusScript Development Environment:2:5:(Declarations):0:10
+      Public GForm As form_Comparison
+      Const MSG_NOT_EXPORTED = "The databases have not been exported yet. Would you like to export now?"
+      Const DLGTITLE_SAVE_EXPORT = "Save exported data"
+      Const DLGTITLE_DBSYNOPSIS = "Design Synopsis"
+      Const DLGFORM_FILEPATHPROMPT = "dlgFilePathPrompt"
+      Const DLGTITLE_REPORT = "Create Difference Report"
+      Const DLGTITLE_DIFF = "Open Diff Tool"
+      Const MSG_DATABASES_REQUIRED = "You must select a database to export."
+      Const MSG_SAME_NUMBER_DBS = "You must have the same number of source and target databases."
+      Const MSG_NOT_FOUND_DB = "Database not found: {0:filepath} on {1:servername}"
+      Const MSG_REPORTTITLE = "Exported at {0:timestamp}"
+      Const MSG_PATHERRTITLE = "Path Not Found"
+      Const MSG_PATHERR = "The path '{0:path}' was not found.  Would you like to create it?"
+      Const MSG_PATHNOCREATE = "The path '{0:path}' is not valid.  Exported data will not be saved."
+      Const MSG_PATHSAVE = "Saving exported data to {0:path}"
+      Const MSG_OPCANCELTITLE = "Operation Cancelled"
+      Const MSG_SAVEEXPORT = "Enter or select the location to save export(s):"
+      Const MSG_DBSYNOPSIS = "Enter or select the database to export design synopsis to:"
+      Const MSG_SAVEEXPCANCEL = "Exported data will not be saved."
+      Const MSG_DBSYNOPSISCANCEL = "Design synopsis will not be exported."
+      Const MSG_NOTEMPLATE = "Design synopsis template not found."
+      Const MSG_NOTASYNOPSIS = "The selected database, {0:path}, does not inherit from the HCL Design Synopsis template."
+      Const TITLE_DBSYNOPSIS = "Design Synopsis"
+      Const MSG_NOTHINGCHANGED = "No settings have changed since last export."
+      
+      'Begin DNT
+      Const ITEM_SAVEEXPORTLOC = "SaveExportLoc"
+      Const ITEM_PATH = "Path"
+      Const ITEM_MSGCONTENT = "MsgContent" 'field on dlgFieldPathPrompt; value will be displayed via computed text
+      Const ITEM_FOLDERSAVEEXP = "FolderSaveExp" 'workstation profile item for SaveExport
+      Const ITEM_BROWSEMODE = "Mode" 'field on dlgFieldPathPrompt; value determines which kind of @Prompt browse is popped
+      Const BROWSEMODE_FILE = "File"
+      Const BROWSEMODE_FOLDER = "Folder"
+      Const DLGTYPE_SAVEEXPORT = &h00000001
+      Const DLGTYPE_DBSYNOPSIS = &h00000002
+      
+      %REM
+      Type dlgData
+      Description: Used in dlgPromptFilePath; we'll populate this appropriately based on the dialog type
+      %END REM
+      Type dlgData
+      	itemName As String
+      	dlgTitle As String
+      	dlgMsg As String
+      	msgCancelTitle As String
+      	msgCancelText As String
+      	browseMode As String
+      End Type
+      
+      'Begin DNT
+      
+      %REM
+      	Class form_Comparison
+      	Description: Comments for Class
+      %END REM
+      Public Class form_Comparison
+      
+      	Private z_ses As NotesSession
+      	Private z_wksp As NotesUIWorkspace
+      	Private z_ui As UICommon
+      	Private z_uidoc As NotesUIDocument
+      	Private z_ddifs As DatabaseDiffs
+      	Private z_lastDBs As String
+      	Private z_docProUser As NotesDocument
+      	Private z_tfm As TempFolderManager
+      	Private z_capi As CAPI
+      	Private z_commUtil As CommonUtil
+      	
+      	' date/time of last export
+      	Private z_lastExport As Variant
+      	
+      	' TRUE if comparing left and right, FALSE if just exporting. 
+      	Private z_comparing As Boolean
+      	
+      	Private z_leftServer As String
+      	Private z_rightServer As String
+      	Private z_leftPaths As Variant
+      	Private z_rightPaths As Variant
+      	Private z_reload As Boolean
+      	Private z_operationName As String
+      	Private z_exemptDirs As Variant
+      	
+      	Private z_sfExportOptions As Subform_ExportOptions
+      	Private z_sfReportOptions As Subform_ReportOptions
+      	
+      	Public Sub New
+      		Set z_ses = New NotesSession
+      		Set z_wksp = New NotesUIWorkspace
+      		Set z_ui = New UICommon
+      		Set z_capi = GetCAPI
+      		Set z_commUtil = New CommonUtil
+      	End Sub
+      	
+      	%REM
+      		Sub PostOpen
+      		Description: Called from corresponding form event.
+      		Arguments:
+      	%END REM
+      	Public Sub PostOpen(source As NotesUIDocument)
+      		Set z_uidoc = source
+      		Set z_sfExportOptions = New Subform_ExportOptions(source)
+      		Set z_sfReportOptions = New Subform_ReportOptions(source)
+      		Dim docPro As NotesDocument, docCur As NotesDocument
+      		Set docPro = GCU.getWorkstationProfile
+      		Set docCur = source.document
+      		Dim compareType$, vals, key$, fieldname$, fieldval, parts, i%
+      		comparetype = docCur.Getitemvalue(FLD_COMPARETYPE)(0)
+      		If comparetype = "" Then Exit Sub
+      		vals = docPro.Getitemvalue({Autofill})
+      		ForAll aVal In vals
+      			key = StrLeft(aval, DOTT)
+      			If key = comparetype Then
+      				parts = Split(aval, DOTT)
+      				For i = 1 To UBound(parts)
+      					fieldname = StrLeft(parts(i), {=})
+      					fieldval = Split(StrRight(Replace(parts(i), Chr$(13), ""), {=}), NEWLINE)
+      					docCur.Replaceitemvalue fieldname, fieldval
+      				Next
+      			End If
+      		End ForAll
+      	End Sub
+      	
+      	%REM
+      		Sub SaveAutofill
+      		Description: Called from corresponding form event.
+      	%END REM
+      	Public Sub SaveAutofill
+      		Dim docPro As NotesDocument, docCur As NotesDocument
+      		Set docPro = GCU.getWorkstationProfile
+      		Set docCur = z_uidoc.document
+      		Dim compareType$, vals, key$, fieldname$, fieldval, parts, i%, newval$, bFound As Boolean
+      		comparetype = docCur.Getitemvalue(FLD_COMPARETYPE)(0)
+      		If comparetype = "" Then Exit Sub
+      		newval = comparetype
+      		parts = Split(FLD_LEFTSERVER & DOTT & FLD_LEFTPATH & DOTT & FLD_RIGHTPATH & DOTT & FLD_RIGHTSERVER & DOTT, DOTT)
+      		ForAll thing In parts
+      			newval = newval & DOTT & thing & {=} & Join(docCur.Getitemvalue(thing), NEWLINE)
+      		End ForAll
+      		vals = docPro.Getitemvalue({Autofill})
+      		ForAll aVal In vals
+      			key = StrLeft(aval, DOTT)
+      			If key = comparetype Then
+      				If newval = aVal Then
+      					Exit Sub ' no changes needed
+      				Else
+      					bFound = True
+      					aVal = newval
+      				End If
+      			End If
+      		End ForAll
+      		If Not bFound Then 
+      			If vals(0) = "" Then
+      				vals = newval
+      			Else
+      				vals = ArrayAppend(vals, newval)
+      			End If
+      		End If
+      		Call docPro.Replaceitemvalue({Autofill}, vals)
+      		docPro.Save True, False, True
+      	End Sub
+      	
+      	Public Property Get TFM As TempFolderManager
+      		If z_tfm Is Nothing Then
+      			Set z_tfm = New TempFolderManager("cdb")
+      			z_tfm.RemoveOnExit = True
+      		End If
+      		Set TFM = z_tfm
+      	End Property
+      	
+      	%REM
+      		Function isSafeToModify
+      		Description: Based on the workstation profile, determine whether a given local database may be opened
+      			directly (which would modify the file contents, which is bad if it's in a GIT clone, for instance).
+      			 @@TODO have this function automatically detect whether the current folder is part of a GIT clone. 
+      		Arguments:
+      		Return value: TRUE if it's okay to directly open the database at the given filepath.
+      	%END REM
+      	Function isSafeToModify(ByVal localDBPath$) As Boolean
+      		If z_exemptDirs(0) <> "" Then
+      			localDBPath = z_capi.normalizepath(localDBPath)
+      			ForAll thing In z_exemptdirs
+      				If StrComp(Left$(localDBPath, Len(thing)), thing, 0) = 0 Then
+      					Exit Function ' returning False
+      				End If
+      			End ForAll
+      		End If
+      		isSafeToModify = True
+      	End Function
+      	
+      	%REM
+      		Function dbSafeOpen
+      		Description: Open a Notes database as a TidyDB object, which will be aggressively deleted from memory when the
+      			object falls out of scope, guaranteeing the database doesn't stay open. In addition, if the database is local
+      			and in a protected folder, make a file-copy of the database and open that instead, to avoid modifying the original file.
+      			This temporary copy will be deleted from the file system when the TidyDB object is deleted.  
+      		Arguments:
+      			server, filepath: as you would expect.
+      		Return value:
+      			NOTHING if the database could not be found, else the TidyDB containing the db object.
+      	%END REM
+      	Function dbSafeOpen(ByVal server$, ByVal filePath$) As TidyDB
+      		On Error GoTo couldNot
+      		Dim safePath$
+      		safePath = filePath
+      		If server = "" Then ' local database, are we allowed to just open it?
+      			filepath = GCU.dataFullPath(filepath) ' where exactly is it?
+      			If isSafeToModify(filepath) Then
+      				safePath = filepath ' good to go
+      			Else ' can't modify; make a copy.
+      				SafePath = TFM.CreateFilename("nsf", True)
+      				FileCopy filepath, safePath
+      			End If
+      		End If
+      		Dim db As New NotesDatabase(server, safePath)
+      		If db.Isopen Then
+      			Set dbSafeOpen = New TidyDB(db, safePath <> filePath)
+      		End If
+      		' else return Nothing -- couldn't open the database.
+      couldNot:
+      		Exit Function
+      	End Function
+      	
+      	Sub Load
+      		If Not z_reload Then Exit Sub ' only need to load once for a given button press.
+      		z_reload = False
+      		Dim docCur As NotesDocument, docProWk As NotesDocument
+      		Set docCur = z_uidoc.Document
+      		z_comparing = docCur.Getitemvalue(FLD_HOWMANY)(0) = "2"
+      		z_leftServer = GCU.TotalTrimField(docCur, FLD_LEFTSERVER)(0)
+      		If StrComp(z_leftServer, SERVER_LOCAL, 1) = 0 Then z_leftServer = ""
+      		z_leftPaths = GCU.TotalTrimField(docCur, FLD_LEFTPATH)
+      		If z_comparing Then
+      			z_rightServer = GCU.TotalTrimField(docCur, FLD_RIGHTSERVER)(0)
+      			z_rightPaths = GCU.TotalTrimField(docCur, FLD_RIGHTPATH)
+      			If StrComp(z_rightServer, SERVER_LOCAL, 1) = 0 Then z_rightServer = ""
+      		End If
+      		Set docProWk = GCU.getWorkstationProfile
+      		z_exemptDirs = docProWk.getitemvalue(FLD_WPRO_EXEMPTDIRS)
+      		ForAll thing In z_exemptDirs
+      			thing = z_capi.TerminatePath(thing)
+      		End ForAll
+      	End Sub
+      
+      	%REM
+      		Function validateForExport
+      		Description: Validate form preparatory to an export operation.
+      		Return value: TRUE if validation passes
+      	%END REM
+      	Private Function validateForExport As Boolean
+      		Load
+      		If z_leftPaths(0) = "" Then
+      			MsgBox MSG_DATABASES_REQUIRED, MB_ICONSTOP, z_operationName
+      			z_uidoc.Gotofield FLD_LEFTPATH
+      			Exit Function ' returning False
+      		ElseIf z_comparing Then
+      			If z_rightPaths(0) = "" Then
+      				MsgBox MSG_DATABASES_REQUIRED, MB_ICONSTOP, z_operationName
+      				z_uidoc.Gotofield FLD_RIGHTPATH
+      				Exit Function ' returning False
+      			ElseIf UBound(z_leftPaths) <> UBound(z_rightPaths) Then
+      				MsgBox MSG_SAME_NUMBER_DBS, MB_ICONSTOP, z_operationName
+      				z_uidoc.Gotofield FLD_LEFTPATH
+      				Exit Function ' returning False
+      			End If
+      		End If
+      		'@@validate export options?
+      		validateForExport = True
+      	End Function
+      	
+      	%REM
+      		Function doLocalFilesExist
+      		Description: Check whether a list of local files all exist.
+      		Arguments:
+      			filepaths: an array of file paths. If paths are relative they are assumed
+      				to be in the Notes data directory.
+      		Return value: "" for success, else the name of the first missing file.
+      	%END REM
+      	Function doLocalFilesExist(filepaths As Variant) As String
+      		Dim fullpath$
+      		ForAll aPath In filepaths
+      			fullpath = gcu.dataFullPath(aPath)
+      			If Not GCU.existsFile(fullPath) Then
+      				If Not LCase(fullpath) Like "*.n??" Then
+      					If GCU.existsfile(fullpath & ".nsf") Then
+      						GoTo nextfile ' Notes is smart enough to add the .nsf if they left it off so don't complain.
+      					End If
+      				End If 
+      				doLocalFilesExist = aPath
+      				Exit Function
+      			End If
+      nextfile:
+      		End ForAll
+      	End Function
+      	
+      	%REM
+      		Function filenameFromPath
+      		Description: Return the filename from a filepath
+      		Arguments:
+      		Return value:
+      	%END REM
+      	Function filenameFromPath(ByVal fpath$) As String
+      		filenameFromPath = StrToken(Replace(fpath, "/", "\"), "\", -1)
+      	End Function
+      	
+      	%REM
+      		Function uniqueFolderNames
+      		Description: Based on the filepaths in the left and right side arrays, come up with a set of folder names
+      			for the export data that are unique and that approximate the filenames as much as possible, given that the
+      			left and right need to be the same.
+      		Arguments:
+      		Return value:
+      	%END REM
+      	Function uniqueFolderNames As Variant
+      		Dim used List As Integer
+      		Dim retval, i%, k%, rightFile$, leftfile$, candidate$
+      		retval = z_leftPaths
+      		If UBound(retval) = 0 Then
+      			retval(0) = ""
+      		Else
+      			For i = 0 To UBound(retval)
+      				leftfile = filenameFromPath(retval(i))
+      				If IsElement(used(leftfile)) Then
+      					candidate = ""
+      					If z_comparing Then
+      						rightfile = filenameFromPath(z_rightpaths(i))
+      						If Not IsElement(used(rightfile)) Then
+      							candidate = rightfile
+      						End If
+      					End If
+      					If candidate = "" Then
+      						k = 1
+      						Do
+      							k = k + 1
+      							candidate = leftfile & "_" & k
+      						Loop While IsElement(used(candidate))
+      					End If
+      				Else
+      					candidate = leftfile
+      				End If
+      				used(candidate) = i
+      				retval(i) = candidate & z_capi.pathDelimiter
+      			Next			
+      		End If
+      		uniqueFolderNames = retval
+      	End Function
+      	
+      	%REM
+      		Sub exportAll
+      		Description: Export all the databases on both sides unless they have already been exported.
+      		Returns: TRUE if export succeeds.
+      	%END REM
+      	Private Function exportAll As Boolean
+      		If Not validateForExport Then Exit Function ' returning False
+      		Dim dbsnew$, dbToExport As NotesDatabase, missing, startTime As Variant
+      		Dim exportOpts, runLevel%, doctitleformula$
+      		startTime = Now
+      		exportOpts = z_sfExportOptions.Options 
+      		runLevel = z_sfExportOptions.RunLevel
+      		doctitleformula = z_sfExportOptions.FormTitleFormula
+      		dbsnew = Join(exportOpts, ",") & DOTT & runLevel & DOTT & doctitleformula & DOTT & _
+      			z_leftServer & DOTT & Join(z_leftPaths, DOTT)
+      		If z_comparing Then dbsnew = dbsnew & DOTT & z_rightServer & DOTT & Join(z_rightPaths, DOTT)
+      		If dbsnew <> z_lastDBs Or (z_ddifs Is Nothing) Then
+      			z_lastDBs = dbsnew
+      			' the list of databases to export has been changed. Delete all old data and re-export.
+      			SaveAutofill ' remember these paths to fill in automatically later.
+      			If z_leftServer = "" Then
+      				' the left files are local -- make sure they all exist before trying to open them,
+      				' which may involve making file-copies of ones in protected folders.
+      				missing = doLocalFilesExist(z_leftPaths)
+      				If Len(missing) Then
+      					MsgBox zprintf2(MSG_NOT_FOUND_DB, missing, SERVER_LOCAL)
+      					z_uidoc.Gotofield FLD_LEFTPATH
+      					Exit Function
+      				End If
+      			End If
+      			If z_rightServer = "" And z_comparing Then
+      				missing = doLocalFilesExist(z_rightPaths)
+      				If Len(missing) Then
+      					MsgBox zprintf2(MSG_NOT_FOUND_DB, missing, SERVER_LOCAL)
+      					z_uidoc.Gotofield FLD_RIGHTPATH
+      					Exit Function
+      				End If
+      			End If
+      			Dim foldernames
+      			foldernames = uniqueFolderNames
+      			Dim tempPath$, leftFolder$, rightFolder$, i%
+      			tempPath = z_CAPI.TerminatePath(TFM.Path)
+      			leftFolder = z_CAPI.TerminatePath(tempPath & "source")
+      			rightFolder = z_CAPI.TerminatePath(tempPath & "target")
+      			Call ClearFolder(leftFolder)
+      			Call ClearFolder(rightFolder)
+      			Set z_ddifs = New DatabaseDiffs(True)
+      			z_ddifs.Options = exportOpts
+      			z_ddifs.runcompact = runlevel
+      			z_ddifs.docTitleFormula = doctitleformula
+      			ReDim tidbsLeft(0 To UBound(z_leftPaths)) As TidyDB
+      			ReDim tidbsRight(0 To UBound(z_rightPaths)) As TidyDB
+      			For i = 0 To UBound(z_leftPaths)
+      				Set tidbsleft(i) = dbSafeOpen(z_leftServer, z_leftPaths(i))
+      				If tidbsLeft(i) Is Nothing Then
+      					MsgBox zprintf2(MSG_NOT_FOUND_DB, missing, z_ui.serverDisplayName(z_leftServer))
+      					z_uidoc.Gotofield FLD_LEFTPATH
+      					Exit Function
+      				End If
+      				Call z_ddifs.RegisterToExport(tidbsLeft(i).Db, z_leftPaths(i), leftFolder & foldernames(i), True,False)
+      				If z_comparing Then
+      					Set tidbsRight(i) = dbSafeOpen(z_rightServer, z_rightPaths(i))
+      					If tidbsRight(i) Is Nothing Then
+      						MsgBox zprintf2(MSG_NOT_FOUND_DB, missing, z_ui.serverDisplayName(z_rightServer))
+      						z_uidoc.Gotofield FLD_RIGHTPATH
+      						Exit Function
+      					End If
+      					Call z_ddifs.RegisterToExport(tidbsRight(i).Db, z_rightPaths(i), rightFolder & foldernames(i), False,False)
+      				End If
+      			Next
+      			z_ddifs.ExportRegisteredDBs
+      		End If
+      		exportAll = True ' Success!
+      		z_lastExport = starttime
+      		Call z_uidoc.Document.Replaceitemvalue(FLD_EXPORT_TIME, starttime)
+      		z_uidoc.Refresh ' to make the export time appear on screen
+      	End Function
+      
+      	%REM
+      		Sub button_browse
+      		Description: Let the user select a Notes application from a browse dialog.
+      		Arguments: serverFld, pathFld: Field names to put server and filepath into.
+      	%END REM
+      	Sub button_browse(ByVal serverFld$, ByVal pathFld$)
+      		Dim uidoc As NotesUIDocument
+      		Set uidoc = z_wksp.CurrentDocument
+      		Dim answer
+      		answer = z_wksp.Prompt(PROMPT_CHOOSEDATABASE, "", "")
+      		If Not IsEmpty(answer) Then
+      			Dim strServer$
+      			If answer(0) = "" Then
+      				strServer = SERVER_LOCAL
+      				answer(1) = GCU.dataRelativePath(answer(1))
+      			Else
+      				strServer = answer(0)
+      			End If
+      			Call uidoc.Fieldsettext(serverFld, strServer)
+      			Call uidoc.Fieldsettext(pathFld, answer(1))
+      		End If
+      	End Sub
+      	
+      	%REM
+      		Sub button_pasteDBLink
+      		Description: The clipboard contains a Notes link to a document, view or database. Get the server and filepath
+      			from it and fill these into specified fields on the form. 
+      		Arguments:
+      	%END REM
+      	Sub button_pasteDBLink(ByVal serverFld$, ByVal pathFld$)
+      		Call z_ui.PasteLink(Serverfld, Pathfld, 2)
+      	End Sub
+      
+      	%REM
+      		Sub button_export
+      		Description: Export all databases
+      		Arguments:
+      	%END REM
+      	Sub button_export
+      		z_reload = True
+      		exportAll
+      	End Sub
+      	
+      	%REM
+      		Function getUniqueApplications
+      		Description: get a list of the unique (case insensitive) database filenames (not paths) we're processing.
+      		Return value: array of strings.
+      	%END REM
+      	Function getUniqueApplications
+      		Dim res$
+      		ForAll thing In z_leftPaths
+      			res = res & NEWLINE & filenameFromPath(thing)
+      		End ForAll
+      		If z_comparing Then
+      			ForAll thing In z_rightPaths
+      				res = res & NEWLINE & filenameFromPath(thing)
+      			End ForAll
+      		End If
+      		getUniqueApplications = ArrayUnique(Split(Mid$(res, 2), NEWLINE), 1)
+      	End Function
+      	
+      	%REM
+      		Sub button_compare
+      		Description: Create a report to compare the left database(s) with the right.
+      	%END REM
+      	Sub button_compare
+      		z_reload = True
+      		If ExportAll Then
+      			Dim ddr As New DirectoryDiffReport(DDR_RTYPE_DB, "")
+      			Dim opts, basepath$
+      			opts = z_sfReportOptions.options
+      			ddr.reportForm = "Submission"
+      			ddr.FileMode = True
+      			ddr.ContextLines = z_sfReportOptions.contextLines
+      			ddr.MaxLeftBlock = z_sfReportOptions.maxLeftChars
+      			ddr.NewFileOpt = z_sfReportOptions.newfileOpt
+      			ddr.alwaysShow "2-signatures.txt"
+      			Set ddr.ReportDB = z_ses.Currentdatabase
+      			ddr.setOptions opts
+      			ddr.Filenames = Join(getUniqueApplications, NEWLINE)
+      			ddr.Title = zprintf1(MSG_REPORTTITLE, Format(z_uidoc.Document.Getitemvalue(FLD_EXPORT_TIME)(0), STD_FMT_DATE))
+      			basepath = z_capi.TerminatePath(TFM.Path)
+      			Call ddr.Process(basePath & {source}, basepath & {target})
+      		End If
+      	End Sub
+      	
+      	%REM
+      		Sub button_launchDiff
+      		Description: %TODO
+      		Arguments:
+      	%END REM
+      	Sub button_launchDiff
+      		z_reload = True
+      		If Not exportAll Then Exit Sub ' export if it hasn't been done before, bail if that fails.
+      		Call LaunchDiff(TFM.Path & {\source}, TFM.Path & {\target}, True, True)
+      	End Sub
+      	
+      	%REM
+      		Sub button_saveExport
+      		Description: Save the exported files to a folder (prompt user for path)
+      		Arguments:
+      	%END REM
+      	Sub button_saveExport
+      		
+      		On Error GoTo ERROR_HANDLER
+      		Dim vContinue As Variant
+      		Dim sPath,sBasePath As String
+      		
+      		z_reload = True
+      		If IsEmpty(z_lastExport) Then
+      			MsgBox MSG_NOT_EXPORTED
+      		End If
+      
+      		spath = dlgPromptFilePath(DLGTYPE_SAVEEXPORT)
+      		If spath = "" Then Exit Sub
+      		
+      		Dim docPro As NotesDocument
+      		Set docPro = GCU.getWorkstationProfile
+      		
+      		If Right(sPath,1) <> "\" Then sPath = sPath & "\"
+      		
+      		'format the last export date for use as the root folder name 
+      		'under the specified location
+      		Dim sFolder As String
+      		sFolder =  Format(z_lastExport, "yyyymmdd_hhnn")
+      		
+      		If Not z_commUtil.existsFolder(sPath) Then
+      			'check if the indicated path exists, prompt to create if not
+      			Dim vContinuePath As Variant
+      			vContinuePath = MsgBox(Replace(MSG_PATHERR,"{0:path}",sPath),MB_YESNO + MB_ICONQUESTION,MSG_PATHERRTITLE)
+      			If vContinuePath = IDYES Then
+      				MakeDir sPath	
+      			ElseIf vContinuePath = IDNO Then
+      				MsgBox Replace(MSG_PATHNOCREATE,"{0:path}",sPath),MB_OK+MB_ICONINFORMATION,MSG_OPCANCELTITLE
+      				Exit Sub
+      			End If
+      		End If
+      		
+      		'append a \ if the path doesn't have one already
+      		If Right(sPath,1) <> "\" Then sBasePath = sPath & "\" & sFolder Else sBasePath = sPath & sFolder
+      		If Not z_commUtil.existsFolder(sBasePath) Then MkDir(sBasePath)
+      		
+      		'find all the files in the notestemp area and copy them to
+      		'the specified location
+      		Dim rfs As New RecursiveFileSearch
+      		rfs.AddFolder z_capi.TerminatePath(TFM.Path)
+      		rfs.AddFilename {*.*}
+      		rfs.search
+      		
+      		Print Replace(MSG_PATHSAVE,"{0:path}",sPath)		
+      		Dim match, sourcePathPart, targetPathPart As String
+      		match = rfs.firstMatch()
+      		Do While Len(match)
+      			'determine which subfolders need to be created
+      			targetPathPart = StrLeftBack(StrRight(match,TFM.Path),"\")
+      			sourcePathPart = sBasePath & targetPathPart
+      			'create any necessary subfolders, then copy the file
+      			If Not z_commUtil.existsFile(sourcePathPart) Then MakeDir sourcePathPart
+      			FileCopy match, sourcePathPart & "\" & filenameFromPath(match)		
+      GET_NEXT_FILE:		
+      			match = rfs.nextMatch()			
+      		Loop
+      		
+      		Exit Sub
+      		
+      ERROR_HANDLER:
+      		Error Err, Error & { //}& GetThreadInfo(1) & {:} & Erl
+      		
+      	End Sub
+      	
+      	%REM
+      		Sub button_DesignSynopsis
+      		Description: Create a Design Synopsis nsf of an application or list.
+      	%END REM
+      	Sub button_designSynopsis
+      
+      		On Error GoTo ERROR_HANDLER
+      		Dim i%, spath$
+      		
+      		z_reload = True
+      		Load
+      		
+      		If Not validateForExport Then Exit Sub
+      		spath = dlgPromptFilePath(DLGTYPE_DBSYNOPSIS)
+      		SaveAutofill ' remember these paths to fill in automatically later.
+      		If spath = "" Then Exit Sub
+      		ReDim tidbsLeft(0 To UBound(z_leftPaths)) As TidyDB
+      		Dim dbsnew$, exportOpts, runLevel%, startTime, doctitleformula$
+      		exportOpts = z_sfExportOptions.Options
+      		runLevel = z_sfExportOptions.RunLevel
+      		doctitleformula = z_sfExportOptions.FormTitleFormula
+      		startTime = Now
+      		dbsnew = Join(exportOpts, ",") & DOTT & runLevel & DOTT & doctitleformula & DOTT & _
+      		z_leftServer & DOTT & Join(z_leftPaths, DOTT)
+      		If dbsnew <> z_lastDBs Then
+      			z_lastDBs = dbsnew
+      			' the list of databases to export has been changed. Delete all old data and re-export.
+      			Dim synDiff As New DatabaseDiffs(True)
+      			synDiff.Options = exportOpts
+      			synDiff.runcompact = runlevel
+      			synDiff.docTitleFormula = z_sfExportOptions.FormTitleFormula
+      			Dim dbSynopsis As NotesDatabase
+      			Set dbSynopsis = z_ses.GetDatabase("", spath, False)
+      			If dbsynopsis Is Nothing Then
+      				Dim synTemplate As NotesDatabase
+      				Set synTemplate = z_ses.GetDatabase("",TEMPLATE_DBSYNOPSIS)
+      				If Not GCU.existsFile(synTemplate.Filepath) Then
+      					MsgBox MSG_NOTEMPLATE,MB_OK + MB_ICONINFORMATION,TITLE_DBSYNOPSIS
+      					Exit Sub
+      				End If		
+      				Set dbSynopsis = synTemplate.Createfromtemplate("", spath, True)
+      				dbSynopsis.Title = TITLE_DBSYNOPSIS
+      			Else
+      				If Not (dbsynopsis.Designtemplatename Like "HCLDesignSynopsis*") Then
+      					MsgBox zprintf1(MSG_NOTASYNOPSIS, spath), MB_ICONSTOP, TITLE_DBSYNOPSIS
+      					Exit Sub
+      				End If
+      				' clear the decks for the new synopsis docs
+      				Call dbsynopsis.Alldocuments.Removeall(True)
+      			End If
+      			Set synDiff.dbSynopsis = dbSynopsis
+      			For i = 0 To UBound(z_leftpaths)
+      				Set tidbsleft(i) = dbSafeOpen(z_leftServer, z_leftPaths(i))
+      				Dim dbTarget As NotesDatabase
+      				Call synDiff.RegisterToExport(tidbsleft(i).db, z_leftpaths(i), "", True,True)
+      			Next
+      			Call synDiff.ExportRegisteredDBs()
+      		Else
+      			MsgBox MSG_NOTHINGCHANGED, 0, TITLE_DBSYNOPSIS
+      		End If
+      
+      		'open the new (or newly repopulated) synopsis database
+      		Set z_docProUser = GCU.getWorkstationProfile()
+      		Call z_wksp.OpenDatabase("", spath)
+      		
+      		Exit Sub
+      
+      ERROR_HANDLER:
+      		Error Err, Error & { //}& GetThreadInfo(1) & {:} & Erl
+      
+      	End Sub
+      	
+      	%REM
+      	Function ZeroPadString
+      	Description: If the numeric representation of the string is < 10, prepend a string 0
+      	@@TODO - yet another 'does this code already exist?' situation
+      	%END REM
+      	Private Function zeroPadString(toBePadded As String) As String
+      		
+      		If CInt(toBePadded) < 10 Then
+      			ZeroPadString = "0" + toBePadded
+      		Else
+      			ZeroPadString = toBePadded
+      		End If
+      		
+      	End Function
+      	
+      	%REM
+      		Function dlgPromptFilePath
+      		Description: Passed a dialog type prompting for a path or database, populate a dlgData with the strings
+      		for both the dialog and and item values to use in the dialog.
+      		Returns the selected filepath, or "" if canceled.
+      	%END REM
+      	Private Function dlgPromptFilePath(dlgType As Long) As String
+      
+      		On Error GoTo ERROR_HANDLER
+      
+      		Dim myData As dlgData
+      		Dim path As String
+      		Dim continue As Variant
+      		
+      		Dim docPro As NotesDocument
+      		Set docPro = GCU.getWorkstationProfile
+      		
+      		'Cancel msgbox uses the same title regardless of passed type
+      		myData.msgCancelTitle = MSG_OPCANCELTITLE
+      		
+      		'Populate the rest of the dialog data based on passed type
+      		Select Case dlgType
+      				
+      			Case DLGTYPE_SAVEEXPORT:
+      				myData.itemName = ITEM_FOLDERSAVEEXP
+      				myData.dlgTitle = DLGTITLE_SAVE_EXPORT
+      				myData.dlgMsg = MSG_SAVEEXPORT
+      				myData.msgCancelText = MSG_SAVEEXPCANCEL
+      				myData.browseMode = BROWSEMODE_FOLDER
+      				
+      			Case DLGTYPE_DBSYNOPSIS:
+      				myData.itemName = ITEM_DBSYNOPSIS
+      				myData.dlgTitle = DLGTITLE_DBSYNOPSIS
+      				myData.dlgMsg = MSG_DBSYNOPSIS
+      				myData.msgCancelText = MSG_DBSYNOPSISCANCEL
+      				myData.browseMode = BROWSEMODE_FILE
+      				
+      			Case Else:
+      				
+      		End Select
+      		
+      		'populate an in memory note to use in the dialog
+      		Dim docTmp As New NotesDocument(z_ses.Currentdatabase)
+      		With docTmp
+      			If docPro.Hasitem(myData.itemName) Then
+      				If docPro.Getitemvalue(myData.itemName)(0) <> "" Then
+      					Call .Replaceitemvalue(ITEM_PATH,docPro.Getitemvalue(myData.itemName)(0))
+      				End If
+      			End If
+      			Call .Replaceitemvalue(ITEM_MSGCONTENT, myData.dlgMsg)
+      			Call .Replaceitemvalue(ITEM_BROWSEMODE, myData.browseMode)
+      		End With
+      		
+      		'pop the dialog; if cancelled, let the user know
+      		continue = z_wksp.Dialogbox(DLGFORM_FILEPATHPROMPT, True, True, False, False, False, False, myData.dlgTitle, docTmp, True, False, True)
+      		If Not continue Then
+      			MsgBox myData.msgCancelText,MB_OK+MB_ICONINFORMATION,myData.msgCancelTitle
+      			Exit Function
+      		End If
+      		
+      		'if we got this far, save the path value in the workstation profile for use next time
+      		path = Trim(docTmp.Getitemvalue(ITEM_PATH)(0))
+      		Call docPro.Replaceitemvalue(myData.itemName, path)
+      		
+      		'success!
+      		dlgPromptFilePath = path
+      
+      		Exit Function
+      
+      ERROR_HANDLER:
+      		Error Err, Error & { //}& GetThreadInfo(1) & {:} & Erl
+      
+      	End Function
+      	
+      End Class
+      
+      %REM
+      	Class DBINFO
+      	Description: %TODO
+      %END REM
+      Class DBINFO
+      	server As String
+      	filepath As String
+      	lastExport As Variant ' date/time
+      	desCount As Long
+      	desByUNID List As Variant
+      	desByPath List As Variant
+      End Class
+      
+      
+      %REM
+      	Class DESELEMINFO
+      	Description: Information about one design element
+      %END REM
+      Class DESELEMINFO
+      	Title As String
+      	Aliases As Variant
+      	UNID As String
+      	Type As String ' e.g. "form"
+      	modTime As Variant
+      End Class
+      %REM
+      	Class TidyDB
+      	Description: Store a database handle that we want to guarantee gets closed when this object falls out of scope.
+      		Additionally, you can specify that the database itself is temporary and will be deleted when you're done.
+      	Constructor: New TidyDB(db, bTemp)
+      %END REM
+      Class TidyDB
+      	Public db As NotesDatabase
+      	deletionPath As String
+      	deletionServer As String
+      	%REM
+      		Sub New
+      		Description: @@TODO
+      		Arguments:
+      	%END REM
+      	Sub New(db As NotesDatabase, ByVal bTemporary As Boolean)
+      		Set me.db = db
+      		If bTemporary Then
+      			deletionPath = db.filepath
+      			deletionServer = db.Server
+      		End If
+      	End Sub
+      	
+      	Sub Delete
+      		On Error Resume Next
+      		If Not (db Is Nothing) Then
+      			If deletionServer <> "" Then
+      				db.remove
+      			End If
+      			If Not (db Is Nothing) Then Delete db
+      		End If
+      		If deletionServer = "" And deletionPath <> "" Then
+      			Kill deletionPath
+      		End If
+      	End Sub
+      End Class
+    signed: true
+    nonsummary: true
+  - name: $TITLE
+    type: text
+    data: Form_Comparison
+    signed: true
+remaining: []

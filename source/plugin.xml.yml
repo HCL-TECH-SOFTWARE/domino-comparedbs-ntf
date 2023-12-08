@@ -1,0 +1,94 @@
+---
+class: 4
+flags: 0x0000
+unid: OFED65DDDDE3BB9CDE-ON007FBC9D86258669
+items:
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $FileNames
+    type: text
+    data: plugin.xml
+    signed: true
+  - name: $Flags
+    type: text
+    data: ~C4g
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-08-16T13:46:46.69-04:00"
+        dst: true
+      - data: "2021-08-16T12:56:45.20-05:00"
+        dst: true
+      - data: "2021-08-16T14:24:15.92-04:00"
+        dst: true
+      - data: "2021-08-16T13:36:57.86-05:00"
+        dst: true
+      - data: "2021-08-17T12:30:33.90-04:00"
+        dst: true
+      - data: "2021-08-17T11:41:08.16-05:00"
+        dst: true
+      - data: "2021-09-09T06:08:20.49-04:00"
+        dst: true
+      - data: "2021-09-09T09:54:26.89-04:00"
+        dst: true
+      - data: "2021-09-15T21:26:51.87-04:00"
+        dst: true
+      - data: "2021-09-15T21:27:55.28-04:00"
+        dst: true
+      - data: "2021-09-15T21:28:11.16-04:00"
+        dst: true
+      - data: "2021-09-15T20:44:08.52-05:00"
+        dst: true
+      - data: "2021-09-15T22:04:51.83-04:00"
+        dst: true
+      - data: "2021-09-15T21:24:23.01-05:00"
+        dst: true
+      - data: "2021-09-15T22:44:40.19-04:00"
+        dst: true
+      - data: "2021-09-16T12:02:58.78-05:00"
+        dst: true
+      - data: "2021-09-28T10:12:15.36-04:00"
+        dst: true
+      - data: "2021-09-28T13:31:56.01-05:00"
+        dst: true
+      - data: "2021-09-28T14:40:49.12-04:00"
+        dst: true
+      - data: "2021-09-28T14:00:12.53-05:00"
+        dst: true
+      - data: "2021-09-29T08:36:27.19-04:00"
+        dst: true
+      - data: "2021-09-29T13:45:38.14-04:00"
+        dst: true
+      - data: "2021-10-05T12:59:02.36-04:00"
+        dst: true
+      - data: "2021-10-07T15:22:01.68-04:00"
+        dst: true
+      - data: "2021-10-14T17:06:18.78-04:00"
+        dst: true
+      - data: "2021-10-19T08:19:33.14-04:00"
+        dst: true
+      - data: "2021-10-20T17:22:43.78-04:00"
+        dst: true
+      - data: "2021-10-20T16:29:07.80-05:00"
+        dst: true
+      - data: "2021-10-21T13:54:25.84-04:00"
+        dst: true
+      - data: "2021-10-21T13:01:30.87-05:00"
+        dst: true
+      - data: "2021-10-21T14:22:46.31-04:00"
+        dst: true
+      - data: "2021-10-21T13:41:42.70-05:00"
+        dst: true
+      - data: "2021-10-21T15:02:34.85-04:00"
+        dst: true
+      - data: "2021-11-11T17:02:48.92-06:00"
+  - name: $TITLE
+    type: text
+    data: plugin.xml
+  - name: $FileData
+    type: composite
+    signed: true
+    nonsummary: true
+remaining: []

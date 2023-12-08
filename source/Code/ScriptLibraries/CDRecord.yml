@@ -1,0 +1,454 @@
+---
+class: 512
+flags: 0x2000
+unid: OF5A3D223B329FE9AA-ON007B06E3862586DB
+items:
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: s34Q
+  - name: $PublicAccess
+    type: text
+    data: "1"
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-09-16T12:02:36.01-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:55.53-05:00"
+        dst: true
+      - data: "2021-09-27T22:33:22.14-05:00"
+        dst: true
+      - data: "2021-11-18T08:07:52.60-06:00"
+      - data: "2021-11-18T08:07:52.65-06:00"
+      - data: "2021-11-29T13:18:17.36-05:00"
+      - data: "2021-11-29T13:18:17.44-05:00"
+      - data: "2021-11-29T13:47:48.79-05:00"
+      - data: "2021-11-29T13:47:48.88-05:00"
+      - data: "2021-11-29T13:48:07.83-05:00"
+      - data: "2021-11-29T13:48:07.89-05:00"
+      - data: "2021-11-29T13:48:54.74-05:00"
+      - data: "2021-11-29T13:48:54.82-05:00"
+      - data: "2021-11-29T14:00:07.33-05:00"
+      - data: "2021-11-29T14:00:07.41-05:00"
+      - data: "2021-11-29T14:08:32.19-05:00"
+  - name: $ScriptLib
+    type: text
+    data: |
+      '++LotusScript Development Environment:2:5:(Options):0:74
+      %REM
+      	Library CDRecord
+      	Created by Andre Guirard
+      	Description: Scan and parse data from a CD record stream, such as is used in a rich text item.
+      		Some CD records are understood by this code and reported as lists of properties; others are just presented as
+      		blobs of binary data.
+      	© Copyright HCL Company, 2021
+      %END REM
+      Option Public
+      Option Declare
+      Use "HexUtils"
+      Use "DOMUtils"
+      
+      
+      '++LotusScript Development Environment:2:5:(Forward):0:1
+      Declare Class CDRecordStream
+      Declare Class CDRecord
+      Declare Class CDPrintHeader As CDRecord
+      Declare Class FontID
+      Declare Class CDDataflags As CDRecord
+      
+      '++LotusScript Development Environment:2:5:(Declarations):0:10
+      %REM
+      	Class CDRecordStream
+      	Description: Scan a stream of binary data and break it into CD records (such as are used in Notes rich text, for instance).
+      %END REM
+      Class CDRecordStream
+      	z_ses As NotesSession
+      	Public stream As NotesStream
+      	
+      	%REM
+      		Sub New
+      		Description: Pass in a string containing base64-encoded CD record data. It's OK to use "" and provide a stream later.
+      		Arguments:
+      	%END REM
+      	Sub New(szBase64$)
+      		Set z_ses = New NotesSession
+      		If Len(szBase64) then
+      			Set stream = z_ses.Createstream()
+      			Base64ToBinary szBase64, stream
+      			stream.Position = 0
+      		End if
+      	End Sub
+      	
+      	%REM
+      		Function fetch
+      		Description: Return a CD record from current stream position, leaving stream position at the byte following the record
+      		Return value: a CDRecord or one of its derived types.
+      	%END REM
+      	Function fetch As CDRecord
+      		On Error GoTo oops
+      		Dim bytes, code As Byte, cBytes As Long, origPos&
+      		If stream.Iseos Then Exit Function
+      		origPos = stream.Position
+      		bytes = stream.Read(6)	' pull the signature and at least the number of bytes needed for a length
+      		If UBound(bytes) = 0 Then Exit Function ' return Nothing
+      		stream.Position = origPos
+      		code = bytes(0)
+      		If bytes(1) = 0 Then ' long record length
+      			cBytes = bytes(2) + 256& * (bytes(3) + 256& * (bytes(4) + 256& * bytes(5)))
+      		ElseIf bytes(1) = &hFF Then ' word length
+      			cBytes = bytes(2) + 256&*bytes(3)
+      		Else ' byte length
+      			cBytes = bytes(1)
+      		End If
+      		Select Case code
+      			Case &h8E
+      				Set fetch = New CDPrintHeader(stream, cBytes, code)
+      			Case &h62
+      				Set fetch = New CDDataFlags(stream, cBytes, code)
+      			Case Else
+      				Set fetch = New CDRecord(stream, cBytes, code)
+      		End Select
+      		Exit Function
+      oops:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      End Class
+      
+      %REM
+      	Class CDRecord
+      	Description: Represents one CD record
+      %END REM
+      Class CDRecord
+      	z_stream As NotesStream
+      	z_pos As Long
+      	z_code As Byte
+      	z_ses As NotesSession
+      	Public props List As Variant ' key = property name, value = whatever the value is.
+      	Public Type As Byte
+      	
+      	%REM
+      		Sub New
+      		Description: Initialize a new CDRecord object from the binary data in a stream. 
+      		Arguments: stream, with position set to the beginning of the record (just past the first byte).
+      			The stream position is adjusted to the byte following the record.
+      	%END REM
+      	Sub New(stream As NotesStream, ByVal recLen As Long, ByVal recordType As Byte)
+      		Dim bytes, pos As Long, cSegment%
+      		Set z_ses = New NotesSession
+      		Set z_stream = z_ses.Createstream
+      		If reclen > 10000 Then cSegment = 10000 Else cSegment = recLen
+      		recLen = recLen - cSegment
+      		bytes = stream.Read(cSegment)
+      		Call z_stream.Write(bytes)
+      		Select Case bytes(1)
+      			Case &hFF
+      				pos = 4
+      			Case 0
+      				pos = 6
+      			Case Else
+      				pos = 2
+      		End Select
+      		While recLen
+      			If reclen > 10000 Then cSegment = 10000 Else cSegment = recLen
+      			recLen = recLen - cSegment
+      			bytes = stream.Read(cSegment)
+      			Call z_stream.Write(bytes)
+      		Wend
+      		z_stream.Position = pos
+      		me.type = recordType
+      		Parse
+      	End Sub
+      	
+      	%REM
+      		Sub Parse
+      		Description: Override to parse the fields associated with the specific record type.
+      		Arguments:
+      	%END REM
+      	Private Sub Parse
+      	End Sub
+      	
+      	%REM
+      		Property Get length
+      		Description: %TODO
+      		Arguments:
+      	%END REM
+      	Public Property Get length As Long
+      		length = z_stream.Bytes
+      	End Property
+      	
+      	%REM
+      		Function getInt
+      		Description: Retrieve a low-byte-first word integer value from the record data, leaving the position one past that point.
+      	%END REM
+      	Function getInt As Integer
+      		Dim bytes
+      		bytes = z_stream.read(2)
+      		getInt = bytes(0) + 256& * bytes(1)
+      	End Function
+      	
+      	%REM
+      		Function getByte
+      		Description: Retrieve one byte from the stream, leaving pointer one past that byte.
+      	%END REM
+      	Private Function getByte As Byte
+      		Dim bytes
+      		bytes = z_stream.read(1)
+      		getByte = bytes(0)
+      	End Function
+      	
+      	%REM
+      		Function getLong
+      		Description: %TODO
+      		Arguments:
+      		Return value:
+      	%END REM
+      	Private Function getLong As Long
+      		Dim bytes
+      		bytes = z_stream.read(4)
+      		getLong = bytes(0) + 256& * (bytes(1) + 256& * (bytes(2) + 256& * bytes(3)))
+      	End Function
+      	
+      	%REM
+      		Function getFontID
+      		Description: %TODO
+      		Arguments:
+      		Return value:
+      	%END REM
+      	Private Function getFontID As FontID
+      		Dim bytes
+      		bytes = z_stream.Read(4)
+      		Set getFontID = New FontID
+      		getFontID.Face = bytes(0)
+      		getFontID.attrib = bytes(1)
+      		getFontID.Color = bytes(2)
+      		getFontID.PointSize = bytes(3)
+      	End Function
+      	
+      	%REM
+      		Function getLMBCSString
+      		Description: Get a null-terminated LMBCS string that occupies a fixed position and length in the record.
+      		Arguments:
+      			cLen: Number of bytes in the string buffer. This many bytes are consumed from stream.
+      			bExact: if False, the buffer may have a null terminator which ends the string.		
+      		Return value: string found.
+      	%END REM
+      	Private Function getLMBCSString(ByVal cLen%, ByVal bExact As Boolean) As String
+      		Dim bytes, i%
+      		If cLen <= 0 Then Exit Function
+      		bytes = z_stream.Read(cLen)
+      		If Not bExact then
+      			For i = 0 To UBound(bytes)
+      				If bytes(i) = 0 Then Exit For
+      			Next
+      			If i = 0 Then Exit Function
+      			If i <= UBound(bytes) Then
+      				ReDim Preserve bytes(0 To i-1) ' discard null terminator and anything following.
+      			End If
+      		End If
+      		Dim strTmp As NotesStream
+      		Set strTmp = z_ses.Createstream
+      		strTmp.write bytes
+      		
+      		Dim db As NotesDatabase
+      		Set db = z_ses.Currentdatabase
+      		Dim doc As NotesDocument
+      		Set doc = db.Createdocument
+      		Dim mime As NotesMIMEEntity
+      		Set mime = doc.Createmimeentity("Body")
+      		Call mime.Setcontentfrombytes(strTmp, "text/plain; charset=LMBCS", ENC_NONE)
+      		strTmp.Truncate
+      		mime.Getcontentastext strTmp, True
+      		strTmp.Position = 0
+      		getLMBCSString = strTmp.Readtext()
+      	End Function
+      	
+      	%REM
+      	Function HexDump
+      		Description: %TODO
+      		Arguments:
+      		Return value: 
+      	%END REM
+      	Function HexDump As String
+      		Dim bytes, pos&, i%, k%, tmp$, tex$, by As byte
+      		z_stream.Position = 0
+      		Do Until z_stream.iseos
+      			bytes = z_stream.read(1024)
+      			For i = 0 To UBound(bytes) Step 16
+      				tmp = Right$("000" & Hex(pos+i), 4)
+      				For k = 0 To 16
+      					If i+k <= UBound(bytes) Then
+      						by = bytes(i+k)
+      						tmp = tmp & " " & Right$("0" + Hex(by), 2)
+      						If by >= 32 And by < 128 then
+      							tex = tex & Chr$(by)
+      						Else
+      							tex = tex & {°}
+      						End If
+      					Else
+      						tmp = tmp & "   "
+      					End If
+      				Next
+      				If pos = 0 Then HexDump = tmp & tex Else HexDump = HexDump & NEWLINE & tmp & tex
+      			Next
+      			pos = pos + 1024&
+      		Loop
+      	End Function
+      	
+      	%REM
+      		Function toDOM
+      		Description: Describe the CD record via a DOM element.
+      		Arguments:
+      		Return value:
+      	%END REM
+      	Function toDOM(domd As NotesDOMDocumentNode) As NotesDOMElementNode
+      		On Error GoTo oops
+      		Dim elDesc As NotesDOMElementNode, tex As NotesDOMTextNode
+      		Set elDesc = domd.Createelementnode("cdrecord")
+      		elDesc.Setattribute {type}, "0x" & Right$("0" & hex(me.type), 2)
+      		Set tex = domd.Createtextnode(Text)
+      		tex.Nodevalue = hexdump
+      		elDesc.Appendchild tex
+      		Set toDom = elDesc
+      		Exit Function
+      oops:
+      		Error Err, Error & { //} & TypeName(Me) & {.} & GetThreadInfo(1) & {:} & Erl & (Erl-Getthreadinfo(0))
+      	End Function
+      End Class
+      
+      
+      %REM
+      	Class CDPrintHeader
+      	Description: Represents the contents of a $Footer or $Header item.
+      %END REM
+      Class CDPrintHeader As CDRecord
+      	Sub New(stream As NotesStream, ByVal recLen As Long, ByVal recordType As Byte), CDRecord(stream, recLen, recordType)
+      	End Sub
+      	
+      	Private Sub Parse
+      		Dim itmp%
+      		props("FontPitchAndFamily") = getByte
+      		props("FontName") = getLMBCSString(32, false)
+      		Set props("Font") = getFontID
+      		itmp = getInt
+      		props("Text") = getLMBCSString(itmp, true)
+      	End Sub
+      	
+      	Function toDOM(domd As NotesDOMDocumentNode) As NotesDOMElementNode
+      		Dim elDesc As NotesDOMElementNode, tex As NotesDOMTextNode
+      		Set elDesc = domd.Createelementnode("headerOrFooter")
+      		elDesc.Setattribute {type}, "0x" & Right$("0" & Hex(me.type), 2)
+      		Set tex = domd.Createtextnode(props({Text}))
+      		Call elDesc.Appendchild(tex)
+      		Dim fid As fontid, fnam$
+      		Set fid = props({Font})
+      		fnam = props({FontName})
+      		If fnam = "" Then elDesc.Setattribute "font", fid.fontName Else elDesc.Setattribute "fontname", fnam
+      		elDesc.Setattribute "size", fid.PointSize & "pt"
+      		elDesc.Setattribute "style", fid.Attributes
+      		elDesc.Setattribute "pitchAndFamily", props("FontPitchAndFamily")
+      		Set toDom = elDesc
+      	End Function
+      End Class
+      
+      
+      %REM
+      	Class FontID
+      	Description: %TODO
+      %END REM
+      Class FontID
+      	Public Face As Byte ' Font face (FONT_FACE_xxx)
+      	Public Attrib As Byte ' Attributes (ISBOLD,etc - see below)
+      	Public Color As Byte ' Color index (FONT_COLOR_xxx)
+      	Public PointSize As Byte ' Size of font In points
+      	
+      	%REM
+      		Property Get fontName
+      		Description: %TODO 
+      		Arguments:
+      	%END REM
+      	Public Property Get fontName As String
+      		Const HARDCODE = {Default Serif,Default Sans,Default Multilingual,Default User Interface,Default Monospace}
+      		If Face < 5 Then
+      			fontName = StrToken(HARDCODE, ",", Face+1)
+      		ElseIf face = 255 Then
+      			fontname = "" ' unknown, specified elsewhere
+      		else
+      			fontName = CStr(Face)
+      		End If
+      	End Property
+      	
+      	public Property Get Attributes As String
+      		Dim tmp$
+      		If attrib = 0 Then
+      			Attributes = "normal"
+      		Else
+      			If (Attrib And 1) Then tmp = " bold"
+      			If (Attrib And 2) Then tmp = tmp & " italic"
+      			If (Attrib And 4) Then tmp = tmp & " underline"
+      			If (Attrib And 8) Then tmp = tmp & " strikeout"
+      			If (Attrib And &h10) Then tmp = tmp & " super"
+      			If (Attrib And &h20) Then tmp = tmp & " sub"
+      			Attributes = Mid$(tmp, 2)
+      		End If
+      	End Property 
+      End Class
+      %REM
+      	Class CDDataflags
+      	Description: A record to present misc flags, often appearing in compasitedata elements of DXL output.
+      %END REM
+      Class CDDataflags As CDRecord
+      	Public recordType As Integer
+      	Public appliesTo As String
+      	Public bytes As Variant ' array of flag bytes
+      	
+      	Sub New(stream As NotesStream, ByVal recLen As Long, ByVal recordType As Byte), CDRecord(stream, recLen, recordType)
+      	End Sub
+      	
+      	Private Sub Parse
+      		Dim cDW%
+      		cDW = getInt
+      		recordType = getInt
+      		z_stream.Position = z_stream.Position + 4
+      		bytes = z_stream.Read(cDW * 4)
+      		Select Case recordtype
+      			Case 132 ' CD_SPELLCHECK_ELEMENT
+      				appliesTo = "field"
+      				If bytes(0) <> 0 Then props("attributes") = "instantSpellcheck=true" Else props("attributes") = ""
+      			Case 128 ' CD_SECTION_ELEMENT
+      				appliesTo = "section"
+      			Case 129 ' CD_FIELDLIMIT_ELEMENT
+      				appliesTo = "field"
+      			Case 130 ' CD_BUTTONEX_ELEMENT
+      				appliesTo = "button"
+      			Case 131 ' CD_TABLECELL_ELEMENT
+      				appliesTo = "tablecell"
+      		End Select
+      	End Sub
+      	
+      	Function toDOM(domd As NotesDOMDocumentNode) As NotesDOMElementNode
+      		Dim elDesc As NotesDOMElementNode
+      		Set elDesc = domd.Createelementnode("cddataflags")
+      		If IsElement(props("attributes")) Then
+      			Dim lines, tmp$
+      			tmp = props("attributes")
+      			If tmp = "" Then Exit Function ' nothing to report.
+      			lines = Split(tmp, NEWLINE)
+      			ForAll thing In lines
+      				elDesc.Setattribute StrLeft(thing, {=}), StrRight(thing, {=})
+      			End ForAll
+      		End If
+      		Set toDom = elDesc 
+      	End Function
+      End Class
+    signed: true
+    nonsummary: true
+  - name: $TITLE
+    type: text
+    data: CDRecord
+    signed: true
+remaining: []

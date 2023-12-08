@@ -1,0 +1,101 @@
+---
+class: 512
+flags: 0x2000
+unid: OF104A24A5C00FF7BC-ON006CE91D862586FC
+items:
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Flags
+    type: text
+    data: s34Q
+  - name: $PublicAccess
+    type: text
+    data: "1"
+    signed: true
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-06-30T09:28:33.72-05:00"
+        dst: true
+      - data: "2021-06-30T09:28:33.79-05:00"
+        dst: true
+      - data: "2021-06-30T11:46:15.09-05:00"
+        dst: true
+      - data: "2021-06-30T11:46:15.14-05:00"
+        dst: true
+      - data: "2021-06-30T12:16:00.19-05:00"
+        dst: true
+      - data: "2021-06-30T12:16:00.25-05:00"
+        dst: true
+      - data: "2021-06-30T12:48:57.79-05:00"
+        dst: true
+      - data: "2021-06-30T12:48:57.84-05:00"
+        dst: true
+      - data: "2021-06-30T19:54:18.67-05:00"
+        dst: true
+      - data: "2021-06-30T19:54:18.71-05:00"
+        dst: true
+      - data: "2021-06-30T19:54:45.12-05:00"
+        dst: true
+      - data: "2021-06-30T19:54:45.25-05:00"
+        dst: true
+      - data: "2021-06-30T21:57:31.58-05:00"
+        dst: true
+      - data: "2021-07-09T08:59:42.29-04:00"
+        dst: true
+      - data: "2021-07-09T09:01:56.43-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:02.91-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:44.93-04:00"
+        dst: true
+      - data: "2021-07-09T09:21:10.05-04:00"
+        dst: true
+      - data: "2021-08-16T17:09:15.84-05:00"
+        dst: true
+      - data: "2021-08-16T17:09:15.89-05:00"
+        dst: true
+      - data: "2021-08-16T17:13:22.45-05:00"
+        dst: true
+      - data: "2021-08-16T17:13:22.48-05:00"
+        dst: true
+      - data: "2021-08-17T13:55:01.61-05:00"
+        dst: true
+      - data: "2021-09-16T12:02:35.35-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:54.99-05:00"
+        dst: true
+  - name: $ScriptLib
+    type: text
+    data: |
+      '++LotusScript Development Environment:2:5:(Options):0:74
+      %REM
+      	Library Doc_Comparison
+      	Created by Andre Guirard
+      	Description: Names associated with Comparison form
+      	© Copyright HCL Software. 2021
+      %END REM
+      Option Public
+      Option Declare
+      
+      'Begin DNT
+      
+      '++LotusScript Development Environment:2:5:(Forward):0:1
+      
+      '++LotusScript Development Environment:2:5:(Declarations):0:10
+      Const FLD_LEFTSERVER = {LeftServer}
+      Const FLD_LEFTPATH = {LeftPath}
+      Const FLD_RIGHTSERVER = {RightServer}
+      Const FLD_RIGHTPATH = {RightPath}
+      Const FLD_COMPARETYPE = {CompareType}
+      Const FLD_HOWMANY = {HowMany}
+      Const FLD_EXPORT_TIME = {LastExportTime}
+    signed: true
+    nonsummary: true
+  - name: $TITLE
+    type: text
+    data: Doc_Comparison
+    signed: true
+remaining: []

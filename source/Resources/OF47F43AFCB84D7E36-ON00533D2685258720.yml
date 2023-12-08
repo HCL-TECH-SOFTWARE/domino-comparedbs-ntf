@@ -1,0 +1,55 @@
+---
+class: 1
+flags: 0x0100
+unid: OF47F43AFCB84D7E36-ON00533D2685258720
+items:
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-07-28T11:09:24.28-04:00"
+        dst: true
+      - data: "2021-08-05T10:25:07.35-04:00"
+        dst: true
+      - data: "2021-10-21T07:02:02.45-05:00"
+        dst: true
+  - name: Description
+    type: text
+    data: Export a database/template to review its design.
+  - name: DocKeyFormula
+    type: text
+    data: "@Trim(Form + \": \" + @If(Subject != \"\"; Subject; Title != \"\"; Title; Name != \"\"; Name; @Text(@DocumentUniqueID)))"
+  - name: Form
+    type: text
+    data: CompareConfig
+  - name: FormKeyFields
+    type: text
+    data: ""
+  - name: Howmany
+    type: text
+    data: "1"
+  - name: MaxLeftBlock
+    type: number
+    data: 10000
+  - name: Name
+    type: text
+    data: Design Synopsis
+  - name: NewFiles
+    type: text
+    data: "1"
+  - name: Options
+    type: text
+    data:
+      - language
+      - signbit
+      - ".properties"
+      - lscap
+  - name: RunLevel
+    type: text
+    data: "2"
+  - name: contextLines
+    type: text
+    data: "3"
+  - name: reportOptions
+    type: text
+    data: lineno
+remaining: []

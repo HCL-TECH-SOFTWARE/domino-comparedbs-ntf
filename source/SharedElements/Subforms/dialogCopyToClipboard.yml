@@ -1,0 +1,166 @@
+---
+class: 4
+flags: 0x0000
+unid: OFF10F5A8C1CCAC527-ON004C0AAC862586E0
+items:
+  - name: $$FormScript
+    type: text
+    data: |
+      '++LotusScript Development Environment:2:5:(Options):0:66
+      
+      '++LotusScript Development Environment:2:5:(Forward):0:1
+      Declare Sub Postopen(Source As Notesuidocument)
+      
+      '++LotusScript Development Environment:2:5:(Declarations):0:2
+      
+      '++LotusScript Development Environment:2:2:BindEvents:1:129
+      Private Sub BindEvents(Byval Objectname_ As String)
+      	Static Source As NOTESUIDOCUMENT
+      	Set Source = Bind(Objectname_)
+      	On Event Postopen From Source Call Postopen
+      End Sub
+      
+      '++LotusScript Development Environment:2:2:Postopen:1:12
+      Sub Postopen(Source As Notesuidocument)
+      	source.SelectAll
+      	source.Copy
+      	source.Close
+      End Sub
+    signed: true
+    nonsummary: true
+  - name: $$ScriptName
+    type: text
+    data: dialogCopyToClipboard
+    signed: true
+    nonsummary: true
+  - name: $Comment
+    type: text
+    data: ""
+    signed: true
+  - name: $DesignerVersion
+    type: text
+    data: 8.5.3
+    signed: true
+  - name: $Fields
+    type: text
+    data: Content
+  - name: $Flags
+    type: text
+    data: CUAx3
+  - name: $Revisions
+    type: time
+    data:
+      - data: "2021-05-25T08:50:34.70-05:00"
+        dst: true
+      - data: "2021-05-27T11:23:22.18-05:00"
+        dst: true
+      - data: "2021-06-30T21:57:34.61-05:00"
+        dst: true
+      - data: "2021-07-09T08:59:46.46-04:00"
+        dst: true
+      - data: "2021-07-09T09:02:00.58-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:07.02-04:00"
+        dst: true
+      - data: "2021-07-09T09:03:49.11-04:00"
+        dst: true
+      - data: "2021-07-09T09:21:14.21-04:00"
+        dst: true
+      - data: "2021-08-17T13:55:04.94-05:00"
+        dst: true
+      - data: "2021-09-16T12:02:38.70-05:00"
+        dst: true
+      - data: "2021-09-27T13:59:58.17-05:00"
+        dst: true
+  - name: $TITLE
+    type: text
+    data:
+      - dialogCopyToClipboard
+      - dialogCopyToClipboard
+  - name: Content
+    type: iou
+    type_num: 0
+    nonsummary: true
+    ph: true
+  - name: $Body
+    type: composite
+    signed: true
+    nonsummary: true
+    data:
+      - type: 0x0081
+      - type: 0xff82
+        FirstLineLeftMargin: 1440
+        Flags: 0x0100
+        Flags2: 0x8794
+        JustifyMode: 0
+        LeftMargin: 1440
+        LineSpacing: 0
+        PABID: 1
+        ParagraphSpacingAfter: 0
+        ParagraphSpacingBefore: 0
+        RightMargin: 0
+        Tab:
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+        TabTypes: 0x00000000
+        Tabs: 0
+        data:
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0x00000001
+          - 0x00000004
+      - type: 0x0083
+        PABID: 1
+      - type: 0xff85
+        FontID: 0xa000001
+      - type: 0x00dd
+        Signature: 0xff8a
+        Version: 0
+      - type: 0xfffe
+        opaque: |
+          /v9QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAeAB4AAAAAAAAAAAAAAAAAAAAAAAA
+          AAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      - type: 0xff8a
+        opaque: iv8sAIIAAQAAAAIAAAAAAAACAQAACgAAAAAAAAAABwAAAAAAQ29udGVudAA=
+      - type: 0x0062
+        opaque: Yg4BAIQAAAAAAAEAAAA=
+      - type: 0x00de
+        Signature: 0xff8a
+        Version: 0
+      - type: 0xff85
+        FontID: 0xa000001
+  - name: $HTMLCode
+    signed: true
+    nonsummary: true
+    type: opaque
+    type_num: 1
+    opaque: X/8QAAIADwAHAAAAAAAAAA==
+  - name: $Info
+    signed: true
+    nonsummary: true
+    type: opaque
+    type_num: 1
+    opaque: hhgBAIAAAAAAgAAAAQABAP///wAQAAAA
+remaining: []

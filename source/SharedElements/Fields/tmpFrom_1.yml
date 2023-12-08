@@ -1,0 +1,120 @@
+---
+class: 1024
+flags: 0x0000
+unid: OFBB75629D94090254-ON004A4535852586FE
+items:
+  - name: $DesignerVersion
+    type: text
+    data: "7"
+    signed: true
+  - name: $Fields
+    type: text
+    data: tmpFrom_1
+  - name: $Flags
+    type: text
+    data: ""
+  - name: $LANGUAGE
+    type: text
+    data: en
+    signed: true
+  - name: $TITLE
+    type: text
+    data: tmpFrom_1
+  - name: tmpFrom_1
+    type: iou
+    type_num: 0
+    nonsummary: true
+    ph: true
+  - name: $Body
+    type: composite
+    signed: true
+    data:
+      - type: 0x0081
+      - type: 0xff82
+        FirstLineLeftMargin: 1440
+        Flags: 0x0100
+        Flags2: 0x8794
+        JustifyMode: 0
+        LeftMargin: 1440
+        LineSpacing: 0
+        PABID: 1
+        ParagraphSpacingAfter: 0
+        ParagraphSpacingBefore: 0
+        RightMargin: 0
+        Tab:
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+        TabTypes: 0x00000000
+        Tabs: 0
+        data:
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0
+          - 0x00000001
+          - 0x00000004
+      - type: 0x0083
+        PABID: 1
+      - type: 0xff85
+        FontID: 0xa000001
+      - type: 0x00dd
+        Signature: 0xff8a
+        Version: 0
+      - type: 0xfffe
+        opaque: |
+          /v9iAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+          AAAAAAAAAAAAAAAAAAAAAAAAEgASAAAAEAAFAAYAQXV0aG9yAwA=
+      - type: 0xffb0
+        opaque: sP8UAAAAAAAAAAACAAAAAAAAAAA=
+      - type: 0xff8a
+        opaque: |
+          iv/mAoQBAAUAMAIAAAAAAAACAQAACrgCAAAAAAAACQAAAAAAuAIKAAQAAQAQAAMAdmVyAL8AWAEDAAcA
+          DAAGAAkxVFQyUwEAIgAGAEFCRnJvbQIABQAAAAAAAAAFAAQARnJvbbQCAwAHABAACQAJMFIxVDJTNlMA
+          CAA6AAUAAwB2ZXIAAAAAAAAAAABkQA4CrwAeABIABQAGAEFCZnJvbcIBrgAMAAEAAACuAAQAtQMDAAcA
+          EgAMAAkwUjNTNFM2UzExUwEAHgAIAExhbmdQcmVmAgDoAAAAAAAAAPsBGgEDAAcADgAIAAkwUlIxVDJT
+          AQBEAAcATG9jUHJlZgD7AAUBAQAFAE5vdGVzAAoCrwAiABQAAgCoAAAAAAAAAPsBBAGuAA4AAQABADEA
+          rgAEALUDAwAHABYAEAAJMFIxVDJTNVM2UzhTMTNTAQAqAAkAQUJBbHRGcm9tAAIABQAAAAAAAAAFAAcA
+          QWx0RnJvbQC0AgMABwAQAAkACTBSMVQyUzZTAAAAAgEFAAQAZm9ybQEACQBBbm9ueW1vdXMARwKvAOIA
+          FAABAAkAQW5vbnltb3VzAK4AzgAFAAcATG9jUHJlZgABAAAACgIFAAcATG9jUHJlZgABAAEAMAAKAh0C
+          rwCiABAABQAGAEFCRnJvba4AkgAFAAgATGFuZ1ByZWYBAAAACgIFAAcAQWx0TGFuZwABAAAACgIdAq8A
+          aAAQAAUABgBBQkZyb22uAFgABQAHAEFsdExhbmcABQAIAExhbmdQcmVmdAIFAAcAQWx0RnJvbQABAAAA
+          CwIcAq8AJgAUAAUACQBBQkFsdEZyb20ArgASAAUABgBBQkZyb22uAAQAtQkDAAcAVgBQAAkwUlI2UzlT
+          MTFSMTJTMTNTMTRTMTVTMTZTMTdTMTlTMjFSMjJTMjNTMjRTMjVTMjZTMjdTMjlTMzFSMzVTMzdTMzhT
+          MzlTNDBTNDJTNDRTdG1wRnJvbV8xAA==
+      - type: 0x00de
+        Signature: 0xff8a
+        Version: 0
+      - type: 0xff85
+        FontID: 0xa000001
+  - name: $HTMLCode
+    signed: true
+    nonsummary: true
+    type: opaque
+    type_num: 1
+  - name: $Info
+    signed: true
+    nonsummary: true
+    type: opaque
+    type_num: 1
+    opaque: hhgBAIAAAAAAgAAAAQABAP///wAAAAAA
+remaining: []
