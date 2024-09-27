@@ -25,7 +25,7 @@ Property | Value
 ---|---
 Filename | comparedbs.ntf 
 Templatename | HCL Compare DBs
-Template version | 14.0
+Template version | 12.0.2
 Signed by | Open Source Template/Domino Development
 Optimized for | Notes Client 
 
