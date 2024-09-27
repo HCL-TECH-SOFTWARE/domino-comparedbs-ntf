@@ -6,7 +6,7 @@ description: HCL Domino Compare DBs Template
 version: 14.0
 
 git_url: "https://github.com/HCL-TECH-SOFTWARE/domino-comparedbs-ntf"
-baseurl: "/domino-discussion-ntf"
+baseurl: "/domino-comparedbs-ntf"
 permalink: pretty
 exclude:
   [
